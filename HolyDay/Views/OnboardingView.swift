@@ -109,11 +109,13 @@ private struct NamePage: View {
 
     private var greetingPreview: String {
         let hour = Calendar.current.component(.hour, from: Date())
+        let base: String
         switch hour {
-        case 5..<12: return "Bon matin, \(nameInput.trimmingCharacters(in: .whitespaces))"
-        case 12..<18: return "Bon après-midi, \(nameInput.trimmingCharacters(in: .whitespaces))"
-        default: return "Bonsoir, \(nameInput.trimmingCharacters(in: .whitespaces))"
+        case 5..<12: base = NSLocalizedString("greeting.morning", comment: "")
+        case 12..<18: base = NSLocalizedString("greeting.afternoon", comment: "")
+        default: base = NSLocalizedString("greeting.evening", comment: "")
         }
+        return "\(base), \(nameInput.trimmingCharacters(in: .whitespaces))"
     }
 
     private var trimmedName: String { nameInput.trimmingCharacters(in: .whitespaces) }

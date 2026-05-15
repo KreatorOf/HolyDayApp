@@ -14,6 +14,9 @@ struct ContentView: View {
     @State private var streak = StreakService.shared
     @State private var showNavTitle = false
     @AppStorage("holyday.userName") private var userName = ""
+    @Query(sort: \PrayerEntry.date) private var allEntries: [PrayerEntry]
+    @State private var stepsAppeared = false
+    @State private var topInset: CGFloat = 100
 
     var body: some View {
         NavigationStack {
@@ -22,6 +25,7 @@ struct ContentView: View {
                     VStack(spacing: 20) {
                         headerSection
                             .padding(.horizontal, 16)
+                            .padding(.top, topInset + 44 + 12)
 
                         VerseCardView(verse: viewModel.verseOfTheDay)
                             .padding(.horizontal, 16)
@@ -39,6 +43,7 @@ struct ContentView: View {
                     .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isAllCompleted)
                 }
                 .scrollIndicators(.hidden)
+                .ignoresSafeArea(.all, edges: .top)
                 .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, y in
                     withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = y > 80 }
                 }
@@ -59,6 +64,13 @@ struct ContentView: View {
                 }
             }
         }
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { topInset = geo.safeAreaInsets.top }
+            }
+            .ignoresSafeArea()
+        )
     }
 
     // MARK: Header
@@ -67,36 +79,40 @@ struct ContentView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         let base: String
         switch hour {
-        case 5..<12: base = "Bonjour"
-        case 12..<18: base = "Bon après-midi"
-        default: base = "Bonsoir"
+        case 5..<12: base = NSLocalizedString("greeting.morning", comment: "")
+        case 12..<18: base = NSLocalizedString("greeting.afternoon", comment: "")
+        default: base = NSLocalizedString("greeting.evening", comment: "")
         }
         return userName.isEmpty ? base : "\(base), \(userName)"
     }
 
     private var headerSection: some View {
-        HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(greeting)
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .tracking(0.3)
-                HStack(spacing: 0) {
-                    Text("Holy")
-                        .font(.system(size: 38, weight: .bold, design: .serif).italic())
-                        .foregroundStyle(AppTheme.textPrimary)
-                    Text("Day")
-                        .font(.system(size: 38, weight: .thin, design: .serif))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .bottom) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(greeting)
+                        .font(.subheadline)
                         .foregroundStyle(AppTheme.textSecondary)
+                        .tracking(0.3)
+                    HStack(spacing: 0) {
+                        Text("Holy")
+                            .font(.system(size: 38, weight: .bold, design: .serif).italic())
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Text("Day")
+                            .font(.system(size: 38, weight: .thin, design: .serif))
+                            .foregroundStyle(AppTheme.textSecondary)
+                    }
+                }
+                Spacer()
+                if streak.currentStreak > 0 {
+                    streakBadge
+                        .transition(.scale.combined(with: .opacity))
                 }
             }
-            Spacer()
-            if streak.currentStreak > 0 {
-                streakBadge
-                    .transition(.scale.combined(with: .opacity))
-            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: streak.currentStreak)
+
+            weeklyCalendar
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: streak.currentStreak)
     }
 
     private var streakBadge: some View {
@@ -142,7 +158,7 @@ struct ContentView: View {
             }
 
             VStack(spacing: 10) {
-                ForEach(viewModel.prayerSteps) { step in
+                ForEach(Array(viewModel.prayerSteps.enumerated()), id: \.element.id) { index, step in
                     PrayerStepView(
                         step: step,
                         isExpanded: viewModel.isExpanded(step),
@@ -153,6 +169,12 @@ struct ContentView: View {
                         onPray: { viewModel.save(step: step, in: modelContext) }
                     )
                     .id(step.id)
+                    .offset(y: stepsAppeared ? 0 : 18)
+                    .opacity(stepsAppeared ? 1 : 0)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.85).delay(Double(index) * 0.07),
+                        value: stepsAppeared
+                    )
                     .scrollTransition { content, phase in
                         content
                             .opacity(phase.isIdentity ? 1 : 0.65)
@@ -160,6 +182,7 @@ struct ContentView: View {
                     }
                 }
             }
+            .onAppear { stepsAppeared = true }
         }
     }
 
@@ -216,6 +239,83 @@ struct ContentView: View {
             }
         } catch {
             // silent — no questions shown, user still prays freely
+        }
+    }
+}
+
+// MARK: Date & weekly calendar
+
+extension ContentView {
+    private static let todayFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale.current
+        f.dateFormat = "EEEE d MMMM"
+        return f
+    }()
+
+    private static let dayLetterFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale.current
+        f.dateFormat = "EEEEE"
+        return f
+    }()
+
+    var todayFormatted: String {
+        let s = Self.todayFormatter.string(from: Date())
+        return s.prefix(1).uppercased() + s.dropFirst()
+    }
+
+    var prayedDays: Set<Date> {
+        let calendar = Calendar.current
+        let cutoff = calendar.date(byAdding: .day, value: -7, to: calendar.startOfDay(for: Date())) ?? Date()
+        return Set(allEntries
+            .filter { $0.date >= cutoff }
+            .map { calendar.startOfDay(for: $0.date) })
+    }
+
+    var weeklyCalendar: some View {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        // weekday: 1=dim, 2=lun, ..., 7=sam → offset pour revenir au lundi
+        let weekday = calendar.component(.weekday, from: today)
+        let daysFromMonday = (weekday + 5) % 7
+        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) ?? today
+        return HStack(spacing: 0) {
+            ForEach(0..<7, id: \.self) { i in
+                let date = calendar.date(byAdding: .day, value: i, to: monday) ?? monday
+                let isToday = calendar.startOfDay(for: date) == today
+                let hasPrayer = prayedDays.contains(calendar.startOfDay(for: date))
+                VStack(spacing: 5) {
+                    Text(Self.dayLetterFormatter.string(from: date).uppercased())
+                        .font(.system(size: 9, weight: .medium))
+                        .foregroundStyle(isToday ? AppTheme.textSecondary : AppTheme.textTertiary)
+                    ZStack {
+                        Circle()
+                            .fill(hasPrayer ? AppTheme.thanksgivingGold.opacity(0.9) : Color.white.opacity(0.07))
+                        if isToday && !hasPrayer {
+                            Circle()
+                                .strokeBorder(AppTheme.thanksgivingGold.opacity(0.45), lineWidth: 1.5)
+                        }
+                        if hasPrayer {
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(.black)
+                        }
+                    }
+                    .frame(width: 30, height: 30)
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 4)
+        .background {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                }
         }
     }
 }

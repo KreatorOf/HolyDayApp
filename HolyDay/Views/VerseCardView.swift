@@ -1,6 +1,6 @@
 //
 //  VerseCardView.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //
@@ -10,15 +10,34 @@ import SwiftUI
 struct VerseCardView: View {
     let verse: Verse
     @State private var isPressed = false
-    
+
+    private var bookAccentColor: Color {
+        switch verse.book {
+        case "Jean", "Matthieu", "Marc", "Luc",
+             "John", "Matthew", "Mark", "Luke":
+            return AppTheme.confessionBlue
+        case "Psaumes", "Proverbes",
+             "Psalms", "Proverbs":
+            return AppTheme.thanksgivingGold
+        case "Philippiens", "Jacques", "1 Pierre",
+             "Philippians", "James", "1 Peter":
+            return AppTheme.supplicationGreen
+        default:
+            return AppTheme.adorationPurple
+        }
+    }
+
+    private var shareText: String {
+        "\"\(verse.text)\"\n\n— \(verse.reference)"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            // En-tête avec badge premium
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "book.closed.fill")
                         .font(.caption2)
-                        .foregroundStyle(AppTheme.thanksgivingGold)
+                        .foregroundStyle(bookAccentColor)
                     Text("Verset du jour")
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -26,10 +45,9 @@ struct VerseCardView: View {
                         .textCase(.uppercase)
                         .tracking(1.5)
                 }
-                
+
                 Spacer()
-                
-                // Badge date premium
+
                 Text(Date.now.formatted(date: .abbreviated, time: .omitted))
                     .font(.caption2)
                     .fontWeight(.medium)
@@ -37,51 +55,55 @@ struct VerseCardView: View {
                     .padding(.horizontal, 10)
                     .padding(.vertical, 4)
                     .background {
-                        Capsule()
-                            .fill(Color.white.opacity(0.1))
+                        Capsule().fill(Color.white.opacity(0.1))
                     }
+
+                ShareLink(item: shareText) {
+                    Image(systemName: "square.and.arrow.up")
+                        .font(.caption)
+                        .foregroundStyle(bookAccentColor.opacity(0.8))
+                        .padding(7)
+                        .background {
+                            Circle().fill(Color.white.opacity(0.08))
+                        }
+                }
             }
-            
-            // Texte du verset avec style premium
+
             Text(verse.text)
                 .font(.title3)
                 .fontWeight(.medium)
                 .lineSpacing(10)
                 .foregroundStyle(AppTheme.textPrimary)
                 .multilineTextAlignment(.leading)
-            
-            // Référence avec accent gold
+
             HStack {
                 Spacer()
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(AppTheme.thanksgivingGold)
+                        .fill(bookAccentColor)
                         .frame(width: 4, height: 4)
                     Text(verse.reference)
                         .font(.subheadline)
                         .fontWeight(.bold)
-                        .foregroundStyle(AppTheme.thanksgivingGold)
+                        .foregroundStyle(bookAccentColor)
                 }
             }
         }
         .padding(28)
         .background {
             ZStack {
-                // Gradient de fond subtil clippé à la forme
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(AppTheme.primaryGradient.opacity(0.15))
 
-                // Glass effect
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(.ultraThinMaterial)
-                
-                // Bordure lumineuse
+
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .strokeBorder(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1)
+                                bookAccentColor.opacity(0.4),
+                                Color.white.opacity(0.08)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -90,7 +112,7 @@ struct VerseCardView: View {
                     )
             }
             .shadow(color: AppTheme.premiumShadow, radius: 20, x: 0, y: 10)
-            .shadow(color: AppTheme.thanksgivingGold.opacity(0.2), radius: 30, x: 0, y: 15)
+            .shadow(color: bookAccentColor.opacity(0.18), radius: 30, x: 0, y: 15)
         }
         .scaleEffect(isPressed ? 0.98 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
@@ -99,16 +121,17 @@ struct VerseCardView: View {
 
 #Preview {
     ZStack {
-        AppTheme.backgroundPrimary
-            .ignoresSafeArea()
-        
-        VerseCardView(verse: Verse(
-            text: "Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.",
-            reference: "Jean 3:16",
-            book: "Jean",
-            chapter: 3,
-            verse: 16
-        ))
+        AppTheme.backgroundPrimary.ignoresSafeArea()
+        VStack(spacing: 16) {
+            VerseCardView(verse: Verse(
+                text: "Car Dieu a tant aimé le monde qu'il a donné son Fils unique.",
+                reference: "Jean 3:16", book: "Jean", chapter: 3, verse: 16
+            ))
+            VerseCardView(verse: Verse(
+                text: "L'Éternel est mon berger : je ne manquerai de rien.",
+                reference: "Psaume 23:1", book: "Psaumes", chapter: 23, verse: 1
+            ))
+        }
         .padding()
     }
 }
