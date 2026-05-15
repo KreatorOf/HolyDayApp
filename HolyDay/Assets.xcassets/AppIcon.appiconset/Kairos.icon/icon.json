@@ -1,0 +1,40 @@
+{
+  "fill" : {
+    "automatic-gradient" : "display-p3:0.05432,0.05167,0.11688,1.00000"
+  },
+  "groups" : [
+    {
+      "layers" : [
+        {
+          "blend-mode" : "lighten",
+          "fill" : "automatic",
+          "glass" : true,
+          "image-name" : "praying-hands-svgrepo-com.svg",
+          "name" : "praying-hands-svgrepo-com",
+          "opacity" : 1,
+          "position" : {
+            "scale" : 0.95,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

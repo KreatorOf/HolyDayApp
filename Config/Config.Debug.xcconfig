@@ -1,0 +1,12 @@
+// Config.Debug.xcconfig
+// Environnement de développement local.
+
+#include? "Config/Secrets.Debug.xcconfig"
+
+// Identité
+INFOPLIST_KEY_CFBundleDisplayName = HolyDay Dev
+PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay.debug
+
+// Environnement
+INFOPLIST_KEY_AppEnvironment = Debug
+INFOPLIST_KEY_LoggingEnabled = YES

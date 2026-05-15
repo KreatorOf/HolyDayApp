@@ -1,0 +1,6 @@
+// Config.shared.xcconfig
+// Paramètres communs à tous les environnements.
+// Ce fichier est inclus par chaque Config.<env>.xcconfig.
+
+// Identifiant du bundle de base (le suffixe est ajouté par env si besoin)
+PRODUCT_BUNDLE_IDENTIFIER_BASE = com.matthiascadet.HolyDay

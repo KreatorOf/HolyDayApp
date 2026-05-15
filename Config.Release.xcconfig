@@ -1,0 +1,15 @@
+// Config.Release.xcconfig
+// Environnement de production (App Store).
+
+#include "Config.shared.xcconfig"
+#include? "Secrets.Release.xcconfig"
+
+// Identité
+INFOPLIST_KEY_CFBundleDisplayName = HolyDay
+PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay
+
+// Environnement
+INFOPLIST_KEY_AppEnvironment = Release
+
+// Logging désactivé en production
+INFOPLIST_KEY_LoggingEnabled = NO

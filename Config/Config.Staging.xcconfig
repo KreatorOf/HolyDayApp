@@ -1,0 +1,13 @@
+// Config.Staging.xcconfig
+// Environnement de test (TestFlight).
+
+#include? "Config/Secrets.Release.xcconfig"
+
+// Identité — même bundle que Release pour TestFlight → App Store sans réinstallation
+INFOPLIST_KEY_CFBundleDisplayName = HolyDay
+PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay
+
+// Environnement
+INFOPLIST_KEY_AppEnvironment = Staging
+SWIFT_ACTIVE_COMPILATION_CONDITIONS = STAGING
+INFOPLIST_KEY_LoggingEnabled = YES

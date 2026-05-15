@@ -1,0 +1,17 @@
+# Secrets — ne jamais committer les clés réelles
+Config/Secrets.Debug.xcconfig
+Config/Secrets.Release.xcconfig
+Secrets.Debug.xcconfig
+Secrets.Release.xcconfig
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcworkspace/xcshareddata/
+DerivedData/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# macOS
+.DS_Store
