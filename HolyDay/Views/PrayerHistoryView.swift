@@ -94,8 +94,8 @@ struct PrayerHistoryView: View {
 
     private func dayLabel(_ date: Date) -> String {
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return "Aujourd'hui" }
-        if calendar.isDateInYesterday(date) { return "Hier" }
+        if calendar.isDateInToday(date) { return NSLocalizedString("date.today", comment: "") }
+        if calendar.isDateInYesterday(date) { return NSLocalizedString("date.yesterday", comment: "") }
         return date.formatted(.dateTime.day().month(.wide).year())
     }
 

@@ -1,0 +1,21 @@
+/* Greetings */
+"greeting.morning" = "Bonjour";
+"greeting.afternoon" = "Bon après-midi";
+"greeting.evening" = "Bonsoir";
+
+/* Prayer steps */
+"step.adoration.title" = "Adoration";
+"step.adoration.description" = "Prenez un moment pour reconnaître qui est Dieu. Méditez sur Sa grandeur, Sa bonté et Sa sainteté.";
+"step.confession.title" = "Confession";
+"step.confession.description" = "Examinez votre cœur et confessez vos péchés. Recevez le pardon et la grâce de Dieu.";
+"step.thanksgiving.title" = "Reconnaissance";
+"step.thanksgiving.description" = "Exprimez votre gratitude pour les bénédictions reçues. Remerciez Dieu pour Sa fidélité.";
+"step.supplication.title" = "Supplication";
+"step.supplication.description" = "Présentez vos demandes à Dieu. Priez pour vos besoins et ceux des autres.";
+
+/* Date labels */
+"date.today" = "Aujourd'hui";
+"date.yesterday" = "Hier";
+
+/* Notification */
+"notification.daily.body" = "C'est l'heure de votre prière quotidienne.";
