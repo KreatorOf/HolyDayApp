@@ -1,6 +1,6 @@
 //
 //  PrayerStep.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //

@@ -1,6 +1,6 @@
 //
 //  MainTabView.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //
@@ -21,6 +21,7 @@ struct MainTabView: View {
                 SettingsView()
             }
         }
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .preferredColorScheme(.dark)
     }
 }

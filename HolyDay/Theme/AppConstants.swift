@@ -1,6 +1,6 @@
 //
 //  AppConstants.swift
-//  Kairos
+//  Holyday
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //
@@ -11,6 +11,8 @@ import Foundation
 enum AppLinks {
     static let privacyPolicy = URL(string: "https://example.com/holyday/privacy")!
     static let termsOfService = URL(string: "https://example.com/holyday/terms")!
+    // Remplace l'ID par celui attribué dans App Store Connect après soumission
+    static let appStore = URL(string: "https://apps.apple.com/app/id000000000")!
 }
 
 // IAP product IDs — create these in App Store Connect as Consumable products

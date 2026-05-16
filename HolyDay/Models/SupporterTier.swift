@@ -1,6 +1,6 @@
 //
 //  SupporterTier.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 14/05/2026.
 //

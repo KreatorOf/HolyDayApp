@@ -25,7 +25,7 @@ struct ContentView: View {
                     VStack(spacing: 20) {
                         headerSection
                             .padding(.horizontal, 16)
-                            .padding(.top, topInset + 44 + 12)
+                            .padding(.top, topInset + 44 + 50)
 
                         VerseCardView(verse: viewModel.verseOfTheDay)
                             .padding(.horizontal, 16)

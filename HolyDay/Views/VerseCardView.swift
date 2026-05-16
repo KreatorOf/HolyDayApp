@@ -28,7 +28,7 @@ struct VerseCardView: View {
     }
 
     private var shareText: String {
-        "\"\(verse.text)\"\n\n— \(verse.reference)"
+        "\"\(verse.text)\"\n\n— \(verse.reference)\n\n✝︎ Découvrez HolyDay, l'app de prière guidée :\n\(AppLinks.appStore)"
     }
 
     var body: some View {
@@ -60,9 +60,9 @@ struct VerseCardView: View {
 
                 ShareLink(item: shareText) {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.caption)
-                        .foregroundStyle(bookAccentColor.opacity(0.8))
-                        .padding(7)
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(bookAccentColor.opacity(0.9))
+                        .padding(9)
                         .background {
                             Circle().fill(Color.white.opacity(0.08))
                         }

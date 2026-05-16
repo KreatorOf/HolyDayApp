@@ -1,6 +1,6 @@
 //
 //  PrayerEntryDetailView.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 14/05/2026.
 //
@@ -16,11 +16,45 @@ struct PrayerEntryDetailView: View {
             VStack(alignment: .leading, spacing: 24) {
                 entryHeader
                 Divider()
+                    .overlay(Color.white.opacity(0.12))
                 prayerContent
+                if entry.stepColorName == "supplicationGreen" {
+                    answeredButton
+                }
             }
             .padding(20)
         }
         .navigationBarTitleDisplayMode(.inline)
+        .background { AnimatedMeshBackground() }
+    }
+
+    private var answeredButton: some View {
+        Button {
+            entry.isAnswered.toggle()
+            entry.answeredAt = entry.isAnswered ? .now : nil
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: entry.isAnswered ? "checkmark.seal.fill" : "checkmark.seal")
+                    .font(.callout.weight(.semibold))
+                Text(entry.isAnswered ? "Prière exaucée" : "Marquer comme exaucée")
+                    .font(.subheadline.weight(.semibold))
+            }
+            .foregroundStyle(entry.isAnswered ? Color.black.opacity(0.7) : AppTheme.supplicationGreen)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(entry.isAnswered ? AppTheme.supplicationGreen : AppTheme.supplicationGreen.opacity(0.12))
+                    .overlay {
+                        if !entry.isAnswered {
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .strokeBorder(AppTheme.supplicationGreen.opacity(0.4), lineWidth: 1)
+                        }
+                    }
+            }
+        }
+        .buttonStyle(.plain)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: entry.isAnswered)
     }
 
     private var entryHeader: some View {
@@ -39,7 +73,7 @@ struct PrayerEntryDetailView: View {
                     .fontWeight(.bold)
                 Text(entry.date.formatted(date: .long, time: .shortened))
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.textSecondary)
             }
             Spacer()
         }
@@ -50,7 +84,7 @@ struct PrayerEntryDetailView: View {
             if entry.text.isEmpty {
                 Text("Aucun texte enregistré pour cette prière.")
                     .font(.body)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(AppTheme.textSecondary)
                     .italic()
             } else {
                 Text(entry.text)

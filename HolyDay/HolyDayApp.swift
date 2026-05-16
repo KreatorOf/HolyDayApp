@@ -28,6 +28,9 @@ struct HolyDayApp: App {
         } catch {
             fatalError("SwiftData failed to initialize: \(error)")
         }
+#if DEBUG
+        SeedService.seedIfNeeded(in: container.mainContext)
+#endif
     }
 
     var body: some Scene {
