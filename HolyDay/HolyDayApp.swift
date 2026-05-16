@@ -49,7 +49,7 @@ struct HolyDayApp: App {
                 }
             }
             .modelContainer(container)
-            .background(Color(red: 0.05, green: 0.05, blue: 0.12))
+            .background(AppTheme.backgroundPrimary)
         }
     }
 }

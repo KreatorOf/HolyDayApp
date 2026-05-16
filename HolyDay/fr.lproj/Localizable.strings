@@ -19,3 +19,60 @@
 
 /* Notification */
 "notification.daily.body" = "C'est l'heure de votre prière quotidienne.";
+
+/* Verse card */
+"Verset du jour" = "Verset du jour";
+
+/* Prayer guide */
+"Guide de prière" = "Guide de prière";
+"Prière enregistrée" = "Prière enregistrée";
+"Toucher pour prier" = "Toucher pour prier";
+"Ma prière" = "Ma prière";
+"Écrivez votre prière ici…" = "Écrivez votre prière ici…";
+"Pour m'aider à réfléchir" = "Pour m'aider à réfléchir";
+"Prié" = "Prié";
+
+/* Streak */
+"jours" = "jours";
+"jour" = "jour";
+
+/* Completion banner */
+"Prière complétée" = "Prière complétée";
+"Votre journal a été mis à jour." = "Votre journal a été mis à jour.";
+
+/* Onboarding */
+"Guidez chaque journée\npar la prière" = "Guidez chaque journée\npar la prière";
+"Commencer" = "Commencer";
+"Comment vous\nappeler-vous ?" = "Comment vous\nappeler-vous ?";
+"Votre prénom apparaîtra sur l'écran d'accueil" = "Votre prénom apparaîtra sur l'écran d'accueil";
+"Votre prénom" = "Votre prénom";
+"Continuer" = "Continuer";
+"Rappel quotidien" = "Rappel quotidien";
+"Recevez une notification chaque matin\npour commencer votre journée en prière." = "Recevez une notification chaque matin\npour commencer votre journée en prière.";
+"Activer les rappels" = "Activer les rappels";
+"Peut-être plus tard" = "Peut-être plus tard";
+
+/* History / Journal */
+"Journal vide" = "Journal vide";
+"Vos prières apparaîtront ici après chaque session complétée." = "Vos prières apparaîtront ici après chaque session complétée.";
+"Prière sans texte" = "Prière sans texte";
+
+/* Tab bar */
+"Prière" = "Prière";
+"Réglages" = "Réglages";
+
+/* Settings */
+"Paramètres" = "Paramètres";
+"Soutenir le développement" = "Soutenir le développement";
+"Pourboire libre, sans engagement" = "Pourboire libre, sans engagement";
+"HolyDay est gratuite et sans publicité. Votre soutien aide à la maintenir et à l'améliorer." = "HolyDay est gratuite et sans publicité. Votre soutien aide à la maintenir et à l'améliorer.";
+"Voter pour la roadmap" = "Voter pour la roadmap";
+"Influencez les prochaines fonctionnalités" = "Influencez les prochaines fonctionnalités";
+"Heure du rappel" = "Heure du rappel";
+"Les notifications sont désactivées. Activez-les dans Réglages > HolyDay." = "Les notifications sont désactivées. Activez-les dans Réglages > HolyDay.";
+"À propos" = "À propos";
+"Développeur" = "Développeur";
+"Légal" = "Légal";
+"Politique de confidentialité" = "Politique de confidentialité";
+"Conditions d'utilisation" = "Conditions d'utilisation";
+"Mentions légales" = "Mentions légales";

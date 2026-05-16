@@ -49,10 +49,6 @@ enum SeedService {
                     text: text,
                     date: entryDate
                 )
-                if step.colorName == "supplicationGreen" && Bool.random() {
-                    entry.isAnswered = true
-                    entry.answeredAt = entryDate
-                }
                 context.insert(entry)
             }
         }

@@ -6,7 +6,7 @@
 //
 
 import StoreKit
-import SwiftUI
+import Observation
 
 @Observable
 final class TipService {
