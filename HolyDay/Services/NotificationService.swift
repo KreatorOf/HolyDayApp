@@ -1,6 +1,6 @@
 //
 //  NotificationService.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //
@@ -66,7 +66,7 @@ class NotificationService {
 
         let content = UNMutableNotificationContent()
         content.title = "HolyDay"
-        content.body = "C'est l'heure de votre prière quotidienne."
+        content.body = NSLocalizedString("notification.daily.body", comment: "")
         content.sound = .default
 
         let components = Calendar.current.dateComponents([.hour, .minute], from: time)

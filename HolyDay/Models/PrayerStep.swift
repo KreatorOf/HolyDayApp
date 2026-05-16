@@ -1,6 +1,6 @@
 //
 //  PrayerStep.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //
@@ -31,29 +31,29 @@ struct PrayerStep: Identifiable {
     
     static let defaultSteps: [PrayerStep] = [
         PrayerStep(
-            title: "Adoration",
-            description: "Prenez un moment pour reconnaître qui est Dieu. Méditez sur Sa grandeur, Sa bonté et Sa sainteté.",
+            title: String(localized: "step.adoration.title"),
+            description: String(localized: "step.adoration.description"),
             icon: "hands.sparkles",
             colorName: "adorationPurple",
             order: 1
         ),
         PrayerStep(
-            title: "Confession",
-            description: "Examinez votre cœur et confessez vos péchés. Recevez le pardon et la grâce de Dieu.",
+            title: String(localized: "step.confession.title"),
+            description: String(localized: "step.confession.description"),
             icon: "heart.circle",
             colorName: "confessionBlue",
             order: 2
         ),
         PrayerStep(
-            title: "Reconnaissance",
-            description: "Exprimez votre gratitude pour les bénédictions reçues. Remerciez Dieu pour Sa fidélité.",
+            title: String(localized: "step.thanksgiving.title"),
+            description: String(localized: "step.thanksgiving.description"),
             icon: "star.circle",
             colorName: "thanksgivingGold",
             order: 3
         ),
         PrayerStep(
-            title: "Supplication",
-            description: "Présentez vos demandes à Dieu. Priez pour vos besoins et ceux des autres.",
+            title: String(localized: "step.supplication.title"),
+            description: String(localized: "step.supplication.description"),
             icon: "bubble.left.and.bubble.right",
             colorName: "supplicationGreen",
             order: 4

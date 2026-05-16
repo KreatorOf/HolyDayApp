@@ -1,6 +1,6 @@
 //
 //  MainTabView.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 13/05/2026.
 //
@@ -17,10 +17,11 @@ struct MainTabView: View {
             Tab("Journal", systemImage: "book.pages") {
                 PrayerHistoryView()
             }
-            Tab("Paramètres", systemImage: "gear") {
+            Tab("Réglages", systemImage: "gear") {
                 SettingsView()
             }
         }
+        .toolbarBackground(.ultraThinMaterial, for: .tabBar)
         .preferredColorScheme(.dark)
     }
 }

@@ -34,12 +34,15 @@ struct SettingsView: View {
                 legalSection
                 copyrightSection
             }
+            .scrollContentBackground(.hidden)
             .navigationTitle("Paramètres")
+            .toolbarBackground(.hidden, for: .navigationBar)
             .onAppear { notifications.checkStatus() }
             .sheet(isPresented: $showTipView) {
                 TipView()
             }
         }
+        .background { AnimatedMeshBackground() }
     }
 
     // MARK: Support

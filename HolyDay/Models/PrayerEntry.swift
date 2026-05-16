@@ -1,6 +1,6 @@
 //
 //  PrayerEntry.swift
-//  Kairos
+//  HolyDay
 //
 //  Created by Matthias Cadet on 14/05/2026.
 //
@@ -15,6 +15,8 @@ final class PrayerEntry {
     var stepColorName: String
     var text: String
     var date: Date
+    var isAnswered: Bool = false
+    var answeredAt: Date? = nil
 
     init(stepTitle: String, stepIcon: String, stepColorName: String, text: String, date: Date = .now) {
         self.stepTitle = stepTitle
