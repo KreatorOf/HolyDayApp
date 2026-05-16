@@ -215,7 +215,8 @@ struct PrayerStepView: View {
     // MARK: Buttons
 
     private var prayerButton: some View {
-        Button(action: onPray) {
+        let canPray = !prayerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return Button(action: onPray) {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle")
                     .font(.system(size: 18, weight: .semibold))
@@ -230,10 +231,13 @@ struct PrayerStepView: View {
             .background {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(step.color)
-                    .shadow(color: step.color.opacity(0.4), radius: 8, x: 0, y: 4)
+                    .shadow(color: step.color.opacity(canPray ? 0.4 : 0), radius: 8, x: 0, y: 4)
             }
         }
         .buttonStyle(.plain)
+        .disabled(!canPray)
+        .opacity(canPray ? 1 : 0.35)
+        .animation(.easeInOut(duration: 0.2), value: canPray)
         .padding(.horizontal, 22)
         .padding(.bottom, 22)
     }
