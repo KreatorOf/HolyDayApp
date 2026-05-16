@@ -9,8 +9,8 @@ import Foundation
 
 // TODO: Replace these URLs with your actual policy pages before App Store submission
 enum AppLinks {
-    static let privacyPolicy = URL(string: "https://example.com/holyday/privacy")!
-    static let termsOfService = URL(string: "https://example.com/holyday/terms")!
+    static let privacyPolicy = URL(string: "https://holyday-landing.vercel.app/privacy.html")!
+    static let termsOfService = URL(string: "https://holyday-landing.vercel.app/terms.html")!
     // Remplace l'ID par celui attribué dans App Store Connect après soumission
     static let appStore = URL(string: "https://apps.apple.com/app/id000000000")!
 }
