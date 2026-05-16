@@ -9,7 +9,6 @@ import SwiftUI
 
 struct VerseCardView: View {
     let verse: Verse
-    @State private var isPressed = false
 
     private var bookAccentColor: Color {
         switch verse.book {
@@ -114,8 +113,6 @@ struct VerseCardView: View {
             .shadow(color: AppTheme.premiumShadow, radius: 20, x: 0, y: 10)
             .shadow(color: bookAccentColor.opacity(0.18), radius: 30, x: 0, y: 15)
         }
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isPressed)
     }
 }
 

@@ -8,6 +8,7 @@
 import Foundation
 import UserNotifications
 
+@MainActor
 @Observable
 class NotificationService {
     static let shared = NotificationService()
