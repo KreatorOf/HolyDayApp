@@ -17,7 +17,7 @@ struct MainTabView: View {
             Tab("Journal", systemImage: "book.pages") {
                 PrayerHistoryView()
             }
-            Tab("Réglages", systemImage: "gear") {
+            Tab("Paramètres", systemImage: "gear") {
                 SettingsView()
             }
         }

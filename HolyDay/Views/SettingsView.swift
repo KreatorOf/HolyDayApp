@@ -11,6 +11,8 @@ struct SettingsView: View {
     @State private var notifications = NotificationService.shared
     @State private var tipService = TipService.shared
     @State private var showTipView = false
+    @State private var topInset: CGFloat = 100
+    @State private var showNavTitle = false
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -26,179 +28,307 @@ struct SettingsView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                supportSection
-                communitySection
-                notificationsSection
-                aboutSection
-                legalSection
-                copyrightSection
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    pageHeader
+                    supportCard
+                    communityCard
+                    notificationsCard
+                    aboutCard
+                    legalCard
+                    copyrightFooter
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 32)
             }
-            .scrollContentBackground(.hidden)
-            .navigationTitle("Paramètres")
+            .scrollIndicators(.hidden)
+            .ignoresSafeArea(.all, edges: .top)
+            .onScrollGeometryChange(for: CGFloat.self) { $0.contentOffset.y } action: { _, y in
+                withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = y > 80 }
+            }
+            .background { AnimatedMeshBackground() }
             .toolbarBackground(.hidden, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .principal) {
+                    Text("Paramètres")
+                        .font(.system(.callout, design: .serif, weight: .bold))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .opacity(showNavTitle ? 1 : 0)
+                }
+            }
             .onAppear { notifications.checkStatus() }
             .sheet(isPresented: $showTipView) {
                 TipView()
             }
         }
-        .background { AnimatedMeshBackground() }
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { topInset = geo.safeAreaInsets.top }
+            }
+            .ignoresSafeArea()
+        )
+    }
+
+    // MARK: Header
+
+    private var pageHeader: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text("Paramètres")
+                .font(.system(size: 34, weight: .bold, design: .serif).italic())
+                .foregroundStyle(AppTheme.textPrimary)
+            Text("Réglages de votre expérience")
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+        }
+        .padding(.top, topInset + 44 + 50)
     }
 
     // MARK: Support
 
-    private var supportSection: some View {
-        Section {
-            Button {
-                showTipView = true
-            } label: {
+    private var supportCard: some View {
+        settingsCard {
+            Button { showTipView = true } label: {
                 HStack(spacing: 14) {
-                    Image(systemName: "heart.fill")
-                        .font(.body)
-                        .foregroundStyle(AppTheme.adorationPurple)
-                        .frame(width: 28)
-
+                    iconBadge(systemName: "heart.fill", color: AppTheme.adorationPurple)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Soutenir le développement")
                             .font(.body)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(AppTheme.textPrimary)
                         Text("Pourboire libre, sans engagement")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
-
                     Spacer()
-
                     if let tier = tipService.supporterTier {
                         SupporterBadge(tier: tier)
+                    } else {
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(AppTheme.textTertiary)
                     }
                 }
+                .padding(16)
             }
-        } footer: {
-            Text("HolyDay est gratuite et sans publicité. Votre soutien aide à la maintenir et à l'améliorer.")
+            .buttonStyle(.plain)
         }
     }
 
     // MARK: Community
 
-    private var communitySection: some View {
-        Section {
-            NavigationLink {
-                RoadmapView()
-            } label: {
+    private var communityCard: some View {
+        settingsCard {
+            NavigationLink { RoadmapView() } label: {
                 HStack(spacing: 14) {
-                    Image(systemName: "chart.bar.xaxis.ascending")
-                        .font(.body)
-                        .foregroundStyle(AppTheme.confessionBlue)
-                        .frame(width: 28)
+                    iconBadge(systemName: "chart.bar.xaxis.ascending", color: AppTheme.confessionBlue)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Voter pour la roadmap")
                             .font(.body)
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(AppTheme.textPrimary)
                         Text("Influencez les prochaines fonctionnalités")
                             .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(AppTheme.textSecondary)
                     }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textTertiary)
                 }
+                .padding(16)
             }
+            .buttonStyle(.plain)
         }
     }
 
     // MARK: Notifications
 
-    private var notificationsSection: some View {
-        Section {
-            Toggle(isOn: Binding(
-                get: { notifications.isDailyReminderEnabled },
-                set: { enabled in Task { await notifications.setReminder(enabled: enabled) } }
-            )) {
-                Label("Rappel quotidien", systemImage: "bell")
-            }
+    private var notificationsCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("Notifications")
+            settingsCard {
+                VStack(spacing: 0) {
+                    HStack(spacing: 14) {
+                        iconBadge(systemName: "bell.fill", color: AppTheme.thanksgivingGold)
+                        Text("Rappel quotidien")
+                            .font(.body)
+                            .foregroundStyle(AppTheme.textPrimary)
+                        Spacer()
+                        Toggle("", isOn: Binding(
+                            get: { notifications.isDailyReminderEnabled },
+                            set: { enabled in Task { await notifications.setReminder(enabled: enabled) } }
+                        ))
+                        .labelsHidden()
+                        .tint(AppTheme.thanksgivingGold)
+                    }
+                    .padding(16)
 
-            if notifications.isDailyReminderEnabled {
-                DatePicker(
-                    "Heure du rappel",
-                    selection: Binding(
-                        get: { notifications.reminderTime },
-                        set: { newTime in
-                            notifications.reminderTime = newTime
-                            notifications.reschedule(at: newTime)
+                    if notifications.isDailyReminderEnabled {
+                        cardDivider
+                        HStack(spacing: 14) {
+                            iconBadge(systemName: "clock.fill", color: AppTheme.thanksgivingGold)
+                            DatePicker(
+                                "Heure du rappel",
+                                selection: Binding(
+                                    get: { notifications.reminderTime },
+                                    set: { newTime in
+                                        notifications.reminderTime = newTime
+                                        notifications.reschedule(at: newTime)
+                                    }
+                                ),
+                                displayedComponents: .hourAndMinute
+                            )
+                            .foregroundStyle(AppTheme.textPrimary)
                         }
-                    ),
-                    displayedComponents: .hourAndMinute
-                )
-            }
-        } header: {
-            Text("Notifications")
-        } footer: {
-            if notifications.isPermissionDenied {
-                Label(
-                    "Les notifications sont désactivées. Activez-les dans Réglages > HolyDay.",
-                    systemImage: "exclamationmark.triangle"
-                )
-                .font(.caption)
-                .foregroundStyle(.orange)
+                        .padding(16)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
+
+                    if notifications.isPermissionDenied {
+                        cardDivider
+                        HStack(spacing: 10) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                            Text("Activez les notifications dans Réglages > Apps > HolyDay.")
+                                .font(.caption)
+                                .foregroundStyle(.orange.opacity(0.9))
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .transition(.opacity)
+                    }
+                }
+                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: notifications.isDailyReminderEnabled)
+                .animation(.easeInOut(duration: 0.2), value: notifications.isPermissionDenied)
             }
         }
     }
 
     // MARK: About
 
-    private var aboutSection: some View {
-        Section("À propos") {
-            LabeledContent("Version", value: "\(appVersion) (\(buildNumber))")
-            LabeledContent("Développeur", value: "Matthias Cadet")
+    private var aboutCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("À propos")
+            settingsCard {
+                VStack(spacing: 0) {
+                    infoRow(label: "Version", value: "\(appVersion) (\(buildNumber))")
+                    cardDivider
+                    infoRow(label: "Développeur", value: "Matthias Cadet")
+                }
+            }
         }
     }
 
     // MARK: Legal
 
-    private var legalSection: some View {
-        Section("Légal") {
-            Link(destination: AppLinks.privacyPolicy) {
-                HStack {
-                    Label("Politique de confidentialité", systemImage: "lock.shield")
-                    Spacer()
-                    Image(systemName: "arrow.up.right")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+    private var legalCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel("Légal")
+            settingsCard {
+                VStack(spacing: 0) {
+                    Link(destination: AppLinks.privacyPolicy) {
+                        externalLinkRow(icon: "lock.shield.fill", label: "Politique de confidentialité", color: AppTheme.supplicationGreen)
+                    }
+                    .buttonStyle(.plain)
+                    cardDivider
+                    Link(destination: AppLinks.termsOfService) {
+                        externalLinkRow(icon: "doc.text.fill", label: "Conditions d'utilisation", color: AppTheme.confessionBlue)
+                    }
+                    .buttonStyle(.plain)
+                    cardDivider
+                    NavigationLink { LegalNoticeView() } label: {
+                        externalLinkRow(icon: "info.circle.fill", label: "Mentions légales", color: AppTheme.adorationPurple, isExternal: false)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .foregroundStyle(.primary)
-            }
-
-            Link(destination: AppLinks.termsOfService) {
-                HStack {
-                    Label("Conditions d'utilisation", systemImage: "doc.text")
-                    Spacer()
-                    Image(systemName: "arrow.up.right")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                .foregroundStyle(.primary)
-            }
-
-            NavigationLink {
-                LegalNoticeView()
-            } label: {
-                Label("Mentions légales", systemImage: "info.circle")
             }
         }
     }
 
     // MARK: Copyright
 
-    private var copyrightSection: some View {
-        Section {
-            Text("© \(currentYear) Matthias Cadet. Tous droits réservés.")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .listRowBackground(Color.clear)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.vertical, 4)
+    private var copyrightFooter: some View {
+        Text("© \(currentYear) HolyDay · Tous droits réservés.")
+            .font(.caption2)
+            .foregroundStyle(AppTheme.textTertiary)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .padding(.top, 4)
+    }
+
+    // MARK: Reusable primitives
+
+    private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        VStack(spacing: 0) {
+            content()
         }
+        .background {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 20, style: .continuous)
+                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    private func iconBadge(systemName: String, color: Color) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(color)
+            .frame(width: 36, height: 36)
+            .background(color.opacity(0.15))
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(AppTheme.textTertiary)
+            .textCase(.uppercase)
+            .tracking(1.0)
+            .padding(.horizontal, 4)
+    }
+
+    private var cardDivider: some View {
+        Color.white.opacity(0.07)
+            .frame(height: 1)
+            .padding(.horizontal, 16)
+    }
+
+    private func infoRow(label: String, value: String) -> some View {
+        HStack {
+            Text(label)
+                .font(.body)
+                .foregroundStyle(AppTheme.textPrimary)
+            Spacer()
+            Text(value)
+                .font(.body)
+                .foregroundStyle(AppTheme.textSecondary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+    }
+
+    private func externalLinkRow(icon: String, label: String, color: Color, isExternal: Bool = true) -> some View {
+        HStack(spacing: 14) {
+            iconBadge(systemName: icon, color: color)
+            Text(label)
+                .font(.body)
+                .foregroundStyle(AppTheme.textPrimary)
+            Spacer()
+            Image(systemName: isExternal ? "arrow.up.right" : "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textTertiary)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
     }
 }
 
 #Preview {
     SettingsView()
+        .preferredColorScheme(.dark)
 }
