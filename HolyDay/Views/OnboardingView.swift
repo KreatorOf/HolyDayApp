@@ -231,17 +231,6 @@ private struct NamePage: View {
     @FocusState private var focused: Bool
     @State private var breathe = false
 
-    private var greetingPreview: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        let base: String
-        switch hour {
-        case 5..<12: base = String(localized: "greeting.morning")
-        case 12..<18: base = String(localized: "greeting.afternoon")
-        default:      base = String(localized: "greeting.evening")
-        }
-        return "\(base), \(nameInput.trimmingCharacters(in: .whitespaces))"
-    }
-
     private var trimmedName: String { nameInput.trimmingCharacters(in: .whitespaces) }
 
     var body: some View {
@@ -313,14 +302,8 @@ private struct NamePage: View {
                     .padding(.horizontal, 32)
                     .animation(.easeInOut(duration: 0.2), value: focused)
                     .submitLabel(.done)
-                    .onSubmit { if !trimmedName.isEmpty { onNext() } }
+                    .onSubmit { if !trimmedName.isEmpty { dismissAndAdvance() } }
 
-                if !trimmedName.isEmpty {
-                    Text(greetingPreview)
-                        .font(.subheadline)
-                        .foregroundStyle(AppTheme.textSecondary)
-                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                }
             }
 
             Spacer()
@@ -328,12 +311,20 @@ private struct NamePage: View {
             OnboardingPrimaryButton(
                 title: String(localized: "onboarding.name.cta"),
                 isEnabled: !trimmedName.isEmpty,
-                action: onNext
+                action: dismissAndAdvance
             )
             .padding(.horizontal, 32)
             .padding(.bottom, 60)
         }
         .onAppear { focused = true }
+    }
+
+    private func dismissAndAdvance() {
+        focused = false
+        Task {
+            try? await Task.sleep(for: .milliseconds(280))
+            onNext()
+        }
     }
 }
 
