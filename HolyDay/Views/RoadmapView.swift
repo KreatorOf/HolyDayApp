@@ -13,7 +13,7 @@ struct RoadmapView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("Votez pour les fonctionnalités que vous souhaitez voir arriver en priorité dans HolyDay.")
+                Text("roadmap.subtitle")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 20)
@@ -27,9 +27,9 @@ struct RoadmapView: View {
                         .padding(.top, 20)
                 } else if service.proposals.isEmpty {
                     ContentUnavailableView(
-                        "Aucune fonctionnalité pour l'instant",
+                        String(localized: "roadmap.empty.title"),
                         systemImage: "list.bullet.clipboard",
-                        description: Text("Revenez bientôt, la roadmap est en cours de construction.")
+                        description: Text("roadmap.empty.subtitle")
                     )
                     .padding(.top, 20)
                 } else {

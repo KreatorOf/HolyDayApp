@@ -67,7 +67,7 @@ class NotificationService {
 
         let content = UNMutableNotificationContent()
         content.title = "HolyDay"
-        content.body = NSLocalizedString("notification.daily.body", comment: "")
+        content.body = String(localized: "notification.daily.body")
         content.sound = .default
 
         let components = Calendar.current.dateComponents([.hour, .minute], from: time)

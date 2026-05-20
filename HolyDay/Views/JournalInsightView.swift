@@ -29,11 +29,11 @@ struct JournalInsightView: View {
                     emptyView
                 }
             }
-            .navigationTitle("Mon parcours")
+            .navigationTitle(Text("insight.nav.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Fermer") { dismiss() }
+                    Button("common.close") { dismiss() }
                         .foregroundStyle(AppTheme.textSecondary)
                 }
                 if insight != nil {
@@ -60,7 +60,7 @@ struct JournalInsightView: View {
             ProgressView()
                 .scaleEffect(1.2)
                 .tint(AppTheme.adorationPurple)
-            Text("Analyse de votre journal…")
+            Text("insight.loading")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
             Spacer()
@@ -78,11 +78,13 @@ struct JournalInsightView: View {
                         .font(.system(size: 36))
                         .foregroundStyle(AppTheme.adorationPurple)
                         .padding(.top, 8)
-                    Text("Votre cheminement spirituel")
+                    Text("insight.header.title")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundStyle(AppTheme.textPrimary)
-                    Text("\(entries.count) prière\(entries.count > 1 ? "s" : "") analysée\(entries.count > 1 ? "s" : "")")
+                    Text(entries.count == 1
+                         ? String(format: String(localized: "insight.count.one"), entries.count)
+                         : String(format: String(localized: "insight.count.other"), entries.count))
                         .font(.caption)
                         .foregroundStyle(AppTheme.textTertiary)
                 }
@@ -91,7 +93,7 @@ struct JournalInsightView: View {
                 // Themes
                 if !insight.themes.isEmpty {
                     insightSection(
-                        title: "Thèmes récurrents",
+                        title: String(localized: "insight.themes.title"),
                         icon: "tag.fill",
                         color: AppTheme.confessionBlue,
                         items: insight.themes
@@ -101,7 +103,7 @@ struct JournalInsightView: View {
                 // Observations
                 if !insight.observations.isEmpty {
                     insightSection(
-                        title: "Observations",
+                        title: String(localized: "insight.observations.title"),
                         icon: "eye.fill",
                         color: AppTheme.adorationPurple,
                         items: insight.observations
@@ -111,14 +113,14 @@ struct JournalInsightView: View {
                 // Answered prayers
                 if !insight.answeredPrayers.isEmpty {
                     insightSection(
-                        title: "Prières exaucées",
+                        title: String(localized: "insight.answered.title"),
                         icon: "checkmark.seal.fill",
                         color: AppTheme.thanksgivingGold,
                         items: insight.answeredPrayers
                     )
                 }
 
-                Text("Analyse générée par Apple Intelligence — sur votre appareil, en toute confidentialité.")
+                Text("insight.ai.footer")
                     .font(.caption2)
                     .foregroundStyle(AppTheme.textTertiary)
                     .multilineTextAlignment(.center)
@@ -178,10 +180,10 @@ struct JournalInsightView: View {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 40))
                 .foregroundStyle(AppTheme.textTertiary)
-            Text("Analyse indisponible")
+            Text("insight.error.title")
                 .font(.headline)
                 .foregroundStyle(AppTheme.textPrimary)
-            Text("Apple Intelligence n'est pas disponible sur cet appareil ou n'est pas activée.")
+            Text("insight.error.subtitle")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -196,10 +198,10 @@ struct JournalInsightView: View {
             Image(systemName: "book.closed")
                 .font(.system(size: 40))
                 .foregroundStyle(AppTheme.textTertiary)
-            Text("Journal insuffisant")
+            Text("insight.empty.title")
                 .font(.headline)
                 .foregroundStyle(AppTheme.textPrimary)
-            Text("Priez quelques jours pour que l'analyse puisse détecter des tendances dans votre journal.")
+            Text("insight.empty.subtitle")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)

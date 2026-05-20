@@ -11,13 +11,13 @@ import SwiftData
 struct MainTabView: View {
     var body: some View {
         TabView {
-            Tab("Prière", systemImage: "hands.sparkles") {
+            Tab("tab.prayer", systemImage: "hands.sparkles") {
                 ContentView()
             }
-            Tab("Journal", systemImage: "book.pages") {
+            Tab("tab.journal", systemImage: "book.pages") {
                 PrayerHistoryView()
             }
-            Tab("Paramètres", systemImage: "gear") {
+            Tab("tab.settings", systemImage: "gear") {
                 SettingsView()
             }
         }

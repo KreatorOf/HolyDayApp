@@ -58,7 +58,7 @@ struct PrayerHistoryView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Journal")
+                    Text("tab.journal")
                         .font(.system(.callout, design: .serif, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .opacity(showNavTitle ? 1 : 0)
@@ -99,11 +99,11 @@ struct PrayerHistoryView: View {
 
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: isSearching ? 12 : 4) {
-            Text("Journal")
+            Text("tab.journal")
                 .font(.system(size: 34, weight: .bold, design: .serif).italic())
                 .foregroundStyle(AppTheme.textPrimary)
             if !isSearching {
-                Text("Historique de vos prières")
+                Text("journal.subtitle")
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textSecondary)
                     .transition(.opacity.combined(with: .move(edge: .top)))
@@ -112,7 +112,7 @@ struct PrayerHistoryView: View {
                     Image(systemName: "magnifyingglass")
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textTertiary)
-                    TextField("Rechercher une prière…", text: $searchText)
+                    TextField(String(localized: "journal.search.placeholder"), text: $searchText)
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textPrimary)
                         .autocorrectionDisabled()
@@ -199,7 +199,7 @@ struct PrayerHistoryView: View {
     }
 
     private var weekDayLabels: some View {
-        let labels = ["L", "M", "M", "J", "V", "S", "D"]
+        let labels = String(localized: "calendar.weekday.labels").components(separatedBy: ",")
         return HStack(spacing: 0) {
             ForEach(labels.indices, id: \.self) { i in
                 Text(labels[i])
@@ -306,7 +306,7 @@ struct PrayerHistoryView: View {
                             Button(role: .destructive) {
                                 modelContext.delete(entry)
                             } label: {
-                                Label("Supprimer", systemImage: "trash")
+                                Label("common.delete", systemImage: "trash")
                             }
                         }
                     }
@@ -330,7 +330,7 @@ struct PrayerHistoryView: View {
     private var recentEntriesSection: some View {
         let recent = recentResults
         VStack(alignment: .leading, spacing: 20) {
-            Text("Prières récentes")
+            Text("journal.search.recent.title")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(AppTheme.textTertiary)
@@ -341,7 +341,7 @@ struct PrayerHistoryView: View {
                     Image(systemName: "moon.stars")
                         .font(.title3)
                         .foregroundStyle(AppTheme.textTertiary)
-                    Text("Aucune prière enregistrée")
+                    Text("journal.empty.message")
                         .font(.subheadline)
                         .foregroundStyle(AppTheme.textTertiary)
                     Spacer()
@@ -398,7 +398,7 @@ struct PrayerHistoryView: View {
                 Image(systemName: "magnifyingglass")
                     .font(.title3)
                     .foregroundStyle(AppTheme.textTertiary)
-                Text("Aucune prière trouvée")
+                Text("journal.search.empty")
                     .font(.subheadline)
                     .foregroundStyle(AppTheme.textTertiary)
                 Spacer()
@@ -462,7 +462,7 @@ struct PrayerHistoryView: View {
             Image(systemName: "moon.stars")
                 .font(.title3)
                 .foregroundStyle(AppTheme.textTertiary)
-            Text("Aucune prière enregistrée")
+            Text("journal.empty.message")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textTertiary)
             Spacer()
@@ -526,8 +526,8 @@ struct PrayerHistoryView: View {
 
     private func dayLabel(_ date: Date) -> String {
         let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return NSLocalizedString("date.today", comment: "") }
-        if calendar.isDateInYesterday(date) { return NSLocalizedString("date.yesterday", comment: "") }
+        if calendar.isDateInToday(date) { return String(localized: "date.today") }
+        if calendar.isDateInYesterday(date) { return String(localized: "date.yesterday") }
         return date.formatted(.dateTime.day().month(.wide).year())
     }
 
@@ -569,7 +569,7 @@ struct JournalEntryRow: View {
                         .foregroundStyle(AppTheme.textTertiary)
                 }
                 if entry.text.isEmpty {
-                    Text("Prière sans texte")
+                    Text("journal.entry.no.text")
                         .font(.caption)
                         .foregroundStyle(AppTheme.textTertiary)
                         .italic()

@@ -11,52 +11,52 @@ struct LegalNoticeView: View {
     var body: some View {
         List {
             legalSection(
-                title: "Éditeur",
-                content: "HolyDay est développée et maintenue par Matthias Cadet à titre personnel."
+                title: String(localized: "legal.section.publisher"),
+                content: String(localized: "legal.section.publisher.content")
             )
 
             legalSection(
-                title: "Données personnelles",
-                content: "HolyDay ne collecte aucune donnée personnelle identifiable. Vos prières et votre journal de prière restent sur votre appareil et ne sont jamais transmis à des serveurs tiers."
+                title: String(localized: "legal.section.data"),
+                content: String(localized: "legal.section.data.content")
             )
 
             legalSection(
-                title: "Roadmap participative",
-                content: "Si vous utilisez la fonctionnalité de vote pour la roadmap, un identifiant anonyme propre à votre appareil (UUID généré aléatoirement) est transmis à nos serveurs pour comptabiliser votre vote et prévenir les doublons. Cet identifiant ne permet pas de vous identifier personnellement et n'est associé à aucune autre donnée vous concernant."
+                title: String(localized: "legal.section.roadmap"),
+                content: String(localized: "legal.section.roadmap.content")
             )
 
             legalSection(
-                title: "Notifications",
-                content: "Si vous activez les rappels de prière, l'application utilise les notifications locales d'iOS. Aucune donnée n'est envoyée hors de votre appareil dans ce cadre."
+                title: String(localized: "legal.section.notifications"),
+                content: String(localized: "legal.section.notifications.content")
             )
 
             legalSection(
-                title: "Contenu biblique",
-                content: "Les versets bibliques utilisés dans l'application sont issus de traductions françaises dans le domaine public (Louis Segond 1910)."
+                title: String(localized: "legal.section.biblical"),
+                content: String(localized: "legal.section.biblical.content")
             )
 
             legalSection(
-                title: "Propriété intellectuelle",
-                content: "L'interface, les icônes et le code source de HolyDay sont protégés par le droit d'auteur. Toute reproduction sans autorisation est interdite."
+                title: String(localized: "legal.section.ip"),
+                content: String(localized: "legal.section.ip.content")
             )
 
             legalSection(
-                title: "Responsabilité",
-                content: "L'application est fournie sans garantie d'aucune sorte. L'éditeur décline toute responsabilité en cas d'utilisation inappropriée."
+                title: String(localized: "legal.section.liability"),
+                content: String(localized: "legal.section.liability.content")
             )
 
             legalSection(
-                title: "Contact",
+                title: String(localized: "legal.section.contact"),
                 content: "matthias.cadet25@gmail.com"
             )
 
             Section {
-                Text("Dernière mise à jour : mai 2026")
+                Text("legal.last.update")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
         }
-        .navigationTitle("Mentions légales")
+        .navigationTitle(Text("legal.nav.title"))
         .navigationBarTitleDisplayMode(.inline)
     }
 

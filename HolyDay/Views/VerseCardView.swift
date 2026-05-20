@@ -27,7 +27,7 @@ struct VerseCardView: View {
     }
 
     private var shareText: String {
-        "\"\(verse.text)\"\n\n— \(verse.reference)\n\n✝︎ Découvrez HolyDay, l'app de prière guidée :\n\(AppLinks.appStore)"
+        "\"\(verse.text)\"\n\n— \(verse.reference)\n\n\(String(localized: "verse.share.footer"))\n\(AppLinks.appStore)"
     }
 
     var body: some View {
@@ -37,7 +37,7 @@ struct VerseCardView: View {
                     Image(systemName: "book.closed.fill")
                         .font(.caption2)
                         .foregroundStyle(bookAccentColor)
-                    Text("Verset du jour")
+                    Text("verse.card.title")
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(AppTheme.textSecondary)
