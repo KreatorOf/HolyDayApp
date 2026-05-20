@@ -14,9 +14,9 @@ enum SupporterTier: Int {
 
     var title: String {
         switch self {
-        case .ami:          return "Ami"
-        case .bienfaiteur:  return "Bienfaiteur"
-        case .mecene:       return "Mécène"
+        case .ami:          return String(localized: "tier.ami")
+        case .bienfaiteur:  return String(localized: "tier.bienfaiteur")
+        case .mecene:       return String(localized: "tier.mecene")
         }
     }
 

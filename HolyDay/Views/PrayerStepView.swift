@@ -70,7 +70,7 @@ struct PrayerStepView: View {
                 .foregroundStyle(AppTheme.textPrimary)
                 .strikethrough(isCompleted, color: AppTheme.textSecondary)
             if !isExpanded {
-                Text(isCompleted ? "Prière enregistrée" : "Toucher pour prier")
+                Text(isCompleted ? "step.saved" : "step.tap.to.pray")
                     .font(.caption2)
                     .foregroundStyle(isCompleted ? step.color.opacity(0.8) : AppTheme.textTertiary)
             }
@@ -132,7 +132,7 @@ struct PrayerStepView: View {
 
     private var reflectionQuestionsView: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Pour m'aider à réfléchir")
+            Text("step.reflection.title")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(AppTheme.textTertiary)
@@ -173,7 +173,7 @@ struct PrayerStepView: View {
 
     private var prayerTextEditor: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Ma prière")
+            Text("step.prayer.title")
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundStyle(AppTheme.textTertiary)
@@ -182,7 +182,7 @@ struct PrayerStepView: View {
 
             ZStack(alignment: .topLeading) {
                 if prayerText.isEmpty {
-                    Text("Écrivez votre prière ici…")
+                    Text("step.prayer.placeholder")
                         .font(.body)
                         .foregroundStyle(AppTheme.textTertiary)
                         .padding(.horizontal, 6)
@@ -220,7 +220,7 @@ struct PrayerStepView: View {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle")
                     .font(.system(size: 18, weight: .semibold))
-                Text("Prié")
+                Text("step.prayed")
                     .font(.subheadline)
                     .fontWeight(.bold)
                     .tracking(0.3)
@@ -246,7 +246,7 @@ struct PrayerStepView: View {
         HStack(spacing: 10) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 18, weight: .semibold))
-            Text("Prié")
+            Text("step.prayed")
                 .font(.subheadline)
                 .fontWeight(.semibold)
         }

@@ -12,11 +12,11 @@ struct TipView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var tipService = TipService.shared
 
-    private let tiers: [(emoji: String, label: String, color: Color)] = [
-        ("☕", "Un café",          AppTheme.thanksgivingGold),
-        ("🙏", "Un repas",         AppTheme.confessionBlue),
-        ("✨", "Soutien généreux", AppTheme.adorationPurple),
-    ]
+    private var tiers: [(emoji: String, label: String, color: Color)] {[
+        ("☕", String(localized: "tip.tier.0.label"),  AppTheme.thanksgivingGold),
+        ("🙏", String(localized: "tip.tier.1.label"),  AppTheme.confessionBlue),
+        ("✨", String(localized: "tip.tier.2.label"),  AppTheme.adorationPurple),
+    ]}
 
     var body: some View {
         NavigationStack {
@@ -27,11 +27,11 @@ struct TipView: View {
                     tipOptionsView
                 }
             }
-            .navigationTitle("Soutenir HolyDay")
+            .navigationTitle(Text("tip.nav.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Fermer") { dismiss() }
+                    Button("common.close") { dismiss() }
                         .foregroundStyle(AppTheme.textSecondary)
                 }
             }
@@ -64,12 +64,12 @@ struct TipView: View {
                 .foregroundStyle(AppTheme.adorationPurple)
                 .padding(.top, 8)
 
-            Text("Soutenir le développement")
+            Text("tip.header.title")
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundStyle(AppTheme.textPrimary)
 
-            Text("HolyDay est entièrement gratuite et sans publicité.\nSi elle vous apporte quelque chose, votre soutien compte vraiment.")
+            Text("tip.header.subtitle")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -112,7 +112,7 @@ struct TipView: View {
             Image(systemName: "wifi.slash")
                 .font(.title)
                 .foregroundStyle(AppTheme.textTertiary)
-            Text("Options de soutien indisponibles.\nVérifiez votre connexion.")
+            Text("tip.unavailable")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
                 .multilineTextAlignment(.center)
@@ -121,7 +121,7 @@ struct TipView: View {
     }
 
     private var legalFooter: some View {
-        Text("Les achats sont traités par Apple. Les pourboires sont volontaires et ne donnent accès à aucun contenu supplémentaire.")
+        Text("tip.legal.footer")
             .font(.caption2)
             .foregroundStyle(AppTheme.textTertiary)
             .multilineTextAlignment(.center)
@@ -140,7 +140,7 @@ struct TipView: View {
                 .symbolEffect(.bounce, value: tipService.purchaseState == .success)
 
             VStack(spacing: 14) {
-                Text("Merci infiniment !")
+                Text("tip.success.title")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundStyle(AppTheme.textPrimary)
@@ -149,7 +149,7 @@ struct TipView: View {
                     SupporterBadge(tier: tier, size: .large)
                 }
 
-                Text("Votre soutien aide HolyDay à rester libre, gratuite et sans publicité.")
+                Text("tip.success.subtitle")
                     .font(.body)
                     .foregroundStyle(AppTheme.textSecondary)
                     .multilineTextAlignment(.center)
@@ -162,7 +162,7 @@ struct TipView: View {
             Button {
                 dismiss()
             } label: {
-                Text("Fermer")
+                Text("common.close")
                     .font(.body)
                     .fontWeight(.semibold)
                     .frame(maxWidth: .infinity)

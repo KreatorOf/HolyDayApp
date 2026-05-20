@@ -36,7 +36,7 @@ struct PrayerEntryDetailView: View {
             HStack(spacing: 10) {
                 Image(systemName: entry.isAnswered ? "checkmark.seal.fill" : "checkmark.seal")
                     .font(.callout.weight(.semibold))
-                Text(entry.isAnswered ? "Prière exaucée" : "Marquer comme exaucée")
+                Text(entry.isAnswered ? "entry.answered.label" : "entry.mark.answered.label")
                     .font(.subheadline.weight(.semibold))
             }
             .foregroundStyle(entry.isAnswered ? Color.black.opacity(0.7) : AppTheme.supplicationGreen)
@@ -82,7 +82,7 @@ struct PrayerEntryDetailView: View {
     private var prayerContent: some View {
         Group {
             if entry.text.isEmpty {
-                Text("Aucun texte enregistré pour cette prière.")
+                Text("entry.no.text")
                     .font(.body)
                     .foregroundStyle(AppTheme.textSecondary)
                     .italic()

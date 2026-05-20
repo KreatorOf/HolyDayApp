@@ -79,9 +79,9 @@ struct ContentView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         let base: String
         switch hour {
-        case 5..<12: base = NSLocalizedString("greeting.morning", comment: "")
-        case 12..<18: base = NSLocalizedString("greeting.afternoon", comment: "")
-        default: base = NSLocalizedString("greeting.evening", comment: "")
+        case 5..<12: base = String(localized: "greeting.morning")
+        case 12..<18: base = String(localized: "greeting.afternoon")
+        default: base = String(localized: "greeting.evening")
         }
         return userName.isEmpty ? base : "\(base), \(userName)"
     }
@@ -123,7 +123,7 @@ struct ContentView: View {
                 .font(.caption)
                 .fontWeight(.bold)
                 .foregroundStyle(AppTheme.thanksgivingGold)
-            Text(streak.currentStreak > 1 ? "jours" : "jour")
+            Text(streak.currentStreak > 1 ? "streak.days" : "streak.day")
                 .font(.caption2)
                 .foregroundStyle(AppTheme.textTertiary)
         }
@@ -144,7 +144,7 @@ struct ContentView: View {
     private func prayerStepsSection(proxy: ScrollViewProxy) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Guide de prière")
+                Text("content.prayer.guide.title")
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundStyle(AppTheme.textTertiary)
@@ -329,11 +329,11 @@ private struct CompletionBanner: View {
                 .font(.title2)
                 .foregroundStyle(.green)
             VStack(alignment: .leading, spacing: 2) {
-                Text("Prière complétée")
+                Text("content.completion.title")
                     .font(.subheadline)
                     .fontWeight(.semibold)
                     .foregroundStyle(AppTheme.textPrimary)
-                Text("Votre journal a été mis à jour.")
+                Text("content.completion.subtitle")
                     .font(.caption)
                     .foregroundStyle(AppTheme.textSecondary)
             }

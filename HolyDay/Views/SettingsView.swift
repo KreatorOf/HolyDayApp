@@ -50,7 +50,7 @@ struct SettingsView: View {
             .toolbarBackground(.hidden, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Paramètres")
+                    Text("tab.settings")
                         .font(.system(.callout, design: .serif, weight: .bold))
                         .foregroundStyle(AppTheme.textPrimary)
                         .opacity(showNavTitle ? 1 : 0)
@@ -74,10 +74,10 @@ struct SettingsView: View {
 
     private var pageHeader: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Paramètres")
+            Text("tab.settings")
                 .font(.system(size: 34, weight: .bold, design: .serif).italic())
                 .foregroundStyle(AppTheme.textPrimary)
-            Text("Réglages de votre expérience")
+            Text("settings.subtitle")
                 .font(.subheadline)
                 .foregroundStyle(AppTheme.textSecondary)
         }
@@ -92,10 +92,10 @@ struct SettingsView: View {
                 HStack(spacing: 14) {
                     iconBadge(systemName: "heart.fill", color: AppTheme.adorationPurple)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Soutenir le développement")
+                        Text("settings.support.title")
                             .font(.body)
                             .foregroundStyle(AppTheme.textPrimary)
-                        Text("Pourboire libre, sans engagement")
+                        Text("settings.support.subtitle")
                             .font(.caption)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
@@ -122,10 +122,10 @@ struct SettingsView: View {
                 HStack(spacing: 14) {
                     iconBadge(systemName: "chart.bar.xaxis.ascending", color: AppTheme.confessionBlue)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Voter pour la roadmap")
+                        Text("settings.roadmap.title")
                             .font(.body)
                             .foregroundStyle(AppTheme.textPrimary)
-                        Text("Influencez les prochaines fonctionnalités")
+                        Text("settings.roadmap.subtitle")
                             .font(.caption)
                             .foregroundStyle(AppTheme.textSecondary)
                     }
@@ -144,12 +144,12 @@ struct SettingsView: View {
 
     private var notificationsCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionLabel("Notifications")
+            sectionLabel(String(localized: "settings.notifications.section"))
             settingsCard {
                 VStack(spacing: 0) {
                     HStack(spacing: 14) {
                         iconBadge(systemName: "bell.fill", color: AppTheme.thanksgivingGold)
-                        Text("Rappel quotidien")
+                        Text("settings.notifications.reminder")
                             .font(.body)
                             .foregroundStyle(AppTheme.textPrimary)
                         Spacer()
@@ -167,7 +167,7 @@ struct SettingsView: View {
                         HStack(spacing: 14) {
                             iconBadge(systemName: "clock.fill", color: AppTheme.thanksgivingGold)
                             DatePicker(
-                                "Heure du rappel",
+                                String(localized: "settings.notifications.time"),
                                 selection: Binding(
                                     get: { notifications.reminderTime },
                                     set: { newTime in
@@ -189,7 +189,7 @@ struct SettingsView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                                 .font(.caption)
                                 .foregroundStyle(.orange)
-                            Text("Activez les notifications dans Réglages > Apps > HolyDay.")
+                            Text("settings.notifications.disabled")
                                 .font(.caption)
                                 .foregroundStyle(.orange.opacity(0.9))
                             Spacer()
@@ -209,12 +209,12 @@ struct SettingsView: View {
 
     private var aboutCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionLabel("À propos")
+            sectionLabel(String(localized: "settings.about.section"))
             settingsCard {
                 VStack(spacing: 0) {
-                    infoRow(label: "Version", value: "\(appVersion) (\(buildNumber))")
+                    infoRow(label: String(localized: "settings.about.version"), value: "\(appVersion) (\(buildNumber))")
                     cardDivider
-                    infoRow(label: "Développeur", value: "Matthias Cadet")
+                    infoRow(label: String(localized: "settings.about.developer"), value: "Matthias Cadet")
                 }
             }
         }
@@ -224,21 +224,21 @@ struct SettingsView: View {
 
     private var legalCard: some View {
         VStack(alignment: .leading, spacing: 8) {
-            sectionLabel("Légal")
+            sectionLabel(String(localized: "settings.legal.section"))
             settingsCard {
                 VStack(spacing: 0) {
                     Link(destination: AppLinks.privacyPolicy) {
-                        externalLinkRow(icon: "lock.shield.fill", label: "Politique de confidentialité", color: AppTheme.supplicationGreen)
+                        externalLinkRow(icon: "lock.shield.fill", label: String(localized: "settings.legal.privacy"), color: AppTheme.supplicationGreen)
                     }
                     .buttonStyle(.plain)
                     cardDivider
                     Link(destination: AppLinks.termsOfService) {
-                        externalLinkRow(icon: "doc.text.fill", label: "Conditions d'utilisation", color: AppTheme.confessionBlue)
+                        externalLinkRow(icon: "doc.text.fill", label: String(localized: "settings.legal.terms"), color: AppTheme.confessionBlue)
                     }
                     .buttonStyle(.plain)
                     cardDivider
                     NavigationLink { LegalNoticeView() } label: {
-                        externalLinkRow(icon: "info.circle.fill", label: "Mentions légales", color: AppTheme.adorationPurple, isExternal: false)
+                        externalLinkRow(icon: "info.circle.fill", label: String(localized: "settings.legal.notice"), color: AppTheme.adorationPurple, isExternal: false)
                     }
                     .buttonStyle(.plain)
                 }
@@ -249,7 +249,7 @@ struct SettingsView: View {
     // MARK: Copyright
 
     private var copyrightFooter: some View {
-        Text("© \(currentYear) HolyDay · Tous droits réservés.")
+        Text(String(format: String(localized: "settings.copyright"), currentYear))
             .font(.caption2)
             .foregroundStyle(AppTheme.textTertiary)
             .frame(maxWidth: .infinity, alignment: .center)
