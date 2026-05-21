@@ -443,7 +443,7 @@ private struct OnboardingPrimaryButton: View {
             .frame(height: 52)
             .background(AppTheme.thanksgivingGold.opacity(isEnabled ? 1 : 0.4))
             .foregroundStyle(.black)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
         }
         .disabled(!isEnabled || isLoading)
         .animation(.easeInOut(duration: 0.2), value: isEnabled)

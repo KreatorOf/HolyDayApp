@@ -919,14 +919,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gentle reminders"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Rappels doux"
+            "value" : "Rappels discrets"
           }
         }
       }
@@ -1128,13 +1128,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Just the essentials,\nPromise!"
+            "value" : "Just the essentials!"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Juste l'essentiel,\nPromis !"
+            "value" : "Juste l'essentiel !"
           }
         }
       }
