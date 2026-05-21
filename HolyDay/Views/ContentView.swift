@@ -104,10 +104,7 @@ struct ContentView: View {
                     }
                 }
                 Spacer()
-                if streak.currentStreak > 0 {
-                    streakBadge
-                        .transition(.scale.combined(with: .opacity))
-                }
+                streakBadge
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: streak.currentStreak)
 
@@ -116,27 +113,27 @@ struct ContentView: View {
     }
 
     private var streakBadge: some View {
-        VStack(spacing: 2) {
+        let active = streak.currentStreak > 0
+        return VStack(spacing: 2) {
             Text("🔥")
                 .font(.title2)
+                .opacity(active ? 1 : 0.3)
             Text("\(streak.currentStreak)")
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundStyle(AppTheme.thanksgivingGold)
+                .foregroundStyle(active ? AppTheme.thanksgivingGold : AppTheme.textTertiary)
             Text(streak.currentStreak > 1 ? "streak.days" : "streak.day")
                 .font(.caption2)
                 .foregroundStyle(AppTheme.textTertiary)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(AppTheme.thanksgivingGold.opacity(0.3), lineWidth: 1)
-                }
-        }
+        .glassEffect(
+            .regular.tint(AppTheme.thanksgivingGold.opacity(active ? 0.25 : 0.05)),
+            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+        )
+        .shadow(color: AppTheme.thanksgivingGold.opacity(active ? 0.3 : 0), radius: 8, x: 0, y: 0)
+        .animation(.easeInOut(duration: 0.3), value: active)
     }
 
     // MARK: Sections
@@ -276,46 +273,87 @@ extension ContentView {
     var weeklyCalendar: some View {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        // weekday: 1=dim, 2=lun, ..., 7=sam → offset pour revenir au lundi
         let weekday = calendar.component(.weekday, from: today)
         let daysFromMonday = (weekday + 5) % 7
         let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) ?? today
-        return HStack(spacing: 0) {
-            ForEach(0..<7, id: \.self) { i in
-                let date = calendar.date(byAdding: .day, value: i, to: monday) ?? monday
-                let isToday = calendar.startOfDay(for: date) == today
-                let hasPrayer = prayedDays.contains(calendar.startOfDay(for: date))
-                VStack(spacing: 5) {
-                    Text(Self.dayLetterFormatter.string(from: date).uppercased())
-                        .font(.system(size: 9, weight: .medium))
-                        .foregroundStyle(isToday ? AppTheme.textSecondary : AppTheme.textTertiary)
-                    ZStack {
-                        Circle()
-                            .fill(hasPrayer ? AppTheme.thanksgivingGold.opacity(0.9) : Color.white.opacity(0.07))
-                        if isToday && !hasPrayer {
-                            Circle()
-                                .strokeBorder(AppTheme.thanksgivingGold.opacity(0.45), lineWidth: 1.5)
-                        }
-                        if hasPrayer {
-                            Image(systemName: "checkmark")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundStyle(.black)
-                        }
-                    }
-                    .frame(width: 30, height: 30)
+        return GlassEffectContainer {
+            HStack(spacing: 8) {
+                ForEach(0..<7, id: \.self) { i in
+                    let date = calendar.date(byAdding: .day, value: i, to: monday) ?? monday
+                    let isToday = calendar.startOfDay(for: date) == today
+                    let hasPrayer = prayedDays.contains(calendar.startOfDay(for: date))
+                    DayBubble(date: date, isToday: isToday, hasPrayer: hasPrayer)
                 }
-                .frame(maxWidth: .infinity)
             }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
+        }
+    }
+}
+
+// MARK: Day bubble
+
+private struct DayBubble: View {
+    let date: Date
+    let isToday: Bool
+    let hasPrayer: Bool
+    @State private var pulse = false
+
+    private static let dayLetterFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.locale = Locale.current
+        f.dateFormat = "EEEEE"
+        return f
+    }()
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(Self.dayLetterFormatter.string(from: date).uppercased())
+                .font(.system(size: 9, weight: .medium))
+                .foregroundStyle(isToday ? AppTheme.textSecondary : AppTheme.textTertiary)
+
+            Capsule()
+                .fill(hasPrayer
+                      ? AppTheme.thanksgivingGold.opacity(0.7)
+                      : Color.white.opacity(isToday ? 0.25 : 0.12))
+                .frame(width: 16, height: 2)
+
+            ZStack {
+                if hasPrayer {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(.black)
+                }
+            }
+            .frame(width: 30, height: 30)
+            .glassEffect(
+                hasPrayer
+                    ? .regular.tint(AppTheme.thanksgivingGold.opacity(0.5))
+                    : .regular.tint(Color.clear),
+                in: Circle()
+            )
+            .opacity(hasPrayer || isToday ? 1 : 0.4)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 4)
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
-                }
+        .frame(maxWidth: .infinity)
+        .glassEffect(
+            isToday && !hasPrayer
+                ? .regular.tint(AppTheme.thanksgivingGold.opacity(0.18))
+                : .regular,
+            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
+        )
+        .shadow(
+            color: isToday && !hasPrayer
+                ? AppTheme.thanksgivingGold.opacity(pulse ? 0.55 : 0.12)
+                : .clear,
+            radius: 7, x: 0, y: 0
+        )
+        .onAppear {
+            guard isToday && !hasPrayer else { return }
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
+                pulse = true
+            }
         }
     }
 }
