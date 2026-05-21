@@ -41,7 +41,7 @@ struct OnboardingView: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(AppTheme.textSecondary)
                         .frame(width: 40, height: 40)
-                        .background(.ultraThinMaterial, in: Circle())
+                        .glassEffect(.regular, in: Circle())
                 }
                 .padding(.leading, 20)
                 .transition(.opacity.animation(.easeInOut(duration: 0.2)))
@@ -121,15 +121,23 @@ private struct WelcomePage: View {
             Spacer()
 
             VStack(spacing: 32) {
-                Image(systemName: "sun.horizon.fill")
-                    .font(.system(size: 64))
-                    .foregroundStyle(AppTheme.thanksgivingGold)
-                    .scaleEffect(breathe ? 1.06 : 0.94)
-                    .onAppear {
-                        withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
-                            breathe = true
-                        }
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.thanksgivingGold.opacity(0.15))
+                        .frame(width: 120, height: 120)
+                        .blur(radius: 14)
+                        .scaleEffect(breathe ? 1.25 : 0.8)
+
+                    Image(systemName: "sun.horizon.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(AppTheme.thanksgivingGold)
+                        .scaleEffect(breathe ? 1.06 : 0.94)
+                }
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
+                        breathe = true
                     }
+                }
 
                 VStack(spacing: 6) {
                     HStack(spacing: 0) {
@@ -147,15 +155,17 @@ private struct WelcomePage: View {
                         .multilineTextAlignment(.center)
                 }
 
-                VStack(spacing: 12) {
-                    ForEach(Array(onboardingFeatures.enumerated()), id: \.offset) { index, feature in
-                        FeatureTile(feature: feature)
-                            .opacity(appeared ? 1 : 0)
-                            .offset(y: appeared ? 0 : 14)
-                            .animation(
-                                .easeOut(duration: 0.4).delay(0.15 + Double(index) * 0.3),
-                                value: appeared
-                            )
+                GlassEffectContainer {
+                    VStack(spacing: 12) {
+                        ForEach(Array(onboardingFeatures.enumerated()), id: \.offset) { index, feature in
+                            FeatureTile(feature: feature)
+                                .opacity(appeared ? 1 : 0)
+                                .offset(y: appeared ? 0 : 14)
+                                .animation(
+                                    .easeOut(duration: 0.4).delay(0.15 + Double(index) * 0.3),
+                                    value: appeared
+                                )
+                        }
                     }
                 }
                 .padding(.horizontal, 32)
@@ -203,14 +213,7 @@ private struct FeatureTile: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
-        .background {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.09), lineWidth: 1)
-                }
-        }
+        .glassEffect(.regular.tint(feature.color.opacity(0.06)), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         .scaleEffect(bouncing ? 0.94 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.4), value: bouncing)
         .onTapGesture {
@@ -240,29 +243,15 @@ private struct NamePage: View {
             VStack(spacing: 36) {
                 ZStack {
                     Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [AppTheme.thanksgivingGold.opacity(0.25), .clear],
-                                center: .center,
-                                startRadius: 8,
-                                endRadius: 64
-                            )
-                        )
-                        .frame(width: 140, height: 140)
-                        .blur(radius: 12)
-                        .scaleEffect(breathe ? 1.15 : 0.9)
+                        .fill(AppTheme.confessionBlue.opacity(0.15))
+                        .frame(width: 120, height: 120)
+                        .blur(radius: 14)
+                        .scaleEffect(breathe ? 1.25 : 0.8)
 
-                    Image(systemName: "hands.sparkles.fill")
-                        .font(.system(size: 72))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [AppTheme.thanksgivingGold, AppTheme.thanksgivingGold.opacity(0.7)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .scaleEffect(breathe ? 1.05 : 0.97)
-                        .shadow(color: AppTheme.thanksgivingGold.opacity(0.4), radius: 16, x: 0, y: 4)
+                    Image(systemName: "person.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(AppTheme.confessionBlue)
+                        .scaleEffect(breathe ? 1.06 : 0.94)
                 }
                 .onAppear {
                     withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) {
@@ -288,16 +277,13 @@ private struct NamePage: View {
                     .multilineTextAlignment(.center)
                     .focused($focused)
                     .padding(.vertical, 16)
-                    .background {
+                    .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .fill(.ultraThinMaterial)
-                            .overlay {
-                                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                    .strokeBorder(
-                                        focused ? AppTheme.thanksgivingGold.opacity(0.6) : Color.white.opacity(0.12),
-                                        lineWidth: 1
-                                    )
-                            }
+                            .strokeBorder(
+                                focused ? AppTheme.confessionBlue.opacity(0.7) : Color.clear,
+                                lineWidth: 1
+                            )
                     }
                     .padding(.horizontal, 32)
                     .animation(.easeInOut(duration: 0.2), value: focused)
@@ -333,11 +319,14 @@ private struct NamePage: View {
 private struct NotificationsPage: View {
     var onComplete: () -> Void
     @State private var isRequesting = false
+    @State private var breathe = false
+    @State private var rang = false
+    @State private var cardAppeared = false
 
     private var reassurances: [(icon: String, text: String)] {[
-        ("1.circle",    String(localized: "onboarding.notifications.pill.frequency")),
-        ("clock",       String(localized: "onboarding.notifications.pill.timing")),
-        ("hand.raised", String(localized: "onboarding.notifications.pill.control")),
+        ("sun.horizon",  String(localized: "onboarding.notifications.pill.frequency")),
+        ("heart",        String(localized: "onboarding.notifications.pill.timing")),
+        ("bell.slash",   String(localized: "onboarding.notifications.pill.control")),
     ]}
 
     var body: some View {
@@ -345,9 +334,33 @@ private struct NotificationsPage: View {
             Spacer()
 
             VStack(spacing: 28) {
-                Image(systemName: "bell.circle.fill")
-                    .font(.system(size: 64))
-                    .foregroundStyle(AppTheme.supplicationGreen)
+                ZStack {
+                    Circle()
+                        .fill(AppTheme.supplicationGreen.opacity(0.15))
+                        .frame(width: 120, height: 120)
+                        .blur(radius: 14)
+                        .scaleEffect(breathe ? 1.25 : 0.8)
+
+                    Image(systemName: "bell.circle.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(AppTheme.supplicationGreen)
+                        .rotationEffect(.degrees(rang ? 14 : 0))
+                        .animation(.easeInOut(duration: 0.08), value: rang)
+                }
+                .onAppear {
+                    withAnimation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true)) {
+                        breathe = true
+                    }
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(500))
+                        for _ in 0..<4 {
+                            withAnimation(.easeInOut(duration: 0.08)) { rang = true }
+                            try? await Task.sleep(for: .milliseconds(90))
+                            withAnimation(.easeInOut(duration: 0.08)) { rang = false }
+                            try? await Task.sleep(for: .milliseconds(90))
+                        }
+                    }
+                }
 
                 VStack(spacing: 10) {
                     Text("onboarding.notifications.title")
@@ -364,9 +377,20 @@ private struct NotificationsPage: View {
                         .frame(maxWidth: 280)
                 }
 
-                HStack(spacing: 8) {
-                    ForEach(reassurances, id: \.icon) { item in
-                        ReassurancePill(icon: item.icon, text: item.text)
+                mockNotificationCard
+                    .opacity(cardAppeared ? 1 : 0)
+                    .offset(y: cardAppeared ? 0 : 10)
+                    .onAppear {
+                        withAnimation(.easeOut(duration: 0.45).delay(0.65)) {
+                            cardAppeared = true
+                        }
+                    }
+
+                GlassEffectContainer {
+                    HStack(spacing: 8) {
+                        ForEach(reassurances, id: \.icon) { item in
+                            ReassurancePill(icon: item.icon, text: item.text)
+                        }
                     }
                 }
                 .padding(.horizontal, 24)
@@ -391,6 +415,43 @@ private struct NotificationsPage: View {
             .padding(.bottom, 60)
         }
     }
+
+    private var mockNotificationCard: some View {
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .fill(AppTheme.supplicationGreen.opacity(0.18))
+                .frame(width: 40, height: 40)
+                .overlay {
+                    Image(systemName: "sun.horizon.fill")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(AppTheme.supplicationGreen)
+                }
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("HolyDay")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppTheme.textPrimary)
+                    Spacer()
+                    Text("08:00")
+                        .font(.caption2)
+                        .foregroundStyle(AppTheme.textTertiary)
+                }
+                Text("onboarding.notifications.mock.title")
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundStyle(AppTheme.textSecondary)
+                Text("onboarding.notifications.mock.verse")
+                    .font(.caption2)
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(12)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, 24)
+    }
 }
 
 private struct ReassurancePill: View {
@@ -409,14 +470,7 @@ private struct ReassurancePill: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .strokeBorder(AppTheme.supplicationGreen.opacity(0.2), lineWidth: 1)
-                }
-        }
+        .glassEffect(.regular.tint(AppTheme.supplicationGreen.opacity(0.08)), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 
@@ -441,9 +495,12 @@ private struct OnboardingPrimaryButton: View {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 52)
-            .background(AppTheme.thanksgivingGold.opacity(isEnabled ? 1 : 0.4))
-            .foregroundStyle(.black)
-            .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+            .foregroundStyle(isEnabled ? Color.black : Color.black.opacity(0.4))
+            .glassEffect(
+                .regular.tint(AppTheme.thanksgivingGold.opacity(isEnabled ? 0.75 : 0.2)),
+                in: RoundedRectangle(cornerRadius: 30, style: .continuous)
+            )
+            .shadow(color: AppTheme.thanksgivingGold.opacity(isEnabled ? 0.45 : 0), radius: 10, x: 0, y: 0)
         }
         .disabled(!isEnabled || isLoading)
         .animation(.easeInOut(duration: 0.2), value: isEnabled)
