@@ -9,6 +9,16 @@ import SwiftUI
 import SwiftData
 
 struct MainTabView: View {
+    @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
+
+    private var preferredScheme: ColorScheme? {
+        switch colorSchemePreference {
+        case "light": return .light
+        case "dark":  return .dark
+        default:      return nil
+        }
+    }
+
     var body: some View {
         TabView {
             Tab("tab.prayer", systemImage: "hands.sparkles") {
@@ -22,7 +32,7 @@ struct MainTabView: View {
             }
         }
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(preferredScheme)
     }
 }
 

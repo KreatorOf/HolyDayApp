@@ -129,10 +129,10 @@ struct PrayerHistoryView: View {
                 .padding(.vertical, 10)
                 .background {
                     RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Color.white.opacity(0.06))
+                        .fill(AppTheme.cardFill)
                         .overlay {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.1), lineWidth: 1)
+                                .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                         }
                 }
                 .transition(.opacity.combined(with: .move(edge: .top)))
@@ -155,7 +155,7 @@ struct PrayerHistoryView: View {
                 .fill(.ultraThinMaterial)
                 .overlay {
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                 }
         }
     }
@@ -171,7 +171,7 @@ struct PrayerHistoryView: View {
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
                     .frame(width: 36, height: 36)
-                    .background(Circle().fill(Color.white.opacity(0.08)))
+                    .background(Circle().fill(AppTheme.buttonFillSubtle))
             }
 
             Spacer()
@@ -191,7 +191,7 @@ struct PrayerHistoryView: View {
                     .font(.callout.weight(.semibold))
                     .foregroundStyle(AppTheme.textSecondary)
                     .frame(width: 36, height: 36)
-                    .background(Circle().fill(Color.white.opacity(0.08)))
+                    .background(Circle().fill(AppTheme.buttonFillSubtle))
             }
         }
         .padding(.horizontal, 16)
@@ -349,10 +349,10 @@ struct PrayerHistoryView: View {
                 .padding(16)
                 .background {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Color.white.opacity(0.04))
+                        .fill(AppTheme.cardFill)
                         .overlay {
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                                .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                         }
                 }
             } else {
@@ -406,10 +406,10 @@ struct PrayerHistoryView: View {
             .padding(16)
             .background {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.white.opacity(0.04))
+                    .fill(AppTheme.cardFill)
                     .overlay {
                         RoundedRectangle(cornerRadius: 14, style: .continuous)
-                            .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                     }
             }
         } else {
@@ -470,10 +470,10 @@ struct PrayerHistoryView: View {
         .padding(16)
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.white.opacity(0.04))
+                .fill(AppTheme.cardFill)
                 .overlay {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+                        .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                 }
         }
     }
@@ -589,7 +589,7 @@ struct JournalEntryRow: View {
                 .fill(.ultraThinMaterial)
                 .overlay {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                 }
         }
     }

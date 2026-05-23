@@ -51,7 +51,6 @@ struct OnboardingView: View {
         .safeAreaInset(edge: .bottom, spacing: 0) {
             pageIndicator.padding(.vertical, 12)
         }
-        .preferredColorScheme(.dark)
     }
 
     private var slideTransition: AnyTransition {
