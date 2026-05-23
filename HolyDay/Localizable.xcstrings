@@ -49,13 +49,29 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Peace found after a period of anxiety and uncertainty"
+            "value" : "Request for peace during a difficult time → Gratitude for the serenity found"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Paix retrouvée après une période d'anxiété et d'incertitude"
+            "value" : "Demande de paix dans une période difficile → Remerciement pour la sérénité retrouvée"
+          }
+        }
+      }
+    },
+    "ai.paywall.fake.answered2" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intercession for a loved one's health → Thanksgiving for improvement noticed weeks later"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intercession pour la santé d'un proche → Action de grâce pour une amélioration constatée"
           }
         }
       }
@@ -140,18 +156,34 @@
         }
       }
     },
-    "ai.paywall.feature.growth" : {
+    "ai.paywall.feature.answered" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tracks your spiritual growth"
+            "value" : "Detects potentially answered prayers"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suit votre évolution spirituelle"
+            "value" : "Détecte vos prières potentiellement exaucées"
+          }
+        }
+      }
+    },
+    "ai.paywall.feature.history" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyses your full prayer history"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse l'ensemble de votre historique"
           }
         }
       }
@@ -177,13 +209,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identifies your prayer themes"
+            "value" : "Identifying recurring themes in your prayers"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Identifie vos thèmes de prière"
+            "value" : "Détection des thèmes récurrents dans vos prières"
           }
         }
       }
@@ -208,14 +240,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Spiritual AI"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "IA Spirituelle"
+            "value" : "IA Logos"
           }
         }
       }
@@ -273,13 +305,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discover the themes, growth and intentions woven through your prayers."
+            "value" : "Personal themes, answered prayers, spiritual trends — all from your own words."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Découvrez les thèmes, l'évolution et les intentions qui traversent vos prières."
+            "value" : "Thèmes personnels, prières exaucées, tendances — le tout analysé depuis vos propres mots."
           }
         }
       }

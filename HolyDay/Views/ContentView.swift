@@ -10,6 +10,7 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
     @State private var viewModel = PrayerGuideViewModel()
     @State private var streak = StreakService.shared
     @State private var showNavTitle = false
@@ -238,7 +239,10 @@ struct ContentView: View {
 
     private func generateQuestions(for step: PrayerStep) async {
         do {
-            let questions = try await AIAssistantService.shared.generateReflectionQuestions(for: step)
+            let questions = try await AIAssistantService.shared.generateReflectionQuestions(
+                for: step,
+                recentEntries: Array(entries.prefix(30))
+            )
             withAnimation(.easeInOut(duration: 0.4)) {
                 viewModel.reflectionQuestions[step.id] = questions
             }

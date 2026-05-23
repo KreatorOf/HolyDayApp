@@ -81,21 +81,23 @@ struct AIPremiumView: View {
 
     // MARK: Features
 
-    private let features: [(icon: String, key: LocalizedStringKey)] = [
-        ("text.magnifyingglass",        "ai.paywall.feature.themes"),
-        ("chart.line.uptrend.xyaxis",   "ai.paywall.feature.growth"),
-        ("lock.shield.fill",            "ai.paywall.feature.privacy"),
+    private let features: [(icon: String, key: LocalizedStringKey, color: Color)] = [
+        ("tag.fill",               "ai.paywall.feature.themes",   AppTheme.confessionBlue),
+        ("checkmark.seal.fill",    "ai.paywall.feature.answered", AppTheme.thanksgivingGold),
+        ("clock.arrow.circlepath", "ai.paywall.feature.history",  AppTheme.adorationPurple),
+        ("lock.shield.fill",       "ai.paywall.feature.privacy",  AppTheme.supplicationGreen),
     ]
 
     private var featuresSection: some View {
         VStack(spacing: 0) {
             ForEach(features.indices, id: \.self) { i in
+                let color = features[i].color
                 HStack(spacing: 14) {
                     Image(systemName: features[i].icon)
                         .font(.system(size: 15, weight: .medium))
-                        .foregroundStyle(AppTheme.adorationPurple)
+                        .foregroundStyle(color)
                         .frame(width: 34, height: 34)
-                        .background(AppTheme.adorationPurple.opacity(0.12))
+                        .background(color.opacity(0.12))
                         .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
 
                     Text(features[i].key)
@@ -106,7 +108,7 @@ struct AIPremiumView: View {
 
                     Image(systemName: "checkmark")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.adorationPurple.opacity(0.6))
+                        .foregroundStyle(color.opacity(0.7))
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 13)
@@ -158,20 +160,21 @@ struct AIPremiumView: View {
                         ]
                     )
                     fakeInsightSection(
+                        title: "insight.answered.title",
+                        icon: "checkmark.seal.fill",
+                        color: AppTheme.thanksgivingGold,
+                        items: [
+                            "ai.paywall.fake.answered1",
+                            "ai.paywall.fake.answered2",
+                        ]
+                    )
+                    fakeInsightSection(
                         title: "insight.observations.title",
                         icon: "eye.fill",
                         color: AppTheme.adorationPurple,
                         items: [
                             "ai.paywall.fake.obs1",
                             "ai.paywall.fake.obs2",
-                        ]
-                    )
-                    fakeInsightSection(
-                        title: "insight.answered.title",
-                        icon: "checkmark.seal.fill",
-                        color: AppTheme.thanksgivingGold,
-                        items: [
-                            "ai.paywall.fake.answered1",
                         ]
                     )
                 }
