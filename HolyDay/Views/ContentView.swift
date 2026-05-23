@@ -13,8 +13,10 @@ struct ContentView: View {
     @State private var viewModel = PrayerGuideViewModel()
     @State private var streak = StreakService.shared
     @State private var showNavTitle = false
+    @State private var showHeatmap = false
+    @State private var showCelebration = false
+    @State private var celebrationValue: Int = 0
     @AppStorage("holyday.userName") private var userName = ""
-    @Query(sort: \PrayerEntry.date) private var allEntries: [PrayerEntry]
     @State private var stepsAppeared = false
     @State private var topInset: CGFloat = 100
 
@@ -62,6 +64,31 @@ struct ContentView: View {
                     }
                     .opacity(showNavTitle ? 1 : 0)
                 }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        showHeatmap = true
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "flame.fill")
+                                .symbolRenderingMode(.hierarchical)
+                                .foregroundStyle(streak.currentStreak > 0 ? Color.orange : Color.white.opacity(0.3))
+                            Text("\(streak.currentStreak)")
+                                .monospacedDigit()
+                                .contentTransition(.numericText(value: Double(streak.currentStreak)))
+                                .animation(.spring(response: 0.35), value: streak.currentStreak)
+                        }
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(AppTheme.textPrimary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .glassEffect(
+                            .regular.tint(Color.white.opacity(streak.currentStreak > 0 ? 0.05 : 0.02)),
+                            in: Capsule()
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
             }
         }
         .background(
@@ -71,6 +98,20 @@ struct ContentView: View {
             }
             .ignoresSafeArea()
         )
+        .sheet(isPresented: $showHeatmap) {
+            StreakYearHeatmapView(streak: streak)
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+        }
+        .fullScreenCover(isPresented: $showCelebration) {
+            StreakCelebrationView(streakValue: celebrationValue)
+                .presentationBackground(.clear)
+        }
+        .onChange(of: streak.lastIncrementToken) { _, newToken in
+            guard newToken != nil else { return }
+            celebrationValue = streak.lastIncrementValue
+            showCelebration = true
+        }
     }
 
     // MARK: Header
@@ -87,53 +128,20 @@ struct ContentView: View {
     }
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .bottom) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(greeting)
-                        .font(.subheadline)
-                        .foregroundStyle(AppTheme.textSecondary)
-                        .tracking(0.3)
-                    HStack(spacing: 0) {
-                        Text("Holy")
-                            .font(.system(size: 38, weight: .bold, design: .serif).italic())
-                            .foregroundStyle(AppTheme.textPrimary)
-                        Text("Day")
-                            .font(.system(size: 38, weight: .thin, design: .serif))
-                            .foregroundStyle(AppTheme.textSecondary)
-                    }
-                }
-                Spacer()
-                streakBadge
+        VStack(alignment: .leading, spacing: 2) {
+            Text(greeting)
+                .font(.subheadline)
+                .foregroundStyle(AppTheme.textSecondary)
+                .tracking(0.3)
+            HStack(spacing: 0) {
+                Text("Holy")
+                    .font(.system(size: 38, weight: .bold, design: .serif).italic())
+                    .foregroundStyle(AppTheme.textPrimary)
+                Text("Day")
+                    .font(.system(size: 38, weight: .thin, design: .serif))
+                    .foregroundStyle(AppTheme.textSecondary)
             }
-            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: streak.currentStreak)
-
-            weeklyCalendar
         }
-    }
-
-    private var streakBadge: some View {
-        let active = streak.currentStreak > 0
-        return VStack(spacing: 2) {
-            Text("🔥")
-                .font(.title2)
-                .opacity(active ? 1 : 0.3)
-            Text("\(streak.currentStreak)")
-                .font(.caption)
-                .fontWeight(.bold)
-                .foregroundStyle(active ? AppTheme.thanksgivingGold : AppTheme.textTertiary)
-            Text(streak.currentStreak > 1 ? "streak.days" : "streak.day")
-                .font(.caption2)
-                .foregroundStyle(AppTheme.textTertiary)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .glassEffect(
-            .regular.tint(AppTheme.thanksgivingGold.opacity(active ? 0.25 : 0.05)),
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
-        .shadow(color: AppTheme.thanksgivingGold.opacity(active ? 0.3 : 0), radius: 8, x: 0, y: 0)
-        .animation(.easeInOut(duration: 0.3), value: active)
     }
 
     // MARK: Sections
@@ -236,124 +244,6 @@ struct ContentView: View {
             }
         } catch {
             // silent — no questions shown, user still prays freely
-        }
-    }
-}
-
-// MARK: Date & weekly calendar
-
-extension ContentView {
-    private static let todayFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale.current
-        f.dateFormat = "EEEE d MMMM"
-        return f
-    }()
-
-    private static let dayLetterFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale.current
-        f.dateFormat = "EEEEE"
-        return f
-    }()
-
-    var todayFormatted: String {
-        let s = Self.todayFormatter.string(from: Date())
-        return s.prefix(1).uppercased() + s.dropFirst()
-    }
-
-    var prayedDays: Set<Date> {
-        let calendar = Calendar.current
-        let cutoff = calendar.date(byAdding: .day, value: -7, to: calendar.startOfDay(for: Date())) ?? Date()
-        return Set(allEntries
-            .filter { $0.date >= cutoff }
-            .map { calendar.startOfDay(for: $0.date) })
-    }
-
-    var weeklyCalendar: some View {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let weekday = calendar.component(.weekday, from: today)
-        let daysFromMonday = (weekday + 5) % 7
-        let monday = calendar.date(byAdding: .day, value: -daysFromMonday, to: today) ?? today
-        return GlassEffectContainer {
-            HStack(spacing: 8) {
-                ForEach(0..<7, id: \.self) { i in
-                    let date = calendar.date(byAdding: .day, value: i, to: monday) ?? monday
-                    let isToday = calendar.startOfDay(for: date) == today
-                    let hasPrayer = prayedDays.contains(calendar.startOfDay(for: date))
-                    DayBubble(date: date, isToday: isToday, hasPrayer: hasPrayer)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 8)
-        }
-    }
-}
-
-// MARK: Day bubble
-
-private struct DayBubble: View {
-    let date: Date
-    let isToday: Bool
-    let hasPrayer: Bool
-    @State private var pulse = false
-
-    private static let dayLetterFormatter: DateFormatter = {
-        let f = DateFormatter()
-        f.locale = Locale.current
-        f.dateFormat = "EEEEE"
-        return f
-    }()
-
-    var body: some View {
-        VStack(spacing: 4) {
-            Text(Self.dayLetterFormatter.string(from: date).uppercased())
-                .font(.system(size: 9, weight: .medium))
-                .foregroundStyle(isToday ? AppTheme.textSecondary : AppTheme.textTertiary)
-
-            Capsule()
-                .fill(hasPrayer
-                      ? AppTheme.thanksgivingGold.opacity(0.7)
-                      : Color.white.opacity(isToday ? 0.25 : 0.12))
-                .frame(width: 16, height: 2)
-
-            ZStack {
-                if hasPrayer {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundStyle(.black)
-                }
-            }
-            .frame(width: 30, height: 30)
-            .glassEffect(
-                hasPrayer
-                    ? .regular.tint(AppTheme.thanksgivingGold.opacity(0.5))
-                    : .regular.tint(Color.clear),
-                in: Circle()
-            )
-            .opacity(hasPrayer || isToday ? 1 : 0.4)
-        }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 4)
-        .frame(maxWidth: .infinity)
-        .glassEffect(
-            isToday && !hasPrayer
-                ? .regular.tint(AppTheme.thanksgivingGold.opacity(0.18))
-                : .regular,
-            in: RoundedRectangle(cornerRadius: 14, style: .continuous)
-        )
-        .shadow(
-            color: isToday && !hasPrayer
-                ? AppTheme.thanksgivingGold.opacity(pulse ? 0.55 : 0.12)
-                : .clear,
-            radius: 7, x: 0, y: 0
-        )
-        .onAppear {
-            guard isToday && !hasPrayer else { return }
-            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
-                pulse = true
-            }
         }
     }
 }
