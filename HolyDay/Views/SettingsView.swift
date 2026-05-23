@@ -13,6 +13,7 @@ struct SettingsView: View {
     @State private var showTipView = false
     @State private var topInset: CGFloat = 100
     @State private var showNavTitle = false
+    @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -34,6 +35,7 @@ struct SettingsView: View {
                     supportCard
                     communityCard
                     notificationsCard
+                    appearanceCard
                     aboutCard
                     legalCard
                     copyrightFooter
@@ -205,6 +207,36 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: Appearance
+
+    private var appearanceCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel(String(localized: "settings.appearance.section"))
+            settingsCard {
+                HStack(spacing: 14) {
+                    iconBadge(systemName: "circle.lefthalf.filled", color: AppTheme.adorationPurple)
+                    Text("settings.appearance.title")
+                        .font(.body)
+                        .foregroundStyle(AppTheme.textPrimary)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 10)
+
+                cardDivider
+
+                Picker("", selection: $colorSchemePreference) {
+                    Text("settings.appearance.system").tag("system")
+                    Text("settings.appearance.light").tag("light")
+                    Text("settings.appearance.dark").tag("dark")
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+        }
+    }
+
     // MARK: About
 
     private var aboutCard: some View {
@@ -267,7 +299,7 @@ struct SettingsView: View {
                 .fill(.ultraThinMaterial)
                 .overlay {
                     RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+                        .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                 }
         }
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
@@ -293,7 +325,7 @@ struct SettingsView: View {
     }
 
     private var cardDivider: some View {
-        Color.white.opacity(0.07)
+        AppTheme.divider
             .frame(height: 1)
             .padding(.horizontal, 16)
     }
