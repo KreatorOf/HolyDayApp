@@ -18,6 +18,8 @@ struct PrayerHistoryView: View {
     @State private var showNavTitle = false
     @State private var searchText = ""
     @State private var isSearching = false
+    @State private var tipService = TipService.shared
+    @State private var showAIPaywall = false
 
     private static func firstOfCurrentMonth() -> Date {
         let cal = Calendar.current
@@ -65,10 +67,13 @@ struct PrayerHistoryView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     HStack(spacing: 14) {
-                        if aiInsightAvailable {
-                            Button { showInsight = true } label: {
+                        if aiButtonVisible {
+                            Button {
+                                if aiUnlocked { showInsight = true }
+                                else { showAIPaywall = true }
+                            } label: {
                                 Image(systemName: "sparkles")
-                                    .foregroundStyle(AppTheme.adorationPurple)
+                                    .foregroundStyle(aiUnlocked ? AppTheme.adorationPurple : AppTheme.textTertiary)
                             }
                         }
                         Button {
@@ -85,6 +90,9 @@ struct PrayerHistoryView: View {
             }
             .sheet(isPresented: $showInsight) {
                 JournalInsightView()
+            }
+            .sheet(isPresented: $showAIPaywall) {
+                AIPremiumView()
             }
         }
         .background(
@@ -147,6 +155,7 @@ struct PrayerHistoryView: View {
     private var calendarCard: some View {
         VStack(spacing: 0) {
             monthNavigationHeader
+            monthInsightStrip
             weekDayLabels
             calendarDayGrid
         }
@@ -176,9 +185,24 @@ struct PrayerHistoryView: View {
 
             Spacer()
 
-            Text(monthYearLabel)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(AppTheme.textPrimary)
+            VStack(spacing: 3) {
+                Text(monthYearLabel)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(AppTheme.textPrimary)
+                if !isCurrentMonth {
+                    Button(action: goToCurrentMonth) {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.uturn.left")
+                                .font(.system(size: 9, weight: .semibold))
+                            Text(String(localized: "date.today"))
+                                .font(.caption2.weight(.medium))
+                        }
+                        .foregroundStyle(AppTheme.thanksgivingGold)
+                    }
+                    .transition(.opacity.combined(with: .scale))
+                }
+            }
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isCurrentMonth)
 
             Spacer()
 
@@ -196,6 +220,21 @@ struct PrayerHistoryView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
+    }
+
+    private var monthInsightStrip: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "hands.sparkles")
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(AppTheme.thanksgivingGold)
+            Text(monthInsightText)
+                .font(.caption)
+                .foregroundStyle(AppTheme.textTertiary)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 8)
+        .animation(.easeInOut(duration: 0.2), value: monthInsightText)
     }
 
     private var weekDayLabels: some View {
@@ -230,12 +269,14 @@ struct PrayerHistoryView: View {
         .padding(.bottom, 14)
     }
 
-    private func calendarDayView(_ date: Date, prayedDays: Set<Date>) -> some View {
+    private func calendarDayView(_ date: Date, prayedDays: [Date: Int]) -> some View {
         let calendar = Calendar.current
         let isToday = calendar.isDateInToday(date)
         let startOfDay = calendar.startOfDay(for: date)
         let isSelected = selectedDate == startOfDay
-        let hasPrayer = prayedDays.contains(startOfDay)
+        let count = prayedDays[startOfDay, default: 0]
+        let hasPrayer = count > 0
+        let dotIntensity = min(Double(count), 3.0) / 3.0
         let isFuture = startOfDay > calendar.startOfDay(for: Date())
         return Button {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -259,8 +300,10 @@ struct PrayerHistoryView: View {
                 .frame(width: 34, height: 34)
 
                 Circle()
-                    .fill(hasPrayer ? (isSelected ? Color.white : AppTheme.thanksgivingGold) : Color.clear)
-                    .frame(width: 4, height: 4)
+                    .fill(hasPrayer
+                        ? (isSelected ? Color.white : AppTheme.thanksgivingGold.opacity(0.3 + 0.7 * dotIntensity))
+                        : Color.clear)
+                    .frame(width: 5, height: 5)
             }
         }
         .disabled(isFuture)
@@ -272,45 +315,71 @@ struct PrayerHistoryView: View {
     private var selectedDaySection: some View {
         if let selected = selectedDate {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 8) {
-                    Text(dayLabel(selected))
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(AppTheme.textTertiary)
-                        .textCase(.uppercase)
-                        .tracking(1.0)
-
+                HStack(alignment: .bottom) {
+                    dayHeaderLabel(selected)
+                    Spacer()
                     if !selectedDayEntries.isEmpty {
                         Text("\(selectedDayEntries.count)")
                             .font(.caption2.weight(.bold))
                             .foregroundStyle(AppTheme.textPrimary)
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 2)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
                             .background {
-                                Capsule().fill(AppTheme.adorationPurple.opacity(0.4))
+                                Capsule().fill(AppTheme.adorationPurple.opacity(0.35))
                             }
                     }
                 }
 
-                if selectedDayEntries.isEmpty {
-                    emptyDayState
-                } else {
-                    ForEach(selectedDayEntries) { entry in
-                        NavigationLink {
-                            PrayerEntryDetailView(entry: entry)
-                        } label: {
-                            JournalEntryRow(entry: entry)
-                        }
-                        .buttonStyle(.plain)
-                        .contextMenu {
-                            Button(role: .destructive) {
-                                modelContext.delete(entry)
+                VStack(spacing: 8) {
+                    if selectedDayEntries.isEmpty {
+                        emptyDayState
+                    } else {
+                        ForEach(selectedDayEntries) { entry in
+                            NavigationLink {
+                                PrayerEntryDetailView(entry: entry)
                             } label: {
-                                Label("common.delete", systemImage: "trash")
+                                JournalEntryRow(entry: entry)
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    modelContext.delete(entry)
+                                } label: {
+                                    Label("common.delete", systemImage: "trash")
+                                }
                             }
                         }
                     }
                 }
+                .id(selected)
+                .transition(.opacity.combined(with: .scale(scale: 0.97, anchor: .top)))
+                .animation(.spring(response: 0.32, dampingFraction: 0.85), value: selected)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func dayHeaderLabel(_ date: Date) -> some View {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(date) {
+            Text(String(localized: "date.today").uppercased())
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.thanksgivingGold)
+                .tracking(1.0)
+        } else if calendar.isDateInYesterday(date) {
+            Text(String(localized: "date.yesterday").uppercased())
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textTertiary)
+                .tracking(1.0)
+        } else {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(date.formatted(.dateTime.weekday(.wide)).uppercased())
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(AppTheme.textTertiary)
+                    .tracking(1.0)
+                Text(date.formatted(.dateTime.day().month(.wide).year()))
+                    .font(.system(.callout, design: .serif, weight: .medium))
+                    .foregroundStyle(AppTheme.textPrimary)
             }
         }
     }
@@ -480,8 +549,12 @@ struct PrayerHistoryView: View {
 
     // MARK: Computed helpers
 
-    private var aiInsightAvailable: Bool {
-        entries.filter({ !$0.text.isEmpty }).count >= 3 && AIAssistantService.shared.isAvailable
+    private var aiButtonVisible: Bool {
+        entries.filter({ !$0.text.isEmpty }).count >= 3
+    }
+
+    private var aiUnlocked: Bool {
+        tipService.supporterTier != nil && AIAssistantService.shared.isAvailable
     }
 
     private var selectedDayEntries: [PrayerEntry] {
@@ -509,11 +582,31 @@ struct PrayerHistoryView: View {
         return days
     }
 
-    private var prayedDaysInMonth: Set<Date> {
+    private var prayedDaysInMonth: [Date: Int] {
         let calendar = Calendar.current
-        return Set(entries
+        return entries
             .filter { calendar.isDate($0.date, equalTo: displayedMonth, toGranularity: .month) }
-            .map { calendar.startOfDay(for: $0.date) })
+            .reduce(into: [Date: Int]()) { result, entry in
+                let day = calendar.startOfDay(for: entry.date)
+                result[day, default: 0] += 1
+            }
+    }
+
+    private var isCurrentMonth: Bool {
+        Calendar.current.isDate(displayedMonth, equalTo: Date(), toGranularity: .month)
+    }
+
+    private var monthInsightText: String {
+        let count = prayedDaysInMonth.count
+        if count == 0 { return String(localized: "journal.month.prayed.none") }
+        return String(format: String(localized: "journal.month.prayed.days"), count)
+    }
+
+    private func goToCurrentMonth() {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+            displayedMonth = Self.firstOfCurrentMonth()
+            selectedDate = Calendar.current.startOfDay(for: Date())
+        }
     }
 
     private func entriesForDate(_ date: Date) -> [PrayerEntry] {
@@ -522,13 +615,6 @@ struct PrayerHistoryView: View {
         return entries
             .filter { calendar.startOfDay(for: $0.date) == target }
             .sorted { $0.date < $1.date }
-    }
-
-    private func dayLabel(_ date: Date) -> String {
-        let calendar = Calendar.current
-        if calendar.isDateInToday(date) { return String(localized: "date.today") }
-        if calendar.isDateInYesterday(date) { return String(localized: "date.yesterday") }
-        return date.formatted(.dateTime.day().month(.wide).year())
     }
 
     private func navigateMonth(by offset: Int) {
@@ -542,56 +628,64 @@ struct PrayerHistoryView: View {
 
 struct JournalEntryRow: View {
     let entry: PrayerEntry
+    private var stepColor: Color { AppTheme.color(for: entry.stepColorName) }
 
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: entry.stepIcon)
-                .font(.callout)
-                .foregroundStyle(AppTheme.color(for: entry.stepColorName))
-                .frame(width: 36, height: 36)
-                .background(AppTheme.color(for: entry.stepColorName).opacity(0.15))
-                .clipShape(Circle())
-
-            VStack(alignment: .leading, spacing: 3) {
-                HStack {
-                    Text(entry.stepTitle)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(AppTheme.textPrimary)
-                    if entry.isAnswered {
-                        Image(systemName: "checkmark.seal.fill")
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.supplicationGreen)
-                    }
-                    Spacer()
-                    Text(entry.date, format: .dateTime.hour().minute())
-                        .font(.caption2)
-                        .foregroundStyle(AppTheme.textTertiary)
-                }
-                if entry.text.isEmpty {
-                    Text("journal.entry.no.text")
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.textTertiary)
-                        .italic()
-                } else {
-                    Text(entry.text)
-                        .font(.caption)
-                        .foregroundStyle(AppTheme.textSecondary)
-                        .lineLimit(2)
-                }
-            }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
+        ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(.ultraThinMaterial)
+                .fill(AppTheme.cardFill)
                 .overlay {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
                 }
+
+            Rectangle()
+                .fill(stepColor)
+                .frame(width: 3)
+
+            HStack(spacing: 12) {
+                Image(systemName: entry.stepIcon)
+                    .font(.callout)
+                    .foregroundStyle(stepColor)
+                    .frame(width: 36, height: 36)
+                    .background(stepColor.opacity(0.15))
+                    .clipShape(Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(entry.stepTitle)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AppTheme.textPrimary)
+                        if entry.isAnswered {
+                            Image(systemName: "checkmark.seal.fill")
+                                .font(.caption)
+                                .foregroundStyle(AppTheme.supplicationGreen)
+                        }
+                        Spacer()
+                        Text(entry.date, format: .dateTime.hour().minute())
+                            .font(.system(.caption2, design: .serif))
+                            .foregroundStyle(AppTheme.textTertiary)
+                    }
+                    if entry.text.isEmpty {
+                        Text("journal.entry.no.text")
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textTertiary)
+                            .italic()
+                    } else {
+                        Text(entry.text)
+                            .font(.subheadline)
+                            .foregroundStyle(AppTheme.textSecondary)
+                            .lineLimit(2)
+                    }
+                }
+            }
+            .padding(.leading, 17)
+            .padding(.trailing, 14)
+            .padding(.vertical, 12)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 
