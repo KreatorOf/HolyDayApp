@@ -114,7 +114,7 @@ private let onboardingFeatures: [Feature] = [
 private struct WelcomePage: View {
     var onNext: () -> Void
     @State private var breathe = false
-    @State private var appeared = false
+    @State private var tileAppeared = Array(repeating: false, count: onboardingFeatures.count)
 
     var body: some View {
         VStack(spacing: 0) {
@@ -155,17 +155,11 @@ private struct WelcomePage: View {
                         .multilineTextAlignment(.center)
                 }
 
-                GlassEffectContainer {
-                    VStack(spacing: 12) {
-                        ForEach(Array(onboardingFeatures.enumerated()), id: \.offset) { index, feature in
-                            FeatureTile(feature: feature)
-                                .opacity(appeared ? 1 : 0)
-                                .offset(y: appeared ? 0 : 14)
-                                .animation(
-                                    .easeOut(duration: 0.4).delay(0.15 + Double(index) * 0.3),
-                                    value: appeared
-                                )
-                        }
+                VStack(spacing: 12) {
+                    ForEach(Array(onboardingFeatures.enumerated()), id: \.offset) { index, feature in
+                        FeatureTile(feature: feature)
+                            .opacity(tileAppeared[index] ? 1 : 0)
+                            .offset(y: tileAppeared[index] ? 0 : 14)
                     }
                 }
                 .padding(.horizontal, 32)
@@ -178,8 +172,12 @@ private struct WelcomePage: View {
                 .padding(.bottom, 60)
         }
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-                appeared = true
+            for i in 0..<onboardingFeatures.count {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35 + Double(i) * 0.25) {
+                    withAnimation(.easeOut(duration: 0.4)) {
+                        tileAppeared[i] = true
+                    }
+                }
             }
         }
     }

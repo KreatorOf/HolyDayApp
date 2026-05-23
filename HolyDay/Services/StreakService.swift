@@ -14,9 +14,20 @@ final class StreakService {
     static let shared = StreakService()
 
     private(set) var currentStreak: Int = 0
+    private(set) var bestStreak: Int = 0
+    private(set) var streakStartDate: Date?
+    private(set) var lastIncrementToken: UUID?
+    private(set) var lastIncrementValue: Int = 0
+
+    var isPrayedToday: Bool {
+        guard let last = UserDefaults.standard.object(forKey: lastPrayerDateKey) as? Date else { return false }
+        return Calendar.current.isDateInToday(last)
+    }
 
     private let streakKey = "holyday.streak"
     private let lastPrayerDateKey = "holyday.lastPrayerDate"
+    private let bestStreakKey = "holyday.bestStreak"
+    private let streakStartDateKey = "holyday.streakStartDate"
 
     private init() {
         recalculate()
@@ -32,13 +43,29 @@ final class StreakService {
             return
         }
 
+        if currentStreak == 0 {
+            streakStartDate = today
+            defaults.set(today, forKey: streakStartDateKey)
+        }
+
         defaults.set(today, forKey: lastPrayerDateKey)
         currentStreak += 1
         defaults.set(currentStreak, forKey: streakKey)
+
+        if currentStreak > bestStreak {
+            bestStreak = currentStreak
+            defaults.set(bestStreak, forKey: bestStreakKey)
+        }
+
+        lastIncrementValue = currentStreak
+        lastIncrementToken = UUID()
     }
 
     private func recalculate() {
         let defaults = UserDefaults.standard
+        bestStreak = defaults.integer(forKey: bestStreakKey)
+        streakStartDate = defaults.object(forKey: streakStartDateKey) as? Date
+
         guard let lastDate = defaults.object(forKey: lastPrayerDateKey) as? Date else {
             currentStreak = 0
             return
@@ -51,7 +78,9 @@ final class StreakService {
 
         if daysSince > 1 {
             currentStreak = 0
+            streakStartDate = nil
             defaults.set(0, forKey: streakKey)
+            defaults.removeObject(forKey: streakStartDateKey)
         } else {
             currentStreak = defaults.integer(forKey: streakKey)
         }
