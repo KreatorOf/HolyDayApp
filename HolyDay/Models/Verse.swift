@@ -14,7 +14,7 @@ struct Verse: Identifiable, Codable {
     let book: String
     let chapter: Int
     let verse: Int
-    
+
     init(id: UUID = UUID(), text: String, reference: String, book: String, chapter: Int, verse: Int) {
         self.id = id
         self.text = text

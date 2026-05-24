@@ -84,7 +84,7 @@ struct StreakCelebrationView: View {
                     let generator = UIImpactFeedbackGenerator(style: .light)
                         generator.prepare()
                         generator.impactOccurred()
-                    
+
                     dismiss()
                 } label: {
                     HStack(spacing: 12) {
@@ -93,7 +93,7 @@ struct StreakCelebrationView: View {
                             .font(.title3)
                             .symbolRenderingMode(.hierarchical)
                             .symbolEffect(.bounce.down.byLayer, options: .nonRepeating)
-                            
+
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)

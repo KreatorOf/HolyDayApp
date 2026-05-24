@@ -69,8 +69,7 @@ struct PrayerHistoryView: View {
                     HStack(spacing: 14) {
                         if aiButtonVisible {
                             Button {
-                                if aiUnlocked { showInsight = true }
-                                else { showAIPaywall = true }
+                                if aiUnlocked { showInsight = true } else { showAIPaywall = true }
                             } label: {
                                 Image(systemName: "sparkles")
                                     .foregroundStyle(aiUnlocked ? AppTheme.adorationPurple : AppTheme.textTertiary)
@@ -684,6 +683,7 @@ struct JournalEntryRow: View {
     }
 }
 
+// swiftlint:disable force_try
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: PrayerEntry.self, configurations: config)
@@ -733,3 +733,4 @@ struct JournalEntryRow: View {
         .modelContainer(container)
         .preferredColorScheme(.dark)
 }
+// swiftlint:enable force_try

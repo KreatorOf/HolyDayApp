@@ -57,11 +57,11 @@ struct OnboardingView: View {
         goingForward
             ? .asymmetric(
                 insertion: .move(edge: .trailing).combined(with: .opacity),
-                removal:   .move(edge: .leading).combined(with: .opacity)
+                removal: .move(edge: .leading).combined(with: .opacity)
               )
             : .asymmetric(
                 insertion: .move(edge: .leading).combined(with: .opacity),
-                removal:   .move(edge: .trailing).combined(with: .opacity)
+                removal: .move(edge: .trailing).combined(with: .opacity)
               )
     }
 
@@ -102,10 +102,10 @@ private struct Feature: Identifiable {
 }
 
 private let onboardingFeatures: [Feature] = [
-    Feature(icon: "book.pages",     label: String(localized: "onboarding.feature.verse.label"),    description: String(localized: "onboarding.feature.verse.desc"),    color: AppTheme.thanksgivingGold),
-    Feature(icon: "hands.sparkles", label: String(localized: "onboarding.feature.prayer.label"),   description: String(localized: "onboarding.feature.prayer.desc"),   color: AppTheme.adorationPurple),
-    Feature(icon: "calendar",       label: String(localized: "onboarding.feature.journal.label"),  description: String(localized: "onboarding.feature.journal.desc"),  color: AppTheme.confessionBlue),
-    Feature(icon: "bell",           label: String(localized: "onboarding.feature.reminders.label"),description: String(localized: "onboarding.feature.reminders.desc"),color: AppTheme.supplicationGreen),
+    Feature(icon: "book.pages", label: String(localized: "onboarding.feature.verse.label"), description: String(localized: "onboarding.feature.verse.desc"), color: AppTheme.thanksgivingGold),
+    Feature(icon: "hands.sparkles", label: String(localized: "onboarding.feature.prayer.label"), description: String(localized: "onboarding.feature.prayer.desc"), color: AppTheme.adorationPurple),
+    Feature(icon: "calendar", label: String(localized: "onboarding.feature.journal.label"), description: String(localized: "onboarding.feature.journal.desc"), color: AppTheme.confessionBlue),
+    Feature(icon: "bell", label: String(localized: "onboarding.feature.reminders.label"), description: String(localized: "onboarding.feature.reminders.desc"), color: AppTheme.supplicationGreen)
 ]
 
 // MARK: - Welcome page
@@ -321,9 +321,9 @@ private struct NotificationsPage: View {
     @State private var cardAppeared = false
 
     private var reassurances: [(icon: String, text: String)] {[
-        ("sun.horizon",  String(localized: "onboarding.notifications.pill.frequency")),
-        ("heart",        String(localized: "onboarding.notifications.pill.timing")),
-        ("bell.slash",   String(localized: "onboarding.notifications.pill.control")),
+        ("sun.horizon", String(localized: "onboarding.notifications.pill.frequency")),
+        ("heart", String(localized: "onboarding.notifications.pill.timing")),
+        ("bell.slash", String(localized: "onboarding.notifications.pill.control"))
     ]}
 
     var body: some View {

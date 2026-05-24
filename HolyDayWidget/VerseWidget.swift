@@ -47,7 +47,7 @@ private let frenchVerses: [WidgetVerse] = [
     WidgetVerse(text: "Demandez, et l'on vous donnera ; cherchez, et vous trouverez ; frappez, et l'on vous ouvrira.", reference: "Matthieu 7:7", book: "Matthieu"),
     WidgetVerse(text: "Mais ceux qui se confient en l'Éternel renouvellent leur force.", reference: "Ésaïe 40:31", book: "Ésaïe"),
     WidgetVerse(text: "Rejetez sur lui tous vos soucis, car lui-même prend soin de vous.", reference: "1 Pierre 5:7", book: "1 Pierre"),
-    WidgetVerse(text: "La paix de Dieu, qui surpasse toute intelligence, gardera vos cœurs et vos pensées en Jésus Christ.", reference: "Philippiens 4:7", book: "Philippiens"),
+    WidgetVerse(text: "La paix de Dieu, qui surpasse toute intelligence, gardera vos cœurs et vos pensées en Jésus Christ.", reference: "Philippiens 4:7", book: "Philippiens")
 ]
 
 private let englishVerses: [WidgetVerse] = [
@@ -65,7 +65,7 @@ private let englishVerses: [WidgetVerse] = [
     WidgetVerse(text: "Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.", reference: "Matthew 7:7", book: "Matthew"),
     WidgetVerse(text: "But those who hope in the Lord will renew their strength.", reference: "Isaiah 40:31", book: "Isaiah"),
     WidgetVerse(text: "Cast all your anxiety on him because he cares for you.", reference: "1 Peter 5:7", book: "1 Peter"),
-    WidgetVerse(text: "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.", reference: "Philippians 4:7", book: "Philippians"),
+    WidgetVerse(text: "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.", reference: "Philippians 4:7", book: "Philippians")
 ]
 
 private func verseOfTheDay() -> WidgetVerse {
@@ -268,7 +268,7 @@ private struct VerseWidgetLargeView: View {
                     colors: [
                         entry.verse.accentColor.opacity(0.18),
                         Color.clear,
-                        Color(red: 0.4, green: 0.3, blue: 0.8).opacity(0.1),
+                        Color(red: 0.4, green: 0.3, blue: 0.8).opacity(0.1)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

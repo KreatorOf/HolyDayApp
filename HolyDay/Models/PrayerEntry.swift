@@ -16,7 +16,7 @@ final class PrayerEntry {
     var text: String
     var date: Date
     var isAnswered: Bool = false
-    var answeredAt: Date? = nil
+    var answeredAt: Date?
 
     init(stepTitle: String, stepIcon: String, stepColorName: String, text: String, date: Date = .now) {
         self.stepTitle = stepTitle

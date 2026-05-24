@@ -23,9 +23,9 @@ struct AppTheme {
     // MARK: - Prayer step colors (unchanged — contrast correct on both themes)
 
     static let adorationPurple   = Color(red: 0.55, green: 0.35, blue: 0.85)
-    static let confessionBlue    = Color(red: 0.3,  green: 0.6,  blue: 0.95)
-    static let thanksgivingGold  = Color(red: 0.95, green: 0.7,  blue: 0.3)
-    static let supplicationGreen = Color(red: 0.3,  green: 0.8,  blue: 0.6)
+    static let confessionBlue    = Color(red: 0.3, green: 0.6, blue: 0.95)
+    static let thanksgivingGold  = Color(red: 0.95, green: 0.7, blue: 0.3)
+    static let supplicationGreen = Color(red: 0.3, green: 0.8, blue: 0.6)
 
     // MARK: - Backgrounds
     // Dark:  deep navy-violet #0D0D1F / #141426 / #1F1F33
@@ -33,19 +33,19 @@ struct AppTheme {
 
     static let backgroundPrimary = Color(UIColor { t in
         t.userInterfaceStyle == .dark
-            ? UIColor(red: 0.05,  green: 0.05,  blue: 0.12,  alpha: 1)
+            ? UIColor(red: 0.05, green: 0.05, blue: 0.12, alpha: 1)
             : UIColor(red: 0.973, green: 0.953, blue: 0.925, alpha: 1)
     })
 
     static let backgroundSecondary = Color(UIColor { t in
         t.userInterfaceStyle == .dark
-            ? UIColor(red: 0.08,  green: 0.08,  blue: 0.15,  alpha: 1)
+            ? UIColor(red: 0.08, green: 0.08, blue: 0.15, alpha: 1)
             : UIColor(red: 0.937, green: 0.914, blue: 0.875, alpha: 1)
     })
 
     static let backgroundTertiary = Color(UIColor { t in
         t.userInterfaceStyle == .dark
-            ? UIColor(red: 0.12,  green: 0.12,  blue: 0.20,  alpha: 1)
+            ? UIColor(red: 0.12, green: 0.12, blue: 0.20, alpha: 1)
             : UIColor(red: 0.890, green: 0.867, blue: 0.827, alpha: 1)
     })
 
