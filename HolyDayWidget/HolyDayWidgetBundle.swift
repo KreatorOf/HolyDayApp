@@ -3,12 +3,12 @@
 //  HolyDayWidget
 //
 
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
 @main
 struct HolyDayWidgetBundle: WidgetBundle {
-    var body: some Widget {
-        VerseWidget()
-    }
+  var body: some Widget {
+    VerseWidget()
+  }
 }

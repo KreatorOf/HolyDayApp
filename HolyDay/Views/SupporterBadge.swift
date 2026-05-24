@@ -8,38 +8,38 @@
 import SwiftUI
 
 struct SupporterBadge: View {
-    let tier: SupporterTier
+  let tier: SupporterTier
 
-    enum Size { case small, large }
-    var size: Size = .small
+  enum Size { case small, large }
+  var size: Size = .small
 
-    private var font: Font { size == .small ? .caption  : .subheadline }
-    private var iconFont: Font { size == .small ? .caption  : .body }
-    private var hPadding: CGFloat { size == .small ? 8         : 14 }
-    private var vPadding: CGFloat { size == .small ? 4         : 8 }
+  private var font: Font { size == .small ? .caption : .subheadline }
+  private var iconFont: Font { size == .small ? .caption : .body }
+  private var hPadding: CGFloat { size == .small ? 8 : 14 }
+  private var vPadding: CGFloat { size == .small ? 4 : 8 }
 
-    var body: some View {
-        HStack(spacing: 5) {
-            Image(systemName: tier.icon)
-                .font(iconFont)
-            Text(tier.title)
-                .font(font)
-                .fontWeight(.semibold)
-        }
-        .foregroundStyle(tier.color)
-        .padding(.horizontal, hPadding)
-        .padding(.vertical, vPadding)
-        .background(tier.color.opacity(0.12), in: Capsule())
+  var body: some View {
+    HStack(spacing: 5) {
+      Image(systemName: tier.icon)
+        .font(iconFont)
+      Text(tier.title)
+        .font(font)
+        .fontWeight(.semibold)
     }
+    .foregroundStyle(tier.color)
+    .padding(.horizontal, hPadding)
+    .padding(.vertical, vPadding)
+    .background(tier.color.opacity(0.12), in: Capsule())
+  }
 }
 
 #Preview {
-    VStack(spacing: 16) {
-        SupporterBadge(tier: .ami)
-        SupporterBadge(tier: .bienfaiteur)
-        SupporterBadge(tier: .pelerin)
-        SupporterBadge(tier: .pelerin, size: .large)
-    }
-    .padding()
-    .preferredColorScheme(.dark)
+  VStack(spacing: 16) {
+    SupporterBadge(tier: .ami)
+    SupporterBadge(tier: .bienfaiteur)
+    SupporterBadge(tier: .pelerin)
+    SupporterBadge(tier: .pelerin, size: .large)
+  }
+  .padding()
+  .preferredColorScheme(.dark)
 }
