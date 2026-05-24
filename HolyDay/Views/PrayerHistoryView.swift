@@ -683,6 +683,7 @@ struct JournalEntryRow: View {
     }
 }
 
+// swiftlint:disable force_try
 #Preview {
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: PrayerEntry.self, configurations: config)
@@ -732,3 +733,4 @@ struct JournalEntryRow: View {
         .modelContainer(container)
         .preferredColorScheme(.dark)
 }
+// swiftlint:enable force_try

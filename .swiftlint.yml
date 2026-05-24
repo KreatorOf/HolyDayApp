@@ -1,0 +1,26 @@
+# .swiftlint.yml
+disabled_rules:
+  - trailing_whitespace        # trop verbeux
+  - line_length                # SwiftUI a souvent des longues lignes
+  - file_length                # vues SwiftUI peuvent être longues
+  - type_body_length           # idem
+  - function_body_length       # idem
+
+opt_in_rules:
+  - force_unwrapping           # éviter les ! dangereux
+  - empty_count                # .isEmpty plutôt que .count == 0
+
+excluded:
+  - DerivedData
+  - Pods
+  - .build
+
+# Assouplir certaines limites
+identifier_name:
+  min_length: 2                # autorise "id", "to", etc.
+  excluded:
+    - id
+    - db
+
+type_name:
+  min_length: 2
