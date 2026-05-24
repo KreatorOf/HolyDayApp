@@ -57,7 +57,7 @@ final class TipService {
                 await transaction.finish()
                 hasTipped = true
                 if let purchasedIndex = products.firstIndex(where: { $0.id == product.id }) {
-                    // +1 offset: stored 1 = tier index 0 (ami), 2 = 1 (bienfaiteur), 3 = 2 (mécène)
+                    // +1 offset: stored 1 = tier index 0 (ami), 2 = 1 (bienfaiteur), 3 = 2 (pèlerin)
                     let stored = purchasedIndex + 1
                     if stored > highestTipIndexStored {
                         highestTipIndexStored = stored
@@ -79,4 +79,21 @@ final class TipService {
     func resetState() {
         purchaseState = .idle
     }
+
+    #if DEBUG
+    func debugUnlock(tier: SupporterTier = .pelerin) {
+        highestTipIndexStored = tier.rawValue + 1
+        hasTipped = true
+    }
+
+    func debugPurchase(tier: SupporterTier) {
+        debugUnlock(tier: tier)
+        purchaseState = .success
+    }
+
+    func debugReset() {
+        highestTipIndexStored = 0
+        hasTipped = false
+    }
+    #endif
 }

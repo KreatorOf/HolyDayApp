@@ -11,7 +11,7 @@
   ],
   "products" : [
     {
-      "displayPrice" : "0.99",
+      "displayPrice" : "2.99",
       "familyShareable" : false,
       "internalID" : "A2920CA5",
       "localizations" : [
@@ -31,7 +31,7 @@
       "type" : "Consumable"
     },
     {
-      "displayPrice" : "2.99",
+      "displayPrice" : "5.99",
       "familyShareable" : false,
       "internalID" : "56120B21",
       "localizations" : [

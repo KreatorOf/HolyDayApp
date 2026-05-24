@@ -110,12 +110,7 @@ struct PrayerHistoryView: View {
             Text("tab.journal")
                 .font(.system(size: 34, weight: .bold, design: .serif).italic())
                 .foregroundStyle(AppTheme.textPrimary)
-            if !isSearching {
-                Text("journal.subtitle")
-                    .font(.subheadline)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            } else {
+            if isSearching {
                 HStack(spacing: 10) {
                     Image(systemName: "magnifyingglass")
                         .font(.subheadline)
