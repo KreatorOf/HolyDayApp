@@ -36,7 +36,7 @@ struct TipView: View {
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .background(AppTheme.backgroundPrimary.ignoresSafeArea())
         .task {
             // Reset stale success state from a previous session
             if tipService.purchaseState == .success { tipService.resetState() }
@@ -84,7 +84,11 @@ struct TipView: View {
                 .tint(AppTheme.adorationPurple)
                 .padding(.vertical, 24)
         } else if tipService.products.isEmpty {
+            #if DEBUG
+            debugProductsStack
+            #else
             unavailableView
+            #endif
         } else {
             productsStack
         }
@@ -106,6 +110,43 @@ struct TipView: View {
             }
         }
     }
+
+    #if DEBUG
+    private var debugProductsStack: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 6) {
+                Image(systemName: "wrench.and.screwdriver.fill")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+                Text("Mode test — aucun paiement réel")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(.orange.opacity(0.12), in: Capsule())
+
+            let mockTiers: [(tier: SupporterTier, price: String)] = [
+                (.ami,        "2,99 €"),
+                (.bienfaiteur,"5,99 €"),
+                (.pelerin,    "9,99 €"),
+            ]
+            ForEach(mockTiers.indices, id: \.self) { i in
+                let mock = mockTiers[i]
+                let ui = tiers[i]
+                TipProductCard(
+                    emoji: ui.emoji,
+                    label: ui.label,
+                    price: mock.price,
+                    color: ui.color,
+                    isPurchasing: false
+                ) {
+                    tipService.debugPurchase(tier: mock.tier)
+                }
+            }
+        }
+    }
+    #endif
 
     private var unavailableView: some View {
         VStack(spacing: 12) {
@@ -131,47 +172,39 @@ struct TipView: View {
     // MARK: Success
 
     private var successView: some View {
-        VStack(spacing: 20) {
-            Spacer()
+        ZStack {
+            ConfettiView()
+                .ignoresSafeArea()
+                .allowsHitTesting(false)
 
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(.green)
-                .symbolEffect(.bounce, value: tipService.purchaseState == .success)
+            VStack(spacing: 20) {
+                Spacer()
 
-            VStack(spacing: 14) {
-                Text("tip.success.title")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundStyle(AppTheme.textPrimary)
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 80))
+                    .foregroundStyle(.green)
+                    .symbolEffect(.bounce, value: tipService.purchaseState == .success)
 
-                if let tier = tipService.supporterTier {
-                    SupporterBadge(tier: tier, size: .large)
+                VStack(spacing: 14) {
+                    Text("tip.success.title")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundStyle(AppTheme.textPrimary)
+
+                    if let tier = tipService.supporterTier {
+                        SupporterBadge(tier: tier, size: .large)
+                    }
+
+                    Text("tip.success.subtitle")
+                        .font(.body)
+                        .foregroundStyle(AppTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 24)
+                        .lineSpacing(4)
                 }
 
-                Text("tip.success.subtitle")
-                    .font(.body)
-                    .foregroundStyle(AppTheme.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-                    .lineSpacing(4)
+                Spacer()
             }
-
-            Spacer()
-
-            Button {
-                dismiss()
-            } label: {
-                Text("common.close")
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            }
-            .buttonStyle(.plain)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 12)
         }
     }
 }
@@ -225,6 +258,53 @@ private struct TipProductCard: View {
         }
         .buttonStyle(.plain)
         .disabled(isPurchasing)
+    }
+}
+
+// MARK: - Confetti
+
+private struct ConfettiParticle: Identifiable {
+    let id = UUID()
+    let xRatio: CGFloat = .random(in: 0.02...0.98)
+    let delay: Double = .random(in: 0...1.8)
+    let duration: Double = .random(in: 2.5...4.5)
+    let color: Color = [AppTheme.thanksgivingGold, AppTheme.adorationPurple, AppTheme.confessionBlue, Color(red: 0.95, green: 0.35, blue: 0.45), AppTheme.supplicationGreen].randomElement()!
+    let size: CGFloat = .random(in: 7...14)
+    let isCircle: Bool = .random()
+    let xDrift: CGFloat = .random(in: -60...60)
+    let rotationEnd: Double = .random(in: 270...720)
+}
+
+private struct ConfettiView: View {
+    @State private var isAnimating = false
+    @State private var particles: [ConfettiParticle] = (0..<80).map { _ in ConfettiParticle() }
+
+    var body: some View {
+        GeometryReader { geo in
+            ZStack {
+                ForEach(particles) { p in
+                    Group {
+                        if p.isCircle {
+                            Circle().fill(p.color)
+                        } else {
+                            RoundedRectangle(cornerRadius: 2).fill(p.color)
+                        }
+                    }
+                    .frame(width: p.size, height: p.isCircle ? p.size : p.size * 1.8)
+                    .position(
+                        x: geo.size.width * p.xRatio + (isAnimating ? p.xDrift : 0),
+                        y: isAnimating ? geo.size.height + 60 : -30
+                    )
+                    .rotationEffect(.degrees(isAnimating ? p.rotationEnd : 0))
+                    .animation(.easeIn(duration: p.duration).delay(p.delay), value: isAnimating)
+                }
+            }
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isAnimating = true
+            }
+        }
     }
 }
 

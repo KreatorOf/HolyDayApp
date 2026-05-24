@@ -6,14 +6,26 @@
 //
 
 import SwiftUI
+import StoreKit
+import SwiftData
+import PhotosUI
 
 struct SettingsView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.requestReview) private var requestReview
     @State private var notifications = NotificationService.shared
     @State private var tipService = TipService.shared
     @State private var showTipView = false
     @State private var topInset: CGFloat = 100
     @State private var showNavTitle = false
+    @State private var showResetConfirmation = false
+    @State private var isEditingName = false
+    @State private var pendingName = ""
+    @State private var avatarImage: UIImage? = AvatarService.shared.load()
+    @State private var showPhotoPicker = false
+    @State private var photoPickerItem: PhotosPickerItem?
     @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
+    @AppStorage("holyday.userName") private var userName = ""
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -32,12 +44,14 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     pageHeader
+                    profileCard
                     supportCard
-                    communityCard
+                    communitySection
                     notificationsCard
                     appearanceCard
                     aboutCard
                     legalCard
+                    dangerZoneSection
                     copyrightFooter
                 }
                 .padding(.horizontal, 16)
@@ -59,14 +73,17 @@ struct SettingsView: View {
                 }
             }
             .onAppear { notifications.checkStatus() }
-            .sheet(isPresented: $showTipView) {
-                TipView()
+            .sheet(isPresented: $showTipView) { TipView() }
+            .alert("settings.danger.reset.confirm.title", isPresented: $showResetConfirmation) {
+                Button("settings.danger.reset.confirm.action", role: .destructive) { resetAllData() }
+                Button("common.cancel", role: .cancel) {}
+            } message: {
+                Text("settings.danger.reset.confirm.message")
             }
         }
         .background(
             GeometryReader { geo in
-                Color.clear
-                    .onAppear { topInset = geo.safeAreaInsets.top }
+                Color.clear.onAppear { topInset = geo.safeAreaInsets.top }
             }
             .ignoresSafeArea()
         )
@@ -75,15 +92,128 @@ struct SettingsView: View {
     // MARK: Header
 
     private var pageHeader: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("tab.settings")
-                .font(.system(size: 34, weight: .bold, design: .serif).italic())
-                .foregroundStyle(AppTheme.textPrimary)
-            Text("settings.subtitle")
-                .font(.subheadline)
-                .foregroundStyle(AppTheme.textSecondary)
+        Text("tab.settings")
+            .font(.system(size: 34, weight: .bold, design: .serif).italic())
+            .foregroundStyle(AppTheme.textPrimary)
+            .padding(.top, topInset + 44 + 50)
+    }
+
+    // MARK: Profile card
+
+    private var profileCard: some View {
+        settingsCard {
+            HStack(spacing: 16) {
+                avatarCircle
+
+                VStack(alignment: .leading, spacing: 5) {
+                    if isEditingName {
+                        TextField("settings.profile.name.placeholder", text: $pendingName)
+                            .font(.headline)
+                            .foregroundStyle(AppTheme.textPrimary)
+                            .onSubmit { commitName() }
+                            .submitLabel(.done)
+                    } else {
+                        Text(userName.isEmpty ? String(localized: "settings.profile.name.placeholder") : userName)
+                            .font(.headline)
+                            .foregroundStyle(userName.isEmpty ? AppTheme.textTertiary : AppTheme.textPrimary)
+                    }
+
+                    if let tier = tipService.supporterTier {
+                        SupporterBadge(tier: tier)
+                    } else {
+                        Text("settings.profile.edit.hint")
+                            .font(.caption)
+                            .foregroundStyle(AppTheme.textTertiary)
+                    }
+                }
+
+                Spacer()
+
+                Button {
+                    if isEditingName { commitName() }
+                    else {
+                        pendingName = userName
+                        withAnimation(.spring(response: 0.3)) { isEditingName = true }
+                    }
+                } label: {
+                    Image(systemName: isEditingName ? "checkmark" : "pencil")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textTertiary)
+                        .frame(width: 32, height: 32)
+                        .background(AppTheme.buttonFillSubtle)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+                .sensoryFeedback(.selection, trigger: isEditingName)
+                .animation(.spring(response: 0.3), value: isEditingName)
+            }
+            .padding(16)
         }
-        .padding(.top, topInset + 44 + 50)
+    }
+
+    private var avatarCircle: some View {
+        let initials: String = {
+            let words = userName.split(separator: " ").prefix(2)
+            let letters = words.compactMap { $0.first }.map { String($0).uppercased() }.joined()
+            return letters.isEmpty ? "?" : letters
+        }()
+
+        return Button { showPhotoPicker = true } label: {
+            ZStack(alignment: .bottomTrailing) {
+                if let img = avatarImage {
+                    Image(uiImage: img)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 56, height: 56)
+                        .clipShape(Circle())
+                        .overlay { Circle().strokeBorder(AppTheme.cardStroke, lineWidth: 1) }
+                } else {
+                    ZStack {
+                        Circle()
+                            .fill(.ultraThinMaterial)
+                            .overlay { Circle().strokeBorder(AppTheme.cardStroke, lineWidth: 1) }
+                        Text(initials)
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundStyle(AppTheme.adorationPurple)
+                    }
+                }
+
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 8, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 18, height: 18)
+                    .background(AppTheme.adorationPurple)
+                    .clipShape(Circle())
+            }
+            .frame(width: 56, height: 56)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+            if avatarImage != nil {
+                Button(role: .destructive) {
+                    AvatarService.shared.delete()
+                    avatarImage = nil
+                } label: {
+                    Label("settings.avatar.remove", systemImage: "trash")
+                }
+            }
+        }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $photoPickerItem, matching: .images)
+        .onChange(of: photoPickerItem) { _, item in
+            Task {
+                if let data = try? await item?.loadTransferable(type: Data.self),
+                   let img = UIImage(data: data) {
+                    AvatarService.shared.save(img)
+                    avatarImage = AvatarService.shared.load()
+                }
+                photoPickerItem = nil
+            }
+        }
+    }
+
+    private func commitName() {
+        userName = pendingName.trimmingCharacters(in: .whitespaces)
+        withAnimation(.spring(response: 0.3)) { isEditingName = false }
     }
 
     // MARK: Support
@@ -102,13 +232,9 @@ struct SettingsView: View {
                             .foregroundStyle(AppTheme.textSecondary)
                     }
                     Spacer()
-                    if let tier = tipService.supporterTier {
-                        SupporterBadge(tier: tier)
-                    } else {
-                        Image(systemName: "chevron.right")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(AppTheme.textTertiary)
-                    }
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AppTheme.textTertiary)
                 }
                 .padding(16)
             }
@@ -118,28 +244,137 @@ struct SettingsView: View {
 
     // MARK: Community
 
-    private var communityCard: some View {
-        settingsCard {
-            NavigationLink { RoadmapView() } label: {
-                HStack(spacing: 14) {
-                    iconBadge(systemName: "chart.bar.xaxis.ascending", color: AppTheme.confessionBlue)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("settings.roadmap.title")
-                            .font(.body)
-                            .foregroundStyle(AppTheme.textPrimary)
-                        Text("settings.roadmap.subtitle")
-                            .font(.caption)
-                            .foregroundStyle(AppTheme.textSecondary)
+    private var communitySection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel(String(localized: "settings.community.section"))
+            settingsCard {
+                VStack(spacing: 0) {
+                    NavigationLink { RoadmapView() } label: {
+                        HStack(spacing: 14) {
+                            iconBadge(systemName: "chart.bar.xaxis.ascending", color: AppTheme.confessionBlue)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("settings.roadmap.title")
+                                    .font(.body)
+                                    .foregroundStyle(AppTheme.textPrimary)
+                                Text("settings.roadmap.subtitle")
+                                    .font(.caption)
+                                    .foregroundStyle(AppTheme.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(AppTheme.textTertiary)
+                        }
+                        .padding(16)
                     }
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.textTertiary)
+                    .buttonStyle(.plain)
+
+                    cardDivider
+
+                    ShareLink(item: AppLinks.appStore) {
+                        externalLinkRow(
+                            icon: "square.and.arrow.up",
+                            label: String(localized: "settings.community.share"),
+                            color: AppTheme.supplicationGreen
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    cardDivider
+
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        requestReview()
+                    } label: {
+                        externalLinkRow(
+                            icon: "star.fill",
+                            label: String(localized: "settings.community.rate"),
+                            color: AppTheme.thanksgivingGold,
+                            isExternal: false
+                        )
+                    }
+                    .buttonStyle(.plain)
                 }
-                .padding(16)
             }
-            .buttonStyle(.plain)
         }
+    }
+
+    // MARK: Danger zone
+
+    private var dangerZoneSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionLabel(String(localized: "settings.danger.section"))
+            settingsCard {
+                Button {
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    showResetConfirmation = true
+                } label: {
+                    HStack(spacing: 14) {
+                        iconBadge(systemName: "trash.fill", color: .red)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("settings.danger.reset.title")
+                                .font(.body)
+                                .foregroundStyle(.red)
+                            Text("settings.danger.reset.subtitle")
+                                .font(.caption)
+                                .foregroundStyle(.red.opacity(0.65))
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.red.opacity(0.4))
+                    }
+                    .padding(16)
+                }
+                .buttonStyle(.plain)
+
+                #if DEBUG
+                cardDivider
+
+                Button {
+                    tipService.debugUnlock()
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                } label: {
+                    HStack(spacing: 14) {
+                        iconBadge(systemName: "wrench.and.screwdriver.fill", color: .orange)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("DEBUG — Unlock Mécène")
+                                .font(.body)
+                                .foregroundStyle(.orange)
+                            Text("Simule un achat sans StoreKit")
+                                .font(.caption)
+                                .foregroundStyle(.orange.opacity(0.65))
+                        }
+                        Spacer()
+                    }
+                    .padding(16)
+                }
+                .buttonStyle(.plain)
+
+                cardDivider
+
+                Button {
+                    tipService.debugReset()
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                } label: {
+                    HStack(spacing: 14) {
+                        iconBadge(systemName: "arrow.counterclockwise", color: .orange)
+                        Text("DEBUG — Reset supporter")
+                            .font(.body)
+                            .foregroundStyle(.orange)
+                        Spacer()
+                    }
+                    .padding(16)
+                }
+                .buttonStyle(.plain)
+                #endif
+            }
+        }
+    }
+
+    private func resetAllData() {
+        try? modelContext.delete(model: PrayerEntry.self)
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
     }
 
     // MARK: Notifications
@@ -163,6 +398,7 @@ struct SettingsView: View {
                         .tint(AppTheme.thanksgivingGold)
                     }
                     .padding(16)
+                    .sensoryFeedback(.success, trigger: notifications.isDailyReminderEnabled)
 
                     if notifications.isDailyReminderEnabled {
                         cardDivider
@@ -233,6 +469,7 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
+                .sensoryFeedback(.selection, trigger: colorSchemePreference)
             }
         }
     }
@@ -291,18 +528,16 @@ struct SettingsView: View {
     // MARK: Reusable primitives
 
     private func settingsCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(spacing: 0) {
-            content()
-        }
-        .background {
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 20, style: .continuous)
-                        .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
-                }
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        VStack(spacing: 0) { content() }
+            .background {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 20, style: .continuous)
+                            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+                    }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private func iconBadge(systemName: String, color: Color) -> some View {
@@ -325,20 +560,14 @@ struct SettingsView: View {
     }
 
     private var cardDivider: some View {
-        AppTheme.divider
-            .frame(height: 1)
-            .padding(.horizontal, 16)
+        AppTheme.divider.frame(height: 1).padding(.horizontal, 16)
     }
 
     private func infoRow(label: String, value: String) -> some View {
         HStack {
-            Text(label)
-                .font(.body)
-                .foregroundStyle(AppTheme.textPrimary)
+            Text(label).font(.body).foregroundStyle(AppTheme.textPrimary)
             Spacer()
-            Text(value)
-                .font(.body)
-                .foregroundStyle(AppTheme.textSecondary)
+            Text(value).font(.body).foregroundStyle(AppTheme.textSecondary)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 14)
@@ -347,9 +576,7 @@ struct SettingsView: View {
     private func externalLinkRow(icon: String, label: String, color: Color, isExternal: Bool = true) -> some View {
         HStack(spacing: 14) {
             iconBadge(systemName: icon, color: color)
-            Text(label)
-                .font(.body)
-                .foregroundStyle(AppTheme.textPrimary)
+            Text(label).font(.body).foregroundStyle(AppTheme.textPrimary)
             Spacer()
             Image(systemName: isExternal ? "arrow.up.right" : "chevron.right")
                 .font(.caption.weight(.semibold))
@@ -362,5 +589,6 @@ struct SettingsView: View {
 
 #Preview {
     SettingsView()
+        .modelContainer(for: PrayerEntry.self, inMemory: true)
         .preferredColorScheme(.dark)
 }
