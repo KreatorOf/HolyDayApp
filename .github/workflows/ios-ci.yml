@@ -72,14 +72,14 @@ jobs:
           xcodebuild \
             -resolvePackageDependencies \
             -project HolyDay.xcodeproj \
-            -scheme HolyDay
+            -scheme HolyDay Dev
 
       - name: Build & Test
         run: |
           xcodebuild \
             clean test \
             -project HolyDay.xcodeproj \
-            -scheme HolyDay \
+            -scheme HolyDay Dev\
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
