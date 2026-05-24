@@ -266,7 +266,7 @@ private struct HeatCell: View {
     private var glassStyle: Glass {
         if isFuture {
             return .regular.tint(Color.white.opacity(0.01))
-        } else if count > 0 {
+        } else if !isEmpty {
             return .regular.tint(AppTheme.thanksgivingGold.opacity(0.2 + 0.6 * intensity))
         } else {
             return .regular.tint(Color.white.opacity(0.05))
@@ -276,7 +276,7 @@ private struct HeatCell: View {
     private var accessibilityLabel: String {
         let dateStr = Self.dateFormatter.string(from: date)
         if isFuture { return dateStr }
-        return count > 0
+        return !isEmpty
             ? String(format: String(localized: "streak.heatmap.cell.prayed"), dateStr, count)
             : String(format: String(localized: "streak.heatmap.cell.empty"), dateStr)
     }
