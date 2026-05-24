@@ -1,0 +1,14 @@
+repos:
+  - repo: local
+    hooks:
+      - id: swift-format
+        name: swift-format
+        entry: /opt/homebrew/bin/swift-format format --in-place
+        language: system
+        types: [swift]
+
+      - id: swiftlint
+        name: SwiftLint
+        entry: /opt/homebrew/bin/swiftlint
+        language: system
+        types: [swift]
