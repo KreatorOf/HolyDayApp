@@ -1819,6 +1819,7 @@
       }
     },
     "settings.avatar.picker.title" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
