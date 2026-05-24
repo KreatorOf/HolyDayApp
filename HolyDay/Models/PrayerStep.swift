@@ -15,11 +15,11 @@ struct PrayerStep: Identifiable {
     let icon: String
     let colorName: String
     let order: Int
-    
+
     var color: Color {
         AppTheme.color(for: colorName)
     }
-    
+
     init(id: UUID = UUID(), title: String, description: String, icon: String, colorName: String, order: Int) {
         self.id = id
         self.title = title
@@ -28,7 +28,7 @@ struct PrayerStep: Identifiable {
         self.colorName = colorName
         self.order = order
     }
-    
+
     static let defaultSteps: [PrayerStep] = [
         PrayerStep(
             title: String(localized: "step.adoration.title"),

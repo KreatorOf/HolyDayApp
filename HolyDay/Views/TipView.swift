@@ -13,9 +13,9 @@ struct TipView: View {
     @State private var tipService = TipService.shared
 
     private var tiers: [(emoji: String, label: String, color: Color)] {[
-        ("☕", String(localized: "tip.tier.0.label"),  AppTheme.thanksgivingGold),
-        ("🙏", String(localized: "tip.tier.1.label"),  AppTheme.confessionBlue),
-        ("✨", String(localized: "tip.tier.2.label"),  AppTheme.adorationPurple),
+        ("☕", String(localized: "tip.tier.0.label"), AppTheme.thanksgivingGold),
+        ("🙏", String(localized: "tip.tier.1.label"), AppTheme.confessionBlue),
+        ("✨", String(localized: "tip.tier.2.label"), AppTheme.adorationPurple)
     ]}
 
     var body: some View {
@@ -127,9 +127,9 @@ struct TipView: View {
             .background(.orange.opacity(0.12), in: Capsule())
 
             let mockTiers: [(tier: SupporterTier, price: String)] = [
-                (.ami,        "2,99 €"),
-                (.bienfaiteur,"5,99 €"),
-                (.pelerin,    "9,99 €"),
+                (.ami, "2,99 €"),
+                (.bienfaiteur, "5,99 €"),
+                (.pelerin, "9,99 €")
             ]
             ForEach(mockTiers.indices, id: \.self) { i in
                 let mock = mockTiers[i]

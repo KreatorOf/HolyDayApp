@@ -69,8 +69,7 @@ struct PrayerHistoryView: View {
                     HStack(spacing: 14) {
                         if aiButtonVisible {
                             Button {
-                                if aiUnlocked { showInsight = true }
-                                else { showAIPaywall = true }
+                                if aiUnlocked { showInsight = true } else { showAIPaywall = true }
                             } label: {
                                 Image(systemName: "sparkles")
                                     .foregroundStyle(aiUnlocked ? AppTheme.adorationPurple : AppTheme.textTertiary)

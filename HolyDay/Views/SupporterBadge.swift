@@ -13,8 +13,8 @@ struct SupporterBadge: View {
     enum Size { case small, large }
     var size: Size = .small
 
-    private var font: Font        { size == .small ? .caption  : .subheadline }
-    private var iconFont: Font    { size == .small ? .caption  : .body }
+    private var font: Font { size == .small ? .caption  : .subheadline }
+    private var iconFont: Font { size == .small ? .caption  : .body }
     private var hPadding: CGFloat { size == .small ? 8         : 14 }
     private var vPadding: CGFloat { size == .small ? 4         : 8 }
 

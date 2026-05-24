@@ -12,7 +12,7 @@ struct JournalInsightView: View {
     @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
     @Environment(\.dismiss) private var dismiss
 
-    @State private var insight: JournalInsight? = nil
+    @State private var insight: JournalInsight?
     @State private var isGenerating = false
     @State private var failed = false
 

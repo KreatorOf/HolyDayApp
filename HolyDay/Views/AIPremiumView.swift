@@ -82,10 +82,10 @@ struct AIPremiumView: View {
     // MARK: Features
 
     private let features: [(icon: String, key: LocalizedStringKey, color: Color)] = [
-        ("tag.fill",               "ai.paywall.feature.themes",   AppTheme.confessionBlue),
-        ("checkmark.seal.fill",    "ai.paywall.feature.answered", AppTheme.thanksgivingGold),
-        ("clock.arrow.circlepath", "ai.paywall.feature.history",  AppTheme.adorationPurple),
-        ("lock.shield.fill",       "ai.paywall.feature.privacy",  AppTheme.supplicationGreen),
+        ("tag.fill", "ai.paywall.feature.themes", AppTheme.confessionBlue),
+        ("checkmark.seal.fill", "ai.paywall.feature.answered", AppTheme.thanksgivingGold),
+        ("clock.arrow.circlepath", "ai.paywall.feature.history", AppTheme.adorationPurple),
+        ("lock.shield.fill", "ai.paywall.feature.privacy", AppTheme.supplicationGreen)
     ]
 
     private var featuresSection: some View {
@@ -156,7 +156,7 @@ struct AIPremiumView: View {
                         items: [
                             "ai.paywall.fake.theme1",
                             "ai.paywall.fake.theme2",
-                            "ai.paywall.fake.theme3",
+                            "ai.paywall.fake.theme3"
                         ]
                     )
                     fakeInsightSection(
@@ -165,7 +165,7 @@ struct AIPremiumView: View {
                         color: AppTheme.thanksgivingGold,
                         items: [
                             "ai.paywall.fake.answered1",
-                            "ai.paywall.fake.answered2",
+                            "ai.paywall.fake.answered2"
                         ]
                     )
                     fakeInsightSection(
@@ -174,7 +174,7 @@ struct AIPremiumView: View {
                         color: AppTheme.adorationPurple,
                         items: [
                             "ai.paywall.fake.obs1",
-                            "ai.paywall.fake.obs2",
+                            "ai.paywall.fake.obs2"
                         ]
                     )
                 }
@@ -183,7 +183,7 @@ struct AIPremiumView: View {
                         stops: [
                             .init(color: .black, location: 0.0),
                             .init(color: .black, location: 0.42),
-                            .init(color: .clear, location: 0.72),
+                            .init(color: .clear, location: 0.72)
                         ],
                         startPoint: .top,
                         endPoint: .bottom

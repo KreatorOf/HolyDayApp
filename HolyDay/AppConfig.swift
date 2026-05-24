@@ -42,7 +42,7 @@ enum AppConfig {
         return Environment(rawValue: raw) ?? .release
     }()
 
-    static var isDebug:   Bool { environment == .debug }
+    static var isDebug: Bool { environment == .debug }
     static var isStaging: Bool { environment == .staging }
     static var isRelease: Bool { environment == .release }
 

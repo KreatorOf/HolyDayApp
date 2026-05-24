@@ -11,7 +11,7 @@ import Observation
 // MARK: - Configuration
 // Les valeurs sont lues depuis AppConfig, injectées via les xcconfig (Config/Secrets.<env>.xcconfig).
 private enum SupabaseConfig {
-    static var url:     String { AppConfig.supabaseURL }
+    static var url: String { AppConfig.supabaseURL }
     static var anonKey: String { AppConfig.supabaseAnonKey }
 }
 

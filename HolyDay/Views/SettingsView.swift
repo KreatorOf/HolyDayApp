@@ -130,8 +130,7 @@ struct SettingsView: View {
                 Spacer()
 
                 Button {
-                    if isEditingName { commitName() }
-                    else {
+                    if isEditingName { commitName() } else {
                         pendingName = userName
                         withAnimation(.spring(response: 0.3)) { isEditingName = true }
                     }

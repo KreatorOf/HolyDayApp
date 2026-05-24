@@ -287,4 +287,3 @@ private struct HeatCell: View {
         .modelContainer(for: PrayerEntry.self, inMemory: true)
         .preferredColorScheme(.dark)
 }
-

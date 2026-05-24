@@ -192,6 +192,7 @@
 			buildConfigurationList = C99CE6C62FB5267700B06836 /* Build configuration list for PBXNativeTarget "HolyDay" */;
 			buildPhases = (
 				C99CE6B72FB5267700B06836 /* Sources */,
+				C966232F2FC348DE00BF73B8 /* SwiftLint */,
 				C99CE6B82FB5267700B06836 /* Frameworks */,
 				C99CE6B92FB5267700B06836 /* Resources */,
 				C92BFF282FB7F61B001C9BB0 /* Embed Foundation Extensions */,
@@ -278,6 +279,27 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C966232F2FC348DE00BF73B8 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = SwiftLint;
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif which swiftlint > /dev/null; then\n  swiftlint --strict\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C92BFF0D2FB7F619001C9BB0 /* Sources */ = {
