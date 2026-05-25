@@ -904,34 +904,6 @@
         }
       }
     },
-    "journal.subtitle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Prayer history"
-          }
-        }
-      }
-    },
-    "journal.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Journal"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Journal"
-          }
-        }
-      }
-    },
     "legal.last.update" : {
       "localizations" : {
         "fr" : {
@@ -1750,91 +1722,6 @@
         }
       }
     },
-    "settings.avatar.camera" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Take a photo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prendre une photo"
-          }
-        }
-      }
-    },
-    "settings.avatar.icon" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose an avatar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir un avatar"
-          }
-        }
-      }
-    },
-    "settings.avatar.library" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose from library"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir dans la bibliothèque"
-          }
-        }
-      }
-    },
-    "settings.avatar.options.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change profile picture"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Modifier la photo de profil"
-          }
-        }
-      }
-    },
-    "settings.avatar.picker.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose an avatar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir un avatar"
-          }
-        }
-      }
-    },
     "settings.avatar.remove" : {
       "localizations" : {
         "en" : {
@@ -2203,23 +2090,6 @@
         }
       }
     },
-    "settings.subtitle" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your experience settings"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réglages de votre expérience"
-          }
-        }
-      }
-    },
     "settings.support.subtitle" : {
       "localizations" : {
         "en" : {
@@ -2248,23 +2118,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Soutenir le développement"
-          }
-        }
-      }
-    },
-    "settings.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Settings"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Paramètres"
           }
         }
       }
@@ -2573,23 +2426,6 @@
         }
       }
     },
-    "streak.best" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Best: %lld d"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Record : %lld j"
-          }
-        }
-      }
-    },
     "streak.best.label" : {
       "localizations" : {
         "en" : {
@@ -2752,60 +2588,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@, %lld fois"
-          }
-        }
-      }
-    },
-    "streak.heatmap.empty" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No prayer recorded"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune prière enregistrée"
-          }
-        }
-      }
-    },
-    "streak.heatmap.less" : {
-      "comment" : "A label for the lower bound of the streak heatmap.",
-      "extractionState" : "stale",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Less"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Moins"
-          }
-        }
-      }
-    },
-    "streak.heatmap.more" : {
-      "comment" : "A label for the highest intensity of the streak heatmap.",
-      "extractionState" : "stale",
-      "isCommentAutoGenerated" : true,
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plus"
           }
         }
       }
