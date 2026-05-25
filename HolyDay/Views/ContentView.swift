@@ -144,6 +144,13 @@ struct ContentView: View {
           .font(.system(size: 38, weight: .thin, design: .serif))
           .foregroundStyle(AppTheme.textSecondary)
       }
+      #if DEBUG
+        .onTapGesture(count: 3) {
+          streak.resetTodaysPrayer()
+          viewModel.resetProgress()
+          UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        }
+      #endif
     }
   }
 

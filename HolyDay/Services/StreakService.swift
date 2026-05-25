@@ -64,6 +64,13 @@ final class StreakService {
     lastIncrementToken = UUID()
   }
 
+  #if DEBUG
+    func resetTodaysPrayer() {
+      UserDefaults.standard.removeObject(forKey: lastPrayerDateKey)
+      recalculate()
+    }
+  #endif
+
   private func recalculate() {
     let defaults = UserDefaults.standard
     bestStreak = defaults.integer(forKey: bestStreakKey)

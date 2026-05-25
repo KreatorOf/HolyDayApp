@@ -9,6 +9,16 @@ import Charts
 import SwiftData
 import SwiftUI
 
+// MARK: - HeatDayData
+
+private struct HeatDayData {
+  let prayerCount: Int
+  let dominantColorName: String?
+  let hasAnswered: Bool
+}
+
+// MARK: - StreakYearHeatmapView
+
 struct StreakYearHeatmapView: View {
   let streak: StreakService
   @Query(sort: \PrayerEntry.date) private var allEntries: [PrayerEntry]
@@ -19,30 +29,43 @@ struct StreakYearHeatmapView: View {
 
   private let cellSize: CGFloat = 12
   private let cellGap: CGFloat = 2
-  private var gridHeight: CGFloat { 7 * cellSize + 6 * cellGap }  // 96
+  private var gridHeight: CGFloat { 7 * cellSize + 6 * cellGap }
 
   private static let shortMonthFormatter: DateFormatter = {
     let f = DateFormatter()
-    f.dateFormat = "MMMMM"  // single initial letter, e.g. J, F, M
+    f.dateFormat = "MMMMM"
     return f
   }()
 
   private var weekdayLabels: [String] {
-    let symbols = calendar.veryShortWeekdaySymbols  // index 0 = Sunday
-    return Array(symbols[1...]) + [symbols[0]]  // reorder to Monday–Sunday
+    let symbols = calendar.veryShortWeekdaySymbols
+    return Array(symbols[1...]) + [symbols[0]]
   }
 
   // MARK: - Data: heatmap
 
-  private var prayedDaysIndexed: [Date: Int] {
+  private var heatData: [Date: HeatDayData] {
     let cutoff = calendar.date(byAdding: .day, value: -365, to: today) ?? today
-    return
-      allEntries
-      .filter { $0.date >= cutoff }
-      .reduce(into: [Date: Int]()) { result, entry in
-        let day = calendar.startOfDay(for: entry.date)
-        result[day, default: 0] += 1
-      }
+    var countMap: [Date: Int] = [:]
+    var colorMap: [Date: [String: Int]] = [:]
+    var answeredSet = Set<Date>()
+
+    for entry in allEntries where entry.date >= cutoff {
+      let day = calendar.startOfDay(for: entry.date)
+      countMap[day, default: 0] += 1
+      colorMap[day, default: [:]][entry.stepColorName, default: 0] += 1
+      if entry.isAnswered { answeredSet.insert(day) }
+    }
+
+    return countMap.reduce(into: [:]) { result, pair in
+      let day = pair.key
+      let dominant = colorMap[day]?.max(by: { $0.value < $1.value })?.key
+      result[day] = HeatDayData(
+        prayerCount: pair.value,
+        dominantColorName: dominant,
+        hasAnswered: answeredSet.contains(day)
+      )
+    }
   }
 
   private var daysToDisplay: [Date] {
@@ -85,7 +108,7 @@ struct StreakYearHeatmapView: View {
 
   private var weekdayDistribution: [Int] {
     var counts = Array(repeating: 0, count: 7)
-    for date in prayedDaysIndexed.keys {
+    for date in heatData.keys {
       let weekday = calendar.component(.weekday, from: date)
       let mondayFirst = (weekday + 5) % 7
       counts[mondayFirst] += 1
@@ -94,8 +117,7 @@ struct StreakYearHeatmapView: View {
   }
 
   private var monthlyActivity: [(label: String, ratio: Double)] {
-    let index = prayedDaysIndexed
-    return ((-11)...0).compactMap { offset -> (label: String, ratio: Double)? in
+    ((-11)...0).compactMap { offset -> (label: String, ratio: Double)? in
       guard
         let monthDate = calendar.date(byAdding: .month, value: offset, to: today),
         let firstOfMonth = calendar.date(
@@ -104,16 +126,16 @@ struct StreakYearHeatmapView: View {
       else { return nil }
 
       let daysInMonth = range.count
-      let prayedDays = (0..<daysInMonth).filter { day in
+      let prayedCount = (0..<daysInMonth).filter { day in
         guard let dayDate = calendar.date(byAdding: .day, value: day, to: firstOfMonth) else {
           return false
         }
-        return (index[calendar.startOfDay(for: dayDate)] ?? 0) > 0
+        return (heatData[calendar.startOfDay(for: dayDate)]?.prayerCount ?? 0) > 0
       }.count
 
       return (
         label: Self.shortMonthFormatter.string(from: firstOfMonth),
-        ratio: Double(prayedDays) / Double(daysInMonth)
+        ratio: Double(prayedCount) / Double(daysInMonth)
       )
     }
   }
@@ -140,6 +162,47 @@ struct StreakYearHeatmapView: View {
     return (acts: acts, answered: (count: answeredCount, total: recent.count))
   }
 
+  // MARK: - Motivation & consistency
+
+  private var streakContext: StreakContext {
+    let current = streak.currentStreak
+    let best = streak.bestStreak
+    guard best > 0 else { return .neverPrayed }
+    guard current > 0 else { return .streakBroken(best: best) }
+    guard current < best else { return .atRecord(days: current) }
+    let daysLeft = best - current
+    let isNear = daysLeft <= 5 || Double(current) / Double(best) >= 0.8
+    return isNear
+      ? .nearRecord(current: current, daysLeft: daysLeft)
+      : .building(current: current, best: best)
+  }
+
+  private var consistencyLast30: Double {
+    let cutoff = calendar.date(byAdding: .day, value: -30, to: today) ?? today
+    let count = heatData.keys.filter { $0 >= cutoff }.count
+    return min(Double(count) / 30.0, 1.0)
+  }
+
+  private var consistencyColor: Color {
+    if consistencyLast30 >= 0.7 { return AppTheme.supplicationGreen }
+    if consistencyLast30 >= 0.4 { return AppTheme.thanksgivingGold }
+    return AppTheme.textTertiary
+  }
+
+  private var bestWeekdayLabel: String? {
+    let dist = weekdayDistribution
+    guard let maxVal = dist.max(), maxVal > 0,
+      let maxIdx = dist.firstIndex(of: maxVal)
+    else { return nil }
+    return weekdayLabels[maxIdx]
+  }
+
+  private var last7Days: [Date] {
+    (0..<7).reversed().compactMap {
+      calendar.date(byAdding: .day, value: -$0, to: today)
+    }
+  }
+
   // MARK: - Radar helpers
 
   private func radarAngle(_ index: Int, count: Int) -> Double {
@@ -150,8 +213,8 @@ struct StreakYearHeatmapView: View {
     var path = Path()
     for (i, value) in values.enumerated() {
       let angle = radarAngle(i, count: values.count)
-      let r = radius * CGFloat(value)
-      let point = CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
+      let dist = radius * CGFloat(value)
+      let point = CGPoint(x: center.x + cos(angle) * dist, y: center.y + sin(angle) * dist)
       if i == 0 { path.move(to: point) } else { path.addLine(to: point) }
     }
     path.closeSubpath()
@@ -164,10 +227,16 @@ struct StreakYearHeatmapView: View {
     NavigationStack {
       ScrollView {
         VStack(spacing: 16) {
-          statsHeader
+          motivationCard
             .padding(.horizontal, 20)
             .padding(.top, 4)
+          weekStripSection
+            .padding(.horizontal, 20)
+          statsHeader
+            .padding(.horizontal, 20)
           heatmapSection
+            .padding(.horizontal, 20)
+          milestonesSection
             .padding(.horizontal, 20)
           weekdaySection
             .padding(.horizontal, 20)
@@ -193,30 +262,132 @@ struct StreakYearHeatmapView: View {
     }
   }
 
+  // MARK: - Motivation card
+
+  private var motivationCard: some View {
+    StreakMotivationCard(
+      context: streakContext,
+      isPrayedToday: streak.isPrayedToday,
+      onPrayNow: { dismiss() }
+    )
+  }
+
+  // MARK: - Week strip
+
+  private var weekStripSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text(String(localized: "streak.week.title", defaultValue: "CETTE SEMAINE"))
+        .font(.caption)
+        .foregroundStyle(AppTheme.textTertiary)
+        .textCase(.uppercase)
+        .tracking(0.8)
+
+      HStack(spacing: 0) {
+        ForEach(last7Days, id: \.self) { date in
+          Spacer(minLength: 0)
+          VStack(spacing: 5) {
+            RoundedRectangle(cornerRadius: 4, style: .continuous)
+              .fill(weekCellColor(for: heatData[date], date: date))
+              .frame(width: 32, height: 32)
+              .overlay {
+                if calendar.isDateInToday(date) {
+                  RoundedRectangle(cornerRadius: 4, style: .continuous)
+                    .strokeBorder(AppTheme.thanksgivingGold.opacity(0.6), lineWidth: 1.5)
+                }
+              }
+            Text(dayInitial(for: date))
+              .font(.system(size: 9, weight: .medium))
+              .foregroundStyle(
+                calendar.isDateInToday(date) ? AppTheme.thanksgivingGold : AppTheme.textTertiary
+              )
+          }
+          Spacer(minLength: 0)
+        }
+      }
+    }
+    .padding(16)
+    .glassEffect(
+      .regular.tint(Color.white.opacity(0.04)),
+      in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+    )
+  }
+
+  private func weekCellColor(for data: HeatDayData?, date: Date) -> Color {
+    guard date <= today else { return Color.white.opacity(0.04) }
+    guard let data, data.prayerCount > 0 else { return Color.white.opacity(0.10) }
+    switch data.prayerCount {
+    case 1: return AppTheme.thanksgivingGold.opacity(0.40)
+    case 2, 3: return AppTheme.thanksgivingGold.opacity(0.65)
+    default: return AppTheme.thanksgivingGold
+    }
+  }
+
+  private func dayInitial(for date: Date) -> String {
+    let weekday = calendar.component(.weekday, from: date)
+    return calendar.veryShortWeekdaySymbols[weekday - 1]
+  }
+
+  // MARK: - Milestones
+
+  private var milestonesSection: some View {
+    StreakMilestonesView(bestStreak: streak.bestStreak)
+  }
+
   // MARK: - Stats header
 
   private var statsHeader: some View {
-    HStack(spacing: 0) {
-      StatBlock(
-        label: String(localized: "streak.current"),
-        value: streak.currentStreak,
-        color: streak.currentStreak > 0 ? AppTheme.thanksgivingGold : AppTheme.textTertiary
-      )
-      Divider().frame(height: 32).opacity(0.2)
-      StatBlock(
-        label: String(localized: "streak.best.label"),
-        value: streak.bestStreak,
-        color: AppTheme.thanksgivingGold
-      )
-      Divider().frame(height: 32).opacity(0.2)
-      StatBlock(
-        label: String(localized: "streak.total"),
-        value: prayedDaysIndexed.count,
-        color: AppTheme.textPrimary
-      )
+    VStack(spacing: 0) {
+      HStack(spacing: 0) {
+        StatBlock(
+          label: String(localized: "streak.current"),
+          value: streak.currentStreak,
+          color: streak.currentStreak > 0 ? AppTheme.thanksgivingGold : AppTheme.textTertiary
+        )
+        Divider().frame(height: 32).opacity(0.2)
+        StatBlock(
+          label: String(localized: "streak.best.label"),
+          value: streak.bestStreak,
+          color: AppTheme.thanksgivingGold
+        )
+        Divider().frame(height: 32).opacity(0.2)
+        StatBlock(
+          label: String(localized: "streak.total"),
+          value: heatData.count,
+          color: AppTheme.textPrimary
+        )
+      }
+      .padding(.vertical, 14)
+
+      Divider().opacity(0.1)
+
+      consistencyRow
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
     }
-    .padding(.vertical, 14)
     .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+  }
+
+  private var consistencyRow: some View {
+    HStack(spacing: 8) {
+      Text(String(localized: "streak.consistency.label", defaultValue: "Régularité 30j"))
+        .font(.caption2)
+        .foregroundStyle(AppTheme.textTertiary)
+      GeometryReader { geo in
+        ZStack(alignment: .leading) {
+          RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(Color.white.opacity(0.08))
+          RoundedRectangle(cornerRadius: 3, style: .continuous)
+            .fill(consistencyColor)
+            .frame(width: geo.size.width * consistencyLast30)
+        }
+      }
+      .frame(height: 5)
+      Text("\(Int(consistencyLast30 * 100))%")
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(consistencyColor)
+        .monospacedDigit()
+        .frame(width: 32, alignment: .trailing)
+    }
   }
 
   // MARK: - Heatmap
@@ -231,7 +402,7 @@ struct StreakYearHeatmapView: View {
 
       HStack(alignment: .top, spacing: 4) {
         dayLabels
-          .padding(.top, 12 + 4)  // aligns with grid, below month labels
+          .padding(.top, 12 + 4)
 
         ScrollView(.horizontal, showsIndicators: false) {
           ScrollViewReader { proxy in
@@ -245,7 +416,7 @@ struct StreakYearHeatmapView: View {
                   ForEach(daysToDisplay, id: \.self) { date in
                     HeatCell(
                       date: date,
-                      count: prayedDaysIndexed[date, default: 0],
+                      data: heatData[date],
                       isFuture: date > today
                     )
                   }
@@ -262,7 +433,7 @@ struct StreakYearHeatmapView: View {
             }
           }
         }
-        .frame(height: gridHeight + 12 + 4)  // grid + month labels + spacing
+        .frame(height: gridHeight + 12 + 4)
       }
 
       legend
@@ -298,16 +469,14 @@ struct StreakYearHeatmapView: View {
   }
 
   private var legend: some View {
-    let scales: [CGFloat] = [0.38, 0.6, 0.75, 0.88, 1.0]
-    return HStack(spacing: 6) {
+    HStack(spacing: 6) {
       Text(String(localized: "streak.heatmap.legend.less", defaultValue: "Moins"))
         .font(.system(size: 9))
         .foregroundStyle(AppTheme.textTertiary)
       ForEach(0..<5, id: \.self) { level in
-        Circle()
+        RoundedRectangle(cornerRadius: 2, style: .continuous)
           .fill(legendColor(for: level))
           .frame(width: 10, height: 10)
-          .scaleEffect(scales[level])
       }
       Text(String(localized: "streak.heatmap.legend.more", defaultValue: "Plus"))
         .font(.system(size: 9))
@@ -318,7 +487,7 @@ struct StreakYearHeatmapView: View {
 
   private func legendColor(for level: Int) -> Color {
     switch level {
-    case 0: return Color.white.opacity(0.08)
+    case 0: return Color.white.opacity(0.10)
     case 1: return AppTheme.thanksgivingGold.opacity(0.30)
     case 2: return AppTheme.thanksgivingGold.opacity(0.55)
     case 3: return AppTheme.thanksgivingGold.opacity(0.80)
@@ -335,15 +504,30 @@ struct StreakYearHeatmapView: View {
     let labels = weekdayLabels
 
     return VStack(alignment: .leading, spacing: 12) {
-      Text(
-        String(
-          localized: "streak.stats.weekday",
-          defaultValue: "PAR JOUR DE LA SEMAINE")
-      )
-      .font(.caption)
-      .foregroundStyle(AppTheme.textTertiary)
-      .textCase(.uppercase)
-      .tracking(0.8)
+      HStack {
+        Text(
+          String(
+            localized: "streak.stats.weekday",
+            defaultValue: "PAR JOUR DE LA SEMAINE")
+        )
+        .font(.caption)
+        .foregroundStyle(AppTheme.textTertiary)
+        .textCase(.uppercase)
+        .tracking(0.8)
+
+        Spacer()
+
+        if let best = bestWeekdayLabel {
+          Text(
+            String(
+              format: String(localized: "streak.stats.weekday.best", defaultValue: "Surtout le %@"),
+              best
+            )
+          )
+          .font(.caption2)
+          .foregroundStyle(AppTheme.textSecondary)
+        }
+      }
 
       Canvas { context, size in
         let center = CGPoint(x: size.width / 2, y: size.height / 2)
@@ -375,8 +559,8 @@ struct StreakYearHeatmapView: View {
 
         for (i, value) in normalized.enumerated() {
           let angle = radarAngle(i, count: 7)
-          let r = radius * CGFloat(value)
-          let pt = CGPoint(x: center.x + cos(angle) * r, y: center.y + sin(angle) * r)
+          let dist = radius * CGFloat(value)
+          let pt = CGPoint(x: center.x + cos(angle) * dist, y: center.y + sin(angle) * dist)
           var dot = Path()
           dot.addEllipse(in: CGRect(x: pt.x - 3, y: pt.y - 3, width: 6, height: 6))
           context.fill(dot, with: .color(AppTheme.thanksgivingGold))
@@ -698,11 +882,13 @@ private struct StatBlock: View {
 
 private struct HeatCell: View {
   let date: Date
-  let count: Int
+  let data: HeatDayData?
   let isFuture: Bool
 
   @State private var showPopover = false
-  private var isEmpty: Bool { count < 1 }
+
+  private var prayerCount: Int { data?.prayerCount ?? 0 }
+  private var isEmpty: Bool { prayerCount == 0 }
 
   private static let dateFormatter: DateFormatter = {
     let f = DateFormatter()
@@ -711,21 +897,10 @@ private struct HeatCell: View {
     return f
   }()
 
-  private var scaleFactor: CGFloat {
-    if isFuture { return 0.3 }
-    switch count {
-    case 0: return 0.38
-    case 1: return 0.60
-    case 2, 3: return 0.75
-    case 4, 5, 6: return 0.88
-    default: return 1.0
-    }
-  }
-
   private var cellColor: Color {
     if isFuture { return Color.white.opacity(0.04) }
-    switch count {
-    case 0: return Color.white.opacity(0.08)
+    switch prayerCount {
+    case 0: return Color.white.opacity(0.10)
     case 1: return AppTheme.thanksgivingGold.opacity(0.30)
     case 2, 3: return AppTheme.thanksgivingGold.opacity(0.55)
     case 4, 5, 6: return AppTheme.thanksgivingGold.opacity(0.80)
@@ -734,9 +909,8 @@ private struct HeatCell: View {
   }
 
   var body: some View {
-    Circle()
+    RoundedRectangle(cornerRadius: 2, style: .continuous)
       .fill(cellColor)
-      .scaleEffect(scaleFactor)
       .frame(width: 12, height: 12)
       .contentShape(Rectangle())
       .sensoryFeedback(.selection, trigger: showPopover)
@@ -751,34 +925,71 @@ private struct HeatCell: View {
   }
 
   private var popoverContent: some View {
-    VStack(alignment: .leading, spacing: 4) {
+    VStack(alignment: .leading, spacing: 6) {
       Text(Self.dateFormatter.string(from: date))
         .font(.caption.weight(.semibold))
-      Text(
-        isEmpty
-          ? String(localized: "streak.heatmap.popup.empty", defaultValue: "Aucune prière")
-          : String(
+
+      if isEmpty {
+        Text(String(localized: "streak.heatmap.popup.empty", defaultValue: "Aucune prière"))
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+      } else {
+        Text(
+          String(
             format: String(
               localized: "streak.heatmap.popup.count",
               defaultValue: "%d prière(s)"),
-            count)
-      )
-      .font(.caption2)
-      .foregroundStyle(.secondary)
+            prayerCount)
+        )
+        .font(.caption2)
+        .foregroundStyle(.secondary)
+
+        if let colorName = data?.dominantColorName {
+          HStack(spacing: 5) {
+            Circle()
+              .fill(AppTheme.color(for: colorName))
+              .frame(width: 6, height: 6)
+            Text(stepLabel(for: colorName))
+              .font(.caption2)
+              .foregroundStyle(.secondary)
+          }
+        }
+
+        if data?.hasAnswered == true {
+          Label(
+            String(localized: "streak.heatmap.popup.answered", defaultValue: "Prière exaucée"),
+            systemImage: "checkmark.circle.fill"
+          )
+          .font(.caption2)
+          .foregroundStyle(AppTheme.supplicationGreen)
+        }
+      }
     }
     .padding(.horizontal, 14)
     .padding(.vertical, 10)
     .presentationCompactAdaptation(.popover)
   }
 
+  private func stepLabel(for colorName: String) -> String {
+    switch colorName {
+    case "adorationPurple": String(localized: "step.adoration.title")
+    case "confessionBlue": String(localized: "step.confession.title")
+    case "thanksgivingGold": String(localized: "step.thanksgiving.title")
+    case "supplicationGreen": String(localized: "step.supplication.title")
+    default: ""
+    }
+  }
+
   private var accessibilityLabel: String {
     let dateStr = Self.dateFormatter.string(from: date)
     if isFuture { return dateStr }
     return !isEmpty
-      ? String(format: String(localized: "streak.heatmap.cell.prayed"), dateStr, count)
+      ? String(format: String(localized: "streak.heatmap.cell.prayed"), dateStr, prayerCount)
       : String(format: String(localized: "streak.heatmap.cell.empty"), dateStr)
   }
 }
+
+// MARK: - Preview
 
 #Preview {
   StreakYearHeatmapView(streak: StreakService.shared)
