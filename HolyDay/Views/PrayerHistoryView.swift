@@ -18,6 +18,7 @@ struct PrayerHistoryView: View {
   @State private var showNavTitle = false
   @State private var searchText = ""
   @State private var isSearching = false
+  @State private var cachedSearchResults: [(date: Date, entries: [PrayerEntry])] = []
   @State private var tipService = TipService.shared
   @State private var showAIPaywall = false
 
@@ -94,6 +95,28 @@ struct PrayerHistoryView: View {
       }
       .sheet(isPresented: $showAIPaywall) {
         AIPremiumView()
+      }
+      .task(id: searchText) {
+        guard !searchText.isEmpty else {
+          cachedSearchResults = []
+          return
+        }
+        // Debounce: cancel previous task if user is still typing
+        try? await Task.sleep(for: .milliseconds(200))
+        guard !Task.isCancelled else { return }
+        let text = searchText
+        let snapshot = entries
+        let matched = snapshot.filter {
+          $0.text.localizedCaseInsensitiveContains(text)
+            || $0.stepTitle.localizedCaseInsensitiveContains(text)
+        }
+        let grouped = Dictionary(grouping: matched) {
+          Calendar.current.startOfDay(for: $0.date)
+        }
+        cachedSearchResults =
+          grouped
+          .sorted { $0.key > $1.key }
+          .map { ($0.key, $0.value.sorted { $0.date < $1.date }) }
       }
     }
     .background(
@@ -462,7 +485,7 @@ struct PrayerHistoryView: View {
 
   @ViewBuilder
   private var searchResultsSection: some View {
-    let results = searchResults
+    let results = cachedSearchResults
     if results.isEmpty {
       HStack(spacing: 14) {
         Image(systemName: "magnifyingglass")
@@ -506,21 +529,6 @@ struct PrayerHistoryView: View {
     }
   }
 
-  private var searchResults: [(date: Date, entries: [PrayerEntry])] {
-    guard !searchText.isEmpty else { return [] }
-    let matched = entries.filter {
-      $0.text.localizedCaseInsensitiveContains(searchText)
-        || $0.stepTitle.localizedCaseInsensitiveContains(searchText)
-    }
-    let grouped = Dictionary(grouping: matched) {
-      Calendar.current.startOfDay(for: $0.date)
-    }
-    return
-      grouped
-      .sorted { $0.key > $1.key }
-      .map { ($0.key, $0.value.sorted { $0.date < $1.date }) }
-  }
-
   private func searchDayLabel(_ date: Date) -> String {
     let raw = date.formatted(.dateTime.weekday(.wide).day().month(.wide))
     return raw.prefix(1).uppercased() + raw.dropFirst()
@@ -552,7 +560,7 @@ struct PrayerHistoryView: View {
   // MARK: Computed helpers
 
   private var aiButtonVisible: Bool {
-    entries.filter({ !$0.text.isEmpty }).count >= 3
+    entries.lazy.filter({ !$0.text.isEmpty }).prefix(3).count >= 3
   }
 
   private var aiUnlocked: Bool {

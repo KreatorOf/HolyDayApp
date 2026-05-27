@@ -11,8 +11,6 @@ struct StreakCelebrationView: View {
   let streakValue: Int
   @Environment(\.dismiss) private var dismiss
 
-  @State private var flameScale: CGFloat = 0.2
-  @State private var glowOpacity: Double = 0
   @State private var breathe = false
   @State private var appeared = false
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -22,42 +20,16 @@ struct StreakCelebrationView: View {
       AnimatedMeshBackground()
         .overlay(Color.black.opacity(0.45))
 
+      FallingFlamesView()
+
       VStack(spacing: 32) {
         Spacer()
 
-        ZStack {
-          Circle()
-            .fill(
-              RadialGradient(
-                colors: [
-                  AppTheme.thanksgivingGold.opacity(0.7),
-                  .clear,
-                ],
-                center: .center,
-                startRadius: 10,
-                endRadius: 140
-              )
-            )
-            .frame(width: 280, height: 280)
-            .blur(radius: 40)
-            .opacity(glowOpacity)
-
-          Image(systemName: "flame.fill")
-            .font(.system(size: 140))
-            .symbolRenderingMode(.palette)
-            .foregroundStyle(
-              Color.orange,
-              AppTheme.thanksgivingGold.opacity(0.9)
-            )
-            .symbolEffect(.pulse)
-            .scaleEffect(flameScale)
-        }
-        .frame(width: 280, height: 280)
-        .overlay {
-          SparksView()
-        }
-
         VStack(spacing: 12) {
+          Image(systemName: "flame.fill")
+            .font(.system(size: 72))
+            .symbolRenderingMode(.palette)
+            .foregroundStyle(Color.orange, AppTheme.thanksgivingGold.opacity(0.9))
 
           Text(String(format: String(localized: "streak.celebration.title"), streakValue))
             .font(.system(size: 40, weight: .bold, design: .rounded))
@@ -110,12 +82,7 @@ struct StreakCelebrationView: View {
     .sensoryFeedback(.success, trigger: appeared)
     .onAppear {
       appeared = true
-      withAnimation(.easeIn(duration: 0.5)) { glowOpacity = 1.0 }
-      if reduceMotion {
-        flameScale = 1.0
-        return
-      }
-      withAnimation(.spring(response: 0.6, dampingFraction: 0.55)) { flameScale = 1.0 }
+      if reduceMotion { return }
       withAnimation(.easeInOut(duration: 2).repeatForever(autoreverses: true)) { breathe = true }
     }
   }

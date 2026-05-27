@@ -1,0 +1,57 @@
+# HolyDay — CLAUDE.md
+
+## Localisation (obligatoire)
+
+Toute chaîne visible par l'utilisateur doit être disponible **en français ET en anglais** dans `HolyDay/Localizable.xcstrings`.
+
+- La langue source est le **français** (`"sourceLanguage": "fr"`).
+- Chaque clé doit avoir une entrée `fr` et une entrée `en` avec `"state": "translated"`.
+- Ne jamais écrire de texte littéral en dur dans les vues SwiftUI. Toujours passer par `String(localized: "clé")` ou le `.init` `LocalizedStringKey`.
+- Format du fichier : `.xcstrings` (String Catalog Xcode) — ne pas créer de fichiers `.strings` séparés.
+
+## Linting & formatage
+
+Deux outils sont utilisés ensemble. Les respecter systématiquement avant tout commit.
+
+### SwiftLint (`swiftlint`)
+
+Config : `.swiftlint.yml` à la racine.  
+SwiftLint est intégré en build phase Xcode — les violations bloquent le build en erreur.
+
+```bash
+# Vérifier
+swiftlint lint --strict
+
+# Corriger automatiquement ce qui peut l'être
+swiftlint --fix
+```
+
+Règles notables activées : `force_unwrapping`, `empty_count`.  
+Règles désactivées : `trailing_whitespace`, `line_length`, `trailing_comma`, `todo`.
+
+### swift-format (Apple)
+
+Config : `.swift-format` à la racine.  
+Indentation : 2 espaces. Longueur de ligne : 100.
+
+```bash
+# Formater tous les fichiers Swift du projet
+swift-format format --recursive --in-place HolyDay/ HolyDayTests/ HolyDayWidget/
+
+# Vérifier sans modifier (CI)
+swift-format lint --recursive HolyDay/ HolyDayTests/ HolyDayWidget/
+```
+
+## Architecture
+
+- Pattern : **MVVM** avec `@Observable` (pas de `ObservableObject`/`@Published`)
+- Persistence : **SwiftData** (`@Model`, `@Query`, `ModelContext`)
+- UI : **SwiftUI** uniquement
+- iOS cible : voir `Config/` xcconfig
+
+## Conventions Swift
+
+- Pas de `force unwrap` (`!`) sauf cas documenté et justifié
+- `private` par défaut sur toutes les propriétés et méthodes non exposées
+- Sections MARK pour organiser les vues (`// MARK: - Body`, `// MARK: - Helpers`, etc.)
+- Pas de commentaires qui décrivent ce que fait le code — uniquement pourquoi (invariants non évidents, contournements)
