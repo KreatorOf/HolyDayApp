@@ -9,30 +9,30 @@ import SwiftUI
 
 enum SupporterTier: Int {
   case ami = 0
-  case bienfaiteur = 1
-  case pelerin = 2
+  case genereux = 1
+  case bienfaiteur = 2
 
   var title: String {
     switch self {
     case .ami: return String(localized: "tier.ami")
+    case .genereux: return String(localized: "tier.genereux")
     case .bienfaiteur: return String(localized: "tier.bienfaiteur")
-    case .pelerin: return String(localized: "tier.pelerin")
     }
   }
 
   var icon: String {
     switch self {
     case .ami: return "heart.fill"
-    case .bienfaiteur: return "star.fill"
-    case .pelerin: return "figure.walk"
+    case .genereux: return "star.fill"
+    case .bienfaiteur: return "crown.fill"
     }
   }
 
   var color: Color {
     switch self {
     case .ami: return AppTheme.thanksgivingGold
-    case .bienfaiteur: return AppTheme.confessionBlue
-    case .pelerin: return AppTheme.adorationPurple
+    case .genereux: return AppTheme.confessionBlue
+    case .bienfaiteur: return AppTheme.adorationPurple
     }
   }
 }

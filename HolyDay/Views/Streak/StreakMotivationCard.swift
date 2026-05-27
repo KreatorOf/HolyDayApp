@@ -7,6 +7,7 @@ import SwiftUI
 
 enum StreakContext {
   case neverPrayed
+  case atRisk(current: Int)
   case streakBroken(best: Int)
   case building(current: Int, best: Int)
   case nearRecord(current: Int, daysLeft: Int)
@@ -81,6 +82,7 @@ struct StreakMotivationCard: View {
   private var contextIcon: String {
     switch context {
     case .neverPrayed: "🕊️"
+    case .atRisk: "🕯️"
     case .streakBroken: "🌅"
     case .building: "🔥"
     case .nearRecord: "⚡️"
@@ -93,6 +95,10 @@ struct StreakMotivationCard: View {
     case .neverPrayed:
       String(
         localized: "streak.motivation.never.title", defaultValue: "Commence ta première prière")
+    case .atRisk(let current):
+      String(
+        format: String(localized: "streak.motivation.atrisk.title"),
+        current)
     case .streakBroken:
       String(
         localized: "streak.motivation.broken.title",
@@ -125,6 +131,8 @@ struct StreakMotivationCard: View {
       String(
         localized: "streak.motivation.never.subtitle",
         defaultValue: "La prière, c'est simplement parler à Dieu.")
+    case .atRisk:
+      String(localized: "streak.motivation.atrisk.subtitle")
     case .streakBroken(let best):
       String(
         format: String(
@@ -151,21 +159,24 @@ struct StreakMotivationCard: View {
   private var contextVerse: String {
     switch context {
     case .neverPrayed:
-      "« Demandez et vous recevrez, afin que votre joie soit complète. » — Jean 16:24"
+      String(localized: "streak.motivation.verse.neverpray")
+    case .atRisk:
+      String(localized: "streak.motivation.verse.atrisk")
     case .streakBroken:
-      "« Ses miséricordes se renouvellent chaque matin. Grande est ta fidélité. » — Lamentations 3:23"
+      String(localized: "streak.motivation.verse.broken")
     case .building:
-      "« Priez sans cesse. » — 1 Thessaloniciens 5:17"
+      String(localized: "streak.motivation.verse.building")
     case .nearRecord:
-      "« Ne nous lassons pas de faire le bien, car nous moissonnerons au temps convenable. » — Galates 6:9"
+      String(localized: "streak.motivation.verse.nearrecord")
     case .atRecord:
-      "« La bénédiction, la gloire, la sagesse, la reconnaissance… soient à notre Dieu ! » — Apocalypse 7:12"
+      String(localized: "streak.motivation.verse.atrecord")
     }
   }
 
   private var tintColor: Color {
     switch context {
     case .neverPrayed: .blue
+    case .atRisk: .orange
     case .streakBroken: .orange
     case .building, .nearRecord, .atRecord: AppTheme.thanksgivingGold
     }

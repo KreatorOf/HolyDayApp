@@ -77,6 +77,7 @@ struct PrayerHistoryView: View {
                 Image(systemName: "sparkles")
                   .foregroundStyle(aiUnlocked ? AppTheme.adorationPurple : AppTheme.textTertiary)
               }
+              .accessibilityLabel(String(localized: "accessibility.ai.button"))
             }
             Button {
               withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
@@ -87,6 +88,11 @@ struct PrayerHistoryView: View {
               Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
                 .foregroundStyle(AppTheme.textSecondary)
             }
+            .accessibilityLabel(
+              isSearching
+                ? String(localized: "accessibility.search.close")
+                : String(localized: "accessibility.search.open")
+            )
           }
         }
       }

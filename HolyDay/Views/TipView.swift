@@ -5,7 +5,7 @@
 //  Created by Matthias Cadet on 14/05/2026.
 //
 
-import StoreKit
+import RevenueCat
 import SwiftUI
 
 struct TipView: View {
@@ -40,7 +40,6 @@ struct TipView: View {
     }
     .background(AppTheme.backgroundPrimary.ignoresSafeArea())
     .task {
-      // Reset stale success state from a previous session
       if tipService.purchaseState == .success { tipService.resetState() }
       await tipService.loadProducts()
     }
@@ -53,6 +52,7 @@ struct TipView: View {
       VStack(spacing: 28) {
         header
         productsContent
+        restoreButton
         legalFooter
       }
       .padding(20)
@@ -85,7 +85,7 @@ struct TipView: View {
       ProgressView()
         .tint(AppTheme.adorationPurple)
         .padding(.vertical, 24)
-    } else if tipService.products.isEmpty {
+    } else if tipService.packages.isEmpty {
       #if DEBUG
         debugProductsStack
       #else
@@ -98,16 +98,16 @@ struct TipView: View {
 
   private var productsStack: some View {
     VStack(spacing: 12) {
-      ForEach(Array(tipService.products.enumerated()), id: \.element.id) { index, product in
+      ForEach(Array(tipService.packages.enumerated()), id: \.element.identifier) { index, package in
         let tier = tiers[min(index, tiers.count - 1)]
         TipProductCard(
           emoji: tier.emoji,
           label: tier.label,
-          price: product.displayPrice,
+          price: package.storeProduct.localizedPriceString,
           color: tier.color,
           isPurchasing: tipService.purchaseState == .purchasing
         ) {
-          Task { await tipService.purchase(product) }
+          Task { await tipService.purchase(package) }
         }
       }
     }
@@ -129,9 +129,9 @@ struct TipView: View {
         .background(.orange.opacity(0.12), in: Capsule())
 
         let mockTiers: [(tier: SupporterTier, price: String)] = [
-          (.ami, "2,99 €"),
-          (.bienfaiteur, "5,99 €"),
-          (.pelerin, "9,99 €"),
+          (.ami, "4,99 €"),
+          (.genereux, "9,99 €"),
+          (.bienfaiteur, "19,99 €"),
         ]
         ForEach(mockTiers.indices, id: \.self) { i in
           let mock = mockTiers[i]
@@ -161,6 +161,18 @@ struct TipView: View {
         .multilineTextAlignment(.center)
     }
     .padding(.vertical, 16)
+  }
+
+  private var restoreButton: some View {
+    Button {
+      Task { await tipService.restorePurchases() }
+    } label: {
+      Text("tip.restore")
+        .font(.footnote)
+        .foregroundStyle(AppTheme.textTertiary)
+    }
+    .buttonStyle(.plain)
+    .disabled(tipService.purchaseState == .purchasing)
   }
 
   private var legalFooter: some View {

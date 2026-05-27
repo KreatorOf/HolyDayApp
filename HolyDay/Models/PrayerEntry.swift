@@ -17,13 +17,21 @@ final class PrayerEntry {
   var date: Date
   var isAnswered: Bool = false
   var answeredAt: Date?
+  var duration: TimeInterval = 0
 
-  init(stepTitle: String, stepIcon: String, stepColorName: String, text: String, date: Date = .now)
-  {
+  init(
+    stepTitle: String,
+    stepIcon: String,
+    stepColorName: String,
+    text: String,
+    date: Date = .now,
+    duration: TimeInterval = 0
+  ) {
     self.stepTitle = stepTitle
     self.stepIcon = stepIcon
     self.stepColorName = stepColorName
     self.text = text
     self.date = date
+    self.duration = duration
   }
 }

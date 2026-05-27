@@ -22,11 +22,23 @@ enum AppLinks {
   }
 }
 
-// IAP product IDs — create these in App Store Connect as Consumable products
+// IAP product IDs — create these in App Store Connect as Non-Consumable products
+// Then map them to RevenueCat packages in the RevenueCat dashboard
 enum TipProducts {
-  static let small = "com.holyday.app.tip.small"
-  static let medium = "com.holyday.app.tip.medium"
-  static let large = "com.holyday.app.tip.large"
+  static let small = "com.holyday.app.tip.small"  // Ami — 4,99 €
+  static let medium = "com.holyday.app.tip.medium"  // Généreux — 9,99 €
+  static let large = "com.holyday.app.tip.large"  // Bienfaiteur — 19,99 €
 
   static let all: Set<String> = [small, medium, large]
+}
+
+// RevenueCat configuration
+// 1. Create an account at https://app.revenuecat.com
+// 2. Create a new project and add your iOS app
+// 3. Copy your public API key (starts with "appl_") and replace the placeholder below
+// 4. In the RevenueCat dashboard: create an Entitlement "supporter", an Offering "default",
+//    and 3 Packages linked to your App Store Connect product IDs above
+enum RevenueCatConfig {
+  static let apiKey = "REVENUECAT_PUBLIC_API_KEY_PLACEHOLDER"
+  static let entitlementId = "supporter"
 }

@@ -44,11 +44,34 @@ struct PrayerStepView: View {
           .font(.system(size: 14, weight: .bold))
           .foregroundStyle(step.color)
           .rotationEffect(.degrees(isExpanded ? 180 : 0))
+          .accessibilityHidden(true)
       }
       .padding(22)
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .accessibilityLabel(stepAccessibilityLabel)
+    .accessibilityHint(stepAccessibilityHint)
+    .accessibilityAddTraits(isExpanded ? .isSelected : [])
+  }
+
+  private var stepAccessibilityLabel: String {
+    let state: String
+    if isCompleted {
+      state = String(localized: "accessibility.step.completed")
+    } else if isExpanded {
+      state = String(localized: "accessibility.step.expanded")
+    } else {
+      state = String(localized: "accessibility.step.collapsed")
+    }
+    return "\(step.title) — \(state)"
+  }
+
+  private var stepAccessibilityHint: String {
+    guard !isCompleted else { return "" }
+    return isExpanded
+      ? String(localized: "accessibility.step.hint.collapse")
+      : String(localized: "accessibility.step.hint.expand")
   }
 
   private var stepIcon: some View {
@@ -109,6 +132,12 @@ struct PrayerStepView: View {
               .foregroundStyle(step.color)
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(String(localized: "accessibility.reflection.toggle"))
+          .accessibilityHint(
+            showReflection
+              ? String(localized: "accessibility.reflection.hint.hide")
+              : String(localized: "accessibility.reflection.hint.show")
+          )
           .transition(.scale.combined(with: .opacity))
         }
       }
