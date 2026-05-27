@@ -10,6 +10,7 @@ import SwiftData
 import SwiftUI
 
 @Observable
+@MainActor
 class PrayerGuideViewModel {
   var verseOfTheDay: Verse
   var prayerSteps: [PrayerStep]
@@ -19,6 +20,7 @@ class PrayerGuideViewModel {
   var reflectionQuestions: [UUID: [String]] = [:]
 
   private let verseService: VerseService
+  private var stepOpenedAt: [UUID: Date] = [:]
 
   init(verseService: VerseService = .shared) {
     self.verseService = verseService
@@ -28,6 +30,9 @@ class PrayerGuideViewModel {
 
   func toggleStep(_ step: PrayerStep) {
     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+      if expandedStepId != step.id {
+        stepOpenedAt[step.id] = Date()
+      }
       expandedStepId = expandedStepId == step.id ? nil : step.id
     }
   }
@@ -36,18 +41,21 @@ class PrayerGuideViewModel {
     expandedStepId == step.id
   }
 
-  @MainActor
   func save(step: PrayerStep, in context: ModelContext) {
     let text = prayerTexts[step.id, default: ""]
+    let duration = stepOpenedAt[step.id].map { Date().timeIntervalSince($0) } ?? 0
     let entry = PrayerEntry(
       stepTitle: step.title,
       stepIcon: step.icon,
       stepColorName: step.colorName,
-      text: text
+      text: text,
+      duration: duration
     )
     context.insert(entry)
     markCompleted(step)
-    StreakService.shared.recordPrayer()
+    if isAllCompleted {
+      StreakService.shared.recordPrayer()
+    }
   }
 
   func markCompleted(_ step: PrayerStep) {

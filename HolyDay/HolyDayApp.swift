@@ -5,6 +5,7 @@
 //  Created by Matthias Cadet on 13/05/2026.
 //
 
+import RevenueCat
 import SwiftData
 import SwiftUI
 
@@ -14,6 +15,11 @@ struct HolyDayApp: App {
   @AppStorage("holyday.hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
   init() {
+    Purchases.configure(withAPIKey: RevenueCatConfig.apiKey)
+    #if DEBUG
+      Purchases.logLevel = .debug
+    #endif
+
     do {
       let storeURL = FileManager.default
         .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]

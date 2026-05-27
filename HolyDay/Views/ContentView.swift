@@ -80,17 +80,28 @@ struct ContentView: View {
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(streak.currentStreak)))
                 .animation(.spring(response: 0.35), value: streak.currentStreak)
+              if streak.freezesAvailable > 0 {
+                Image(systemName: "shield.fill")
+                  .font(.caption2)
+                  .foregroundStyle(AppTheme.confessionBlue.opacity(0.85))
+              }
             }
             .font(.subheadline.weight(.medium))
             .foregroundStyle(AppTheme.textPrimary)
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .glassEffect(
-              .regular.tint(Color.white.opacity(streak.currentStreak > 0 ? 0.05 : 0.02)),
+              .regular.tint(
+                streak.isStreakAtRisk
+                  ? Color.orange.opacity(0.30)
+                  : Color.white.opacity(streak.currentStreak > 0 ? 0.05 : 0.02)
+              ),
               in: Capsule()
             )
           }
           .buttonStyle(.plain)
+          .accessibilityLabel(streakAccessibilityLabel)
+          .accessibilityHint(String(localized: "accessibility.streak.hint"))
         }
       }
     }
@@ -115,6 +126,19 @@ struct ContentView: View {
       celebrationValue = streak.lastIncrementValue
       showCelebration = true
     }
+  }
+
+  // MARK: Accessibility
+
+  private var streakAccessibilityLabel: String {
+    if streak.currentStreak == 0 {
+      return String(localized: "accessibility.streak.zero")
+    }
+    if streak.isStreakAtRisk {
+      return String(
+        format: String(localized: "accessibility.streak.atrisk"), streak.currentStreak)
+    }
+    return String(format: String(localized: "accessibility.streak.label"), streak.currentStreak)
   }
 
   // MARK: Header

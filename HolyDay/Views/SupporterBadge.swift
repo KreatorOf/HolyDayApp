@@ -36,9 +36,9 @@ struct SupporterBadge: View {
 #Preview {
   VStack(spacing: 16) {
     SupporterBadge(tier: .ami)
+    SupporterBadge(tier: .genereux)
     SupporterBadge(tier: .bienfaiteur)
-    SupporterBadge(tier: .pelerin)
-    SupporterBadge(tier: .pelerin, size: .large)
+    SupporterBadge(tier: .bienfaiteur, size: .large)
   }
   .padding()
   .preferredColorScheme(.dark)

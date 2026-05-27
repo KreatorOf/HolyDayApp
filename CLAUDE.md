@@ -42,6 +42,18 @@ swift-format format --recursive --in-place HolyDay/ HolyDayTests/ HolyDayWidget/
 swift-format lint --recursive HolyDay/ HolyDayTests/ HolyDayWidget/
 ```
 
+## Documentation & références (obligatoire)
+
+Avant d'implémenter toute fonctionnalité SwiftUI, SwiftData, UIKit, ou tout autre framework Apple :
+
+1. **Toujours interroger Context7** via `mcp__context7__resolve-library-id` + `mcp__context7__query-docs` pour obtenir la documentation à jour. Ne jamais se fier uniquement aux données d'entraînement — les APIs Apple évoluent rapidement (ex. Liquid Glass iOS 26, `@Observable`, nouveaux modificateurs SwiftUI).
+2. **Respecter les Human Interface Guidelines (HIG) d'Apple** dans chaque décision UI/UX :
+   - Espacement, typographie et tailles de touch target conformes aux HIG
+   - Utiliser les composants natifs (SF Symbols, Dynamic Type, Safe Area) plutôt que des équivalents custom
+   - Respecter les patterns de navigation natifs iOS (NavigationStack, sheets, confirmationAction)
+   - Accessibilité : labels VoiceOver, tailles Dynamic Type, contraste suffisant
+   - Ne pas reproduire des patterns d'autres plateformes (Android, web)
+
 ## Architecture
 
 - Pattern : **MVVM** avec `@Observable` (pas de `ObservableObject`/`@Published`)

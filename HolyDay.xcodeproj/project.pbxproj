@@ -10,6 +10,7 @@
 		C92BFF142FB7F619001C9BB0 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C92BFF132FB7F619001C9BB0 /* WidgetKit.framework */; };
 		C92BFF162FB7F619001C9BB0 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C92BFF152FB7F619001C9BB0 /* SwiftUI.framework */; };
 		C92BFF232FB7F61B001C9BB0 /* HolyDayWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C92BFF112FB7F619001C9BB0 /* HolyDayWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		C94E22042FC7B40400891B0D /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = C94E22032FC7B40400891B0D /* RevenueCat */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -103,6 +104,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C94E22042FC7B40400891B0D /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -207,6 +209,7 @@
 			);
 			name = HolyDay;
 			packageProductDependencies = (
+				C94E22032FC7B40400891B0D /* RevenueCat */,
 			);
 			productName = Kairos;
 			productReference = C99CE6BB2FB5267700B06836 /* HolyDay.app */;
@@ -244,6 +247,9 @@
 			);
 			mainGroup = C99CE6B22FB5267700B06836;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				C94E22022FC7B40400891B0D /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C99CE6BC2FB5267700B06836 /* Products */;
 			projectDirPath = "";
@@ -674,6 +680,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		C94E22022FC7B40400891B0D /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.75.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C94E22032FC7B40400891B0D /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = C94E22022FC7B40400891B0D /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C99CE6B32FB5267700B06836 /* Project object */;
 }
