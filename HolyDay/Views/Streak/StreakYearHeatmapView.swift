@@ -23,6 +23,7 @@ struct StreakYearHeatmapView: View {
   let streak: StreakService
   @Query(sort: \PrayerEntry.date) private var allEntries: [PrayerEntry]
   @Environment(\.dismiss) private var dismiss
+  @State private var cachedHeatData: [Date: HeatDayData] = [:]
 
   private let calendar = Calendar.current
   private var today: Date { calendar.startOfDay(for: Date()) }
@@ -44,7 +45,7 @@ struct StreakYearHeatmapView: View {
 
   // MARK: - Data: heatmap
 
-  private var heatData: [Date: HeatDayData] {
+  private func computeHeatData() -> [Date: HeatDayData] {
     let cutoff = calendar.date(byAdding: .day, value: -365, to: today) ?? today
     var countMap: [Date: Int] = [:]
     var colorMap: [Date: [String: Int]] = [:]
@@ -108,7 +109,7 @@ struct StreakYearHeatmapView: View {
 
   private var weekdayDistribution: [Int] {
     var counts = Array(repeating: 0, count: 7)
-    for date in heatData.keys {
+    for date in cachedHeatData.keys {
       let weekday = calendar.component(.weekday, from: date)
       let mondayFirst = (weekday + 5) % 7
       counts[mondayFirst] += 1
@@ -130,7 +131,7 @@ struct StreakYearHeatmapView: View {
         guard let dayDate = calendar.date(byAdding: .day, value: day, to: firstOfMonth) else {
           return false
         }
-        return (heatData[calendar.startOfDay(for: dayDate)]?.prayerCount ?? 0) > 0
+        return (cachedHeatData[calendar.startOfDay(for: dayDate)]?.prayerCount ?? 0) > 0
       }.count
 
       return (
@@ -179,7 +180,7 @@ struct StreakYearHeatmapView: View {
 
   private var consistencyLast30: Double {
     let cutoff = calendar.date(byAdding: .day, value: -30, to: today) ?? today
-    let count = heatData.keys.filter { $0 >= cutoff }.count
+    let count = cachedHeatData.keys.filter { $0 >= cutoff }.count
     return min(Double(count) / 30.0, 1.0)
   }
 
@@ -252,6 +253,8 @@ struct StreakYearHeatmapView: View {
         }
       }
       .background { AnimatedMeshBackground() }
+      .task { cachedHeatData = computeHeatData() }
+      .onChange(of: allEntries) { _, _ in cachedHeatData = computeHeatData() }
       .navigationTitle(String(localized: "streak.heatmap.title"))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
@@ -287,7 +290,7 @@ struct StreakYearHeatmapView: View {
           Spacer(minLength: 0)
           VStack(spacing: 5) {
             RoundedRectangle(cornerRadius: 4, style: .continuous)
-              .fill(weekCellColor(for: heatData[date], date: date))
+              .fill(weekCellColor(for: cachedHeatData[date], date: date))
               .frame(width: 32, height: 32)
               .overlay {
                 if calendar.isDateInToday(date) {
@@ -352,7 +355,7 @@ struct StreakYearHeatmapView: View {
         Divider().frame(height: 32).opacity(0.2)
         StatBlock(
           label: String(localized: "streak.total"),
-          value: heatData.count,
+          value: cachedHeatData.count,
           color: AppTheme.textPrimary
         )
       }
@@ -416,7 +419,7 @@ struct StreakYearHeatmapView: View {
                   ForEach(daysToDisplay, id: \.self) { date in
                     HeatCell(
                       date: date,
-                      data: heatData[date],
+                      data: cachedHeatData[date],
                       isFuture: date > today
                     )
                   }
