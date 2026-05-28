@@ -22,16 +22,6 @@ enum AppLinks {
   }
 }
 
-// IAP product IDs — create these in App Store Connect as Non-Consumable products
-// Then map them to RevenueCat packages in the RevenueCat dashboard
-enum TipProducts {
-  static let small = "com.holyday.app.tip.small"  // Ami — 4,99 €
-  static let medium = "com.holyday.app.tip.medium"  // Généreux — 9,99 €
-  static let large = "com.holyday.app.tip.large"  // Bienfaiteur — 19,99 €
-
-  static let all: Set<String> = [small, medium, large]
-}
-
 // RevenueCat configuration
 // 1. Create an account at https://app.revenuecat.com
 // 2. Create a new project and add your iOS app

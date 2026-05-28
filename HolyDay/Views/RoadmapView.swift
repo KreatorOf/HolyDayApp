@@ -100,14 +100,14 @@ private struct ProposalCard: View {
             .fill(
               proposal.hasVoted
                 ? AppTheme.adorationPurple.opacity(0.15)
-                : Color.white.opacity(0.06)
+                : AppTheme.cardFill
             )
             .overlay {
               RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(
                   proposal.hasVoted
                     ? AppTheme.adorationPurple.opacity(0.4)
-                    : Color.white.opacity(0.1),
+                    : AppTheme.cardStroke,
                   lineWidth: 1
                 )
             }

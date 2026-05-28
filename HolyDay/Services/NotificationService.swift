@@ -10,7 +10,7 @@ import UserNotifications
 
 @MainActor
 @Observable
-class NotificationService {
+final class NotificationService {
   static let shared = NotificationService()
 
   var isDailyReminderEnabled = false

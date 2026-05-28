@@ -27,6 +27,7 @@ struct SettingsView: View {
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @AppStorage("holyday.userName") private var userName = ""
   @State private var rateFeedbackToken = false
+  @State private var resetFeedbackToken = false
 
   private var appVersion: String {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -341,7 +342,7 @@ struct SettingsView: View {
           .padding(16)
         }
         .buttonStyle(.plain)
-        .sensoryFeedback(.warning, trigger: showResetConfirmation)
+        .sensoryFeedback(.warning, trigger: resetFeedbackToken)
 
         #if DEBUG
           cardDivider
@@ -387,7 +388,8 @@ struct SettingsView: View {
 
   private func resetAllData() {
     try? modelContext.delete(model: PrayerEntry.self)
-    UINotificationFeedbackGenerator().notificationOccurred(.warning)
+    StreakService.shared.reset()
+    resetFeedbackToken.toggle()
   }
 
   // MARK: Notifications

@@ -8,7 +8,7 @@
 import Foundation
 
 @Observable
-class VerseService {
+final class VerseService {
   static let shared = VerseService()
 
   private init() {}

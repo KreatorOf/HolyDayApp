@@ -11,7 +11,7 @@ import SwiftUI
 
 @Observable
 @MainActor
-class PrayerGuideViewModel {
+final class PrayerGuideViewModel {
   var verseOfTheDay: Verse
   var prayerSteps: [PrayerStep]
   var expandedStepId: UUID?

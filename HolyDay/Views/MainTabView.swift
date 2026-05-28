@@ -11,6 +11,7 @@ import SwiftUI
 struct MainTabView: View {
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @State private var selectedTab = 0
+  @Environment(\.scenePhase) private var scenePhase
 
   private var preferredScheme: ColorScheme? {
     switch colorSchemePreference {
@@ -35,6 +36,9 @@ struct MainTabView: View {
     .sensoryFeedback(.selection, trigger: selectedTab)
     .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     .preferredColorScheme(preferredScheme)
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active { StreakService.shared.refresh() }
+    }
   }
 }
 

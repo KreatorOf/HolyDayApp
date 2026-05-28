@@ -73,6 +73,20 @@ final class StreakService {
     lastIncrementToken = UUID()
   }
 
+  func refresh() {
+    recalculate()
+  }
+
+  func reset() {
+    let defaults = UserDefaults.standard
+    defaults.removeObject(forKey: streakKey)
+    defaults.removeObject(forKey: lastPrayerDateKey)
+    defaults.removeObject(forKey: bestStreakKey)
+    defaults.removeObject(forKey: streakStartDateKey)
+    defaults.removeObject(forKey: freezesKey)
+    recalculate()
+  }
+
   #if DEBUG
     func resetTodaysPrayer() {
       UserDefaults.standard.removeObject(forKey: lastPrayerDateKey)

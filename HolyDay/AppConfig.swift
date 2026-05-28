@@ -33,32 +33,4 @@ enum AppConfig {
     return v
   }()
 
-  // MARK: - Environment
-
-  enum Environment: String {
-    case debug = "Debug"
-    case staging = "Staging"
-    case release = "Release"
-  }
-
-  static let environment: Environment = {
-    let raw = Bundle.main.object(forInfoDictionaryKey: "AppEnvironment") as? String ?? "Release"
-    return Environment(rawValue: raw) ?? .release
-  }()
-
-  static var isDebug: Bool { environment == .debug }
-  static var isStaging: Bool { environment == .staging }
-  static var isRelease: Bool { environment == .release }
-
-  // MARK: - Logging
-
-  static let isLoggingEnabled: Bool = {
-    let v = Bundle.main.object(forInfoDictionaryKey: "LoggingEnabled") as? String ?? "NO"
-    return v == "YES"
-  }()
-
-  static func log(_ message: String, file: String = #fileID, line: Int = #line) {
-    guard isLoggingEnabled else { return }
-    print("[\(environment.rawValue)] \(file):\(line) → \(message)")
-  }
 }

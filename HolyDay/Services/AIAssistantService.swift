@@ -14,9 +14,9 @@ import FoundationModels
 struct ReflectionQuestions {
   @Guide(
     description:
-      "3 short open-ended questions in French to help the user reflect personally before writing their prayer for this specific step"
+      "3 short open-ended questions in French to help the user reflect personally before writing their prayer for this specific step",
+    .count(3)
   )
-  @Guide(.count(3))
   var questions: [String]
 }
 
@@ -32,8 +32,9 @@ struct JournalInsight {
       'Gratitude profonde après des épreuves professionnelles', \
       'Difficulté à pardonner dans une relation difficile'. \
       Always in French. Must be specific to this user's actual words.
-      """)
-  @Guide(.count(3))
+      """,
+    .count(3)
+  )
   var themes: [String]
 
   @Guide(
@@ -43,8 +44,9 @@ struct JournalInsight {
       Focus on evolution over time, emotional texture, or prayer depth. \
       Never generic encouragements — always tied to something actually written. \
       In French.
-      """)
-  @Guide(.count(2))
+      """,
+    .count(2)
+  )
   var observations: [String]
 
   @Guide(
@@ -65,10 +67,6 @@ final class AIAssistantService {
   static let shared = AIAssistantService()
 
   private init() {}
-
-  var isAvailable: Bool {
-    SystemLanguageModel.default.isAvailable
-  }
 
   // MARK: Reflection questions
 
