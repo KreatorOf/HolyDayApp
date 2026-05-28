@@ -26,6 +26,7 @@ struct SettingsView: View {
   @State private var photoPickerItem: PhotosPickerItem?
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @AppStorage("holyday.userName") private var userName = ""
+  @State private var rateFeedbackToken = false
 
   private var appVersion: String {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
@@ -249,6 +250,7 @@ struct SettingsView: View {
         .padding(16)
       }
       .buttonStyle(.plain)
+      .sensoryFeedback(.selection, trigger: showTipView)
     }
   }
 
@@ -295,7 +297,7 @@ struct SettingsView: View {
           cardDivider
 
           Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            rateFeedbackToken.toggle()
             requestReview()
           } label: {
             externalLinkRow(
@@ -306,6 +308,7 @@ struct SettingsView: View {
             )
           }
           .buttonStyle(.plain)
+          .sensoryFeedback(.selection, trigger: rateFeedbackToken)
         }
       }
     }
@@ -318,7 +321,6 @@ struct SettingsView: View {
       sectionLabel(String(localized: "settings.danger.section"))
       settingsCard {
         Button {
-          UIImpactFeedbackGenerator(style: .medium).impactOccurred()
           showResetConfirmation = true
         } label: {
           HStack(spacing: 14) {
@@ -339,13 +341,13 @@ struct SettingsView: View {
           .padding(16)
         }
         .buttonStyle(.plain)
+        .sensoryFeedback(.warning, trigger: showResetConfirmation)
 
         #if DEBUG
           cardDivider
 
           Button {
             tipService.debugUnlock()
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
           } label: {
             HStack(spacing: 14) {
               iconBadge(systemName: "wrench.and.screwdriver.fill", color: .orange)
@@ -367,7 +369,6 @@ struct SettingsView: View {
 
           Button {
             tipService.debugReset()
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
           } label: {
             HStack(spacing: 14) {
               iconBadge(systemName: "arrow.counterclockwise", color: .orange)

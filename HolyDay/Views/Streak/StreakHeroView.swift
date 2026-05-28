@@ -19,9 +19,11 @@ struct StreakHeroView: View {
   private let calendar = Calendar.current
   private var today: Date { calendar.startOfDay(for: Date()) }
 
+  @State private var tapToken = false
+
   var body: some View {
     Button(action: {
-      UIImpactFeedbackGenerator(style: .light).impactOccurred()
+      tapToken.toggle()
       onTap()
     }) {
       HStack(spacing: 0) {
@@ -76,6 +78,7 @@ struct StreakHeroView: View {
       )
     }
     .buttonStyle(.plain)
+    .sensoryFeedback(.selection, trigger: tapToken)
     .animation(.easeInOut(duration: 0.35), value: active)
     .onChange(of: streak.currentStreak) { old, new in
       guard !reduceMotion, old == 0, new > 0 else { return }
