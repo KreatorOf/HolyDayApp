@@ -13,6 +13,7 @@ struct StreakCelebrationView: View {
 
   @State private var breathe = false
   @State private var appeared = false
+  @State private var dismissToken = false
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
@@ -55,10 +56,7 @@ struct StreakCelebrationView: View {
         Spacer()
 
         Button {
-          let generator = UIImpactFeedbackGenerator(style: .light)
-          generator.prepare()
-          generator.impactOccurred()
-
+          dismissToken.toggle()
           dismiss()
         } label: {
           HStack(spacing: 12) {
@@ -73,6 +71,7 @@ struct StreakCelebrationView: View {
           .padding(.vertical, 8)
         }
         .buttonStyle(.glass)
+        .sensoryFeedback(.selection, trigger: dismissToken)
         .font(.body.weight(.semibold))
         .padding(.horizontal, 48)
         .padding(.bottom, 48)

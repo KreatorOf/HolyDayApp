@@ -15,6 +15,7 @@ struct PrayerStepView: View {
   var reflectionQuestions: [String] = []
   let onTap: () -> Void
   @State private var showReflection = false
+  @State private var prayFeedbackToken = false
   let onPray: () -> Void
 
   var body: some View {
@@ -50,6 +51,7 @@ struct PrayerStepView: View {
       .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
+    .sensoryFeedback(.selection, trigger: isExpanded)
     .accessibilityLabel(stepAccessibilityLabel)
     .accessibilityHint(stepAccessibilityHint)
     .accessibilityAddTraits(isExpanded ? .isSelected : [])
@@ -132,6 +134,7 @@ struct PrayerStepView: View {
               .foregroundStyle(step.color)
           }
           .buttonStyle(.plain)
+          .sensoryFeedback(.selection, trigger: showReflection)
           .accessibilityLabel(String(localized: "accessibility.reflection.toggle"))
           .accessibilityHint(
             showReflection
@@ -248,7 +251,10 @@ struct PrayerStepView: View {
 
   private var prayerButton: some View {
     let canPray = !prayerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    return Button(action: onPray) {
+    return Button {
+      prayFeedbackToken.toggle()
+      onPray()
+    } label: {
       HStack(spacing: 10) {
         Image(systemName: "checkmark.circle")
           .font(.system(size: 18, weight: .semibold))
@@ -267,6 +273,7 @@ struct PrayerStepView: View {
       }
     }
     .buttonStyle(.plain)
+    .sensoryFeedback(.success, trigger: prayFeedbackToken)
     .disabled(!canPray)
     .opacity(canPray ? 1 : 0.35)
     .animation(.easeInOut(duration: 0.2), value: canPray)

@@ -69,7 +69,6 @@ struct ContentView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
           Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             showHeatmap = true
           } label: {
             HStack(spacing: 4) {
@@ -100,6 +99,7 @@ struct ContentView: View {
             )
           }
           .buttonStyle(.plain)
+          .sensoryFeedback(.selection, trigger: showHeatmap)
           .accessibilityLabel(streakAccessibilityLabel)
           .accessibilityHint(String(localized: "accessibility.streak.hint"))
         }
