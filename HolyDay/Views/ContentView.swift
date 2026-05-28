@@ -156,11 +156,12 @@ struct ContentView: View {
   }
 
   private var headerSection: some View {
-    VStack(alignment: .leading, spacing: 2) {
+    VStack(alignment: .center, spacing: 2) {
       Text(greeting)
         .font(.subheadline)
         .foregroundStyle(AppTheme.textSecondary)
         .tracking(0.3)
+        .multilineTextAlignment(.center)
       HStack(spacing: 0) {
         Text("Holy")
           .font(.system(size: 38, weight: .bold, design: .serif).italic())
