@@ -31,12 +31,12 @@ struct StreakHeroView: View {
           Image(systemName: "flame.fill")
             .font(.footnote)
             .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(active ? Color.orange.opacity(0.85) : Color.white.opacity(0.2))
+            .foregroundStyle(active ? AppTheme.adaptiveOrange : AppTheme.textTertiary)
             .scaleEffect(flameScale)
 
           Text("\(streak.currentStreak)")
             .font(.system(.callout, design: .rounded, weight: .medium))
-            .foregroundStyle(active ? Color.white.opacity(0.9) : Color.white.opacity(0.3))
+            .foregroundStyle(active ? AppTheme.textPrimary : AppTheme.textTertiary)
             .monospacedDigit()
             .contentTransition(.numericText(value: Double(streak.currentStreak)))
             .animation(.spring(response: 0.35), value: streak.currentStreak)
@@ -47,12 +47,12 @@ struct StreakHeroView: View {
               : String(localized: "streak.day")
           )
           .font(.caption2)
-          .foregroundStyle(Color.white.opacity(0.35))
+          .foregroundStyle(AppTheme.textSecondary)
         }
         .padding(.trailing, 12)
 
         Rectangle()
-          .fill(.white.opacity(0.08))
+          .fill(AppTheme.cardStroke)
           .frame(width: 1, height: 14)
           .padding(.trailing, 12)
 
@@ -68,7 +68,7 @@ struct StreakHeroView: View {
 
         Image(systemName: "chevron.right")
           .font(.caption2)
-          .foregroundStyle(Color.white.opacity(0.2))
+          .foregroundStyle(AppTheme.textTertiary)
       }
       .padding(.horizontal, 14)
       .padding(.vertical, 10)
@@ -141,13 +141,13 @@ private struct MiniDayDot: View {
     Circle()
       .fill(
         hasPrayer
-          ? Color.orange.opacity(0.55)
-          : Color.white.opacity(isToday ? 0.22 : 0.07)
+          ? AppTheme.adaptiveOrange.opacity(0.65)
+          : AppTheme.textTertiary.opacity(isToday ? 0.40 : 0.18)
       )
       .frame(width: 8, height: 8)
       .overlay(
         Circle()
-          .stroke(Color.white.opacity(isToday ? 0.3 : 0.05), lineWidth: 0.5)
+          .stroke(AppTheme.cardStroke, lineWidth: 0.5)
       )
   }
 }

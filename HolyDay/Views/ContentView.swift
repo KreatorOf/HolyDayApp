@@ -74,7 +74,8 @@ struct ContentView: View {
             HStack(spacing: 4) {
               Image(systemName: "flame.fill")
                 .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(streak.currentStreak > 0 ? Color.orange : Color.white.opacity(0.3))
+                .foregroundStyle(
+                  streak.currentStreak > 0 ? AppTheme.adaptiveOrange : AppTheme.textTertiary)
               Text("\(streak.currentStreak)")
                 .monospacedDigit()
                 .contentTransition(.numericText(value: Double(streak.currentStreak)))
@@ -265,7 +266,7 @@ struct ContentView: View {
           proxy.scrollTo(step.id, anchor: .top)
         }
       }
-      if viewModel.reflectionQuestions[step.id] == nil, AIAssistantService.shared.isAvailable {
+      if viewModel.reflectionQuestions[step.id] == nil {
         Task { await generateQuestions(for: step) }
       }
     }

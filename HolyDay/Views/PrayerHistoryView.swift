@@ -5,6 +5,7 @@
 //  Created by Matthias Cadet on 14/05/2026.
 //
 
+import FoundationModels
 import SwiftData
 import SwiftUI
 
@@ -13,14 +14,12 @@ struct PrayerHistoryView: View {
   @Environment(\.modelContext) private var modelContext
   @State private var displayedMonth: Date = Self.firstOfCurrentMonth()
   @State private var selectedDate: Date? = Calendar.current.startOfDay(for: Date())
-  @State private var showInsight = false
   @State private var topInset: CGFloat = 100
   @State private var showNavTitle = false
   @State private var searchText = ""
   @State private var isSearching = false
   @State private var cachedSearchResults: [(date: Date, entries: [PrayerEntry])] = []
-  @State private var tipService = TipService.shared
-  @State private var showAIPaywall = false
+  @State private var showInsight = false
 
   private static func firstOfCurrentMonth() -> Date {
     let cal = Calendar.current
@@ -72,11 +71,12 @@ struct PrayerHistoryView: View {
           HStack(spacing: 14) {
             if aiButtonVisible {
               Button {
-                if aiUnlocked { showInsight = true } else { showAIPaywall = true }
+                showInsight = true
               } label: {
                 Image(systemName: "sparkles")
-                  .foregroundStyle(aiUnlocked ? AppTheme.adorationPurple : AppTheme.textTertiary)
+                  .foregroundStyle(AppTheme.adorationPurple)
               }
+              .sensoryFeedback(.selection, trigger: showInsight)
               .accessibilityLabel(String(localized: "accessibility.ai.button"))
             }
             Button {
@@ -95,12 +95,6 @@ struct PrayerHistoryView: View {
             )
           }
         }
-      }
-      .sheet(isPresented: $showInsight) {
-        JournalInsightView()
-      }
-      .sheet(isPresented: $showAIPaywall) {
-        AIPremiumView()
       }
       .task(id: searchText) {
         guard !searchText.isEmpty else {
@@ -124,6 +118,24 @@ struct PrayerHistoryView: View {
           .sorted { $0.key > $1.key }
           .map { ($0.key, $0.value.sorted { $0.date < $1.date }) }
       }
+    }
+    .sheet(isPresented: $showInsight) {
+      NavigationStack {
+        ScrollView {
+          JournalAIInsightSection(entries: entries)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 32)
+        }
+        .scrollIndicators(.hidden)
+        .background(AppTheme.backgroundPrimary.ignoresSafeArea())
+        .toolbar {
+          ToolbarItem(placement: .topBarLeading) {
+            Button(role: .close) { showInsight = false }
+          }
+        }
+      }
+      .presentationDragIndicator(.visible)
     }
     .background(
       GeometryReader { geo in
@@ -569,10 +581,6 @@ struct PrayerHistoryView: View {
     entries.lazy.filter({ !$0.text.isEmpty }).prefix(3).count >= 3
   }
 
-  private var aiUnlocked: Bool {
-    tipService.supporterTier != nil && AIAssistantService.shared.isAvailable
-  }
-
   private var selectedDayEntries: [PrayerEntry] {
     guard let selected = selectedDate else { return [] }
     return entriesForDate(selected)
@@ -640,6 +648,309 @@ struct PrayerHistoryView: View {
     else { return }
     displayedMonth = newMonth
     selectedDate = nil
+  }
+}
+
+// MARK: AI insight section
+
+private struct JournalAIInsightSection: View {
+  let entries: [PrayerEntry]
+
+  @State private var insight: JournalInsight?
+  @State private var isGenerating = false
+  @State private var failed = false
+  @State private var actionToken = false
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      sectionHeader
+      Group {
+        if isGenerating {
+          loadingCard
+        } else if let insight {
+          insightCards(insight)
+        } else if failed {
+          errorCard
+        } else {
+          generateCard
+        }
+      }
+      .animation(.spring(response: 0.4, dampingFraction: 0.85), value: isGenerating)
+      .animation(.spring(response: 0.4, dampingFraction: 0.85), value: insight == nil)
+      .animation(.spring(response: 0.4, dampingFraction: 0.85), value: failed)
+    }
+    .sensoryFeedback(.success, trigger: insight != nil && !isGenerating)
+    .task {
+      guard insight == nil && !isGenerating else { return }
+      await generate()
+    }
+  }
+
+  // MARK: Header
+
+  private var sectionHeader: some View {
+    HStack(spacing: 6) {
+      Image(systemName: "sparkles")
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(AppTheme.adorationPurple)
+      Text("insight.section.title")
+        .font(.caption)
+        .fontWeight(.semibold)
+        .foregroundStyle(AppTheme.textTertiary)
+        .textCase(.uppercase)
+        .tracking(1.0)
+      Spacer()
+      if insight != nil && !isGenerating {
+        Button {
+          actionToken.toggle()
+          Task { await generate() }
+        } label: {
+          Image(systemName: "arrow.clockwise")
+            .font(.caption)
+            .foregroundStyle(AppTheme.textTertiary)
+        }
+        .buttonStyle(.plain)
+        .sensoryFeedback(.selection, trigger: actionToken)
+      }
+    }
+  }
+
+  // MARK: Generate CTA
+
+  private var generateCard: some View {
+    Button {
+      actionToken.toggle()
+      Task { await generate() }
+    } label: {
+      HStack(spacing: 14) {
+        ZStack {
+          Circle()
+            .fill(AppTheme.adorationPurple.opacity(0.12))
+            .frame(width: 38, height: 38)
+          Image(systemName: "sparkles")
+            .font(.system(size: 16, weight: .medium))
+            .foregroundStyle(AppTheme.adorationPurple)
+        }
+        VStack(alignment: .leading, spacing: 3) {
+          Text("insight.generate.title")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(AppTheme.textPrimary)
+          Text("insight.generate.subtitle")
+            .font(.caption)
+            .foregroundStyle(AppTheme.textSecondary)
+        }
+        Spacer()
+        Image(systemName: "chevron.right")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+      }
+      .padding(14)
+      .background {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .fill(AppTheme.cardFill)
+          .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+              .strokeBorder(AppTheme.adorationPurple.opacity(0.2), lineWidth: 1)
+          }
+      }
+    }
+    .buttonStyle(.plain)
+    .sensoryFeedback(.selection, trigger: actionToken)
+  }
+
+  // MARK: Loading
+
+  private var loadingCard: some View {
+    HStack(spacing: 14) {
+      ProgressView()
+        .scaleEffect(0.85)
+        .tint(AppTheme.adorationPurple)
+      Text("insight.loading")
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textSecondary)
+      Spacer()
+    }
+    .padding(14)
+    .background {
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .fill(AppTheme.cardFill)
+        .overlay {
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+        }
+    }
+  }
+
+  // MARK: Insight content
+
+  @ViewBuilder
+  private func insightCards(_ data: JournalInsight) -> some View {
+    VStack(spacing: 10) {
+      if !data.themes.isEmpty {
+        insightGroup(
+          title: String(localized: "insight.themes.title"),
+          icon: "tag.fill",
+          color: AppTheme.confessionBlue,
+          items: data.themes
+        )
+      }
+      if !data.observations.isEmpty {
+        insightGroup(
+          title: String(localized: "insight.observations.title"),
+          icon: "eye.fill",
+          color: AppTheme.adorationPurple,
+          items: data.observations
+        )
+      }
+      if !data.answeredPrayers.isEmpty {
+        insightGroup(
+          title: String(localized: "insight.answered.title"),
+          icon: "checkmark.seal.fill",
+          color: AppTheme.thanksgivingGold,
+          items: data.answeredPrayers
+        )
+      }
+      Text("insight.ai.footer")
+        .font(.caption2)
+        .foregroundStyle(AppTheme.textTertiary)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 8)
+        .padding(.top, 4)
+    }
+  }
+
+  private func insightGroup(title: String, icon: String, color: Color, items: [String]) -> some View
+  {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(spacing: 6) {
+        Image(systemName: icon)
+          .font(.caption)
+          .foregroundStyle(color)
+        Text(title)
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+          .textCase(.uppercase)
+          .tracking(0.8)
+      }
+      VStack(alignment: .leading, spacing: 8) {
+        ForEach(items, id: \.self) { item in
+          HStack(alignment: .top, spacing: 10) {
+            Circle()
+              .fill(color.opacity(0.6))
+              .frame(width: 5, height: 5)
+              .padding(.top, 7)
+            Text(item)
+              .font(.subheadline)
+              .foregroundStyle(AppTheme.textPrimary)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+      }
+    }
+    .padding(14)
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .background {
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .fill(AppTheme.cardFill)
+        .overlay {
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .strokeBorder(color.opacity(0.2), lineWidth: 1)
+        }
+    }
+  }
+
+  // MARK: Error
+
+  private var currentAvailability: SystemLanguageModel.Availability {
+    SystemLanguageModel.default.availability
+  }
+
+  private var errorCard: some View {
+    let isNotEnabled =
+      currentAvailability == .unavailable(.appleIntelligenceNotEnabled)
+    let isDeviceIneligible =
+      currentAvailability == .unavailable(.deviceNotEligible)
+    let isModelNotReady =
+      currentAvailability == .unavailable(.modelNotReady)
+
+    return VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 14) {
+        Image(systemName: isDeviceIneligible ? "sparkles.slash" : "apple.intelligence")
+          .font(.callout)
+          .foregroundStyle(AppTheme.textTertiary)
+        VStack(alignment: .leading, spacing: 2) {
+          Text("insight.error.title")
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(AppTheme.textPrimary)
+          Text(
+            isNotEnabled
+              ? String(localized: "insight.error.subtitle.not.enabled")
+              : isModelNotReady
+                ? String(localized: "insight.error.subtitle.model.not.ready")
+                : isDeviceIneligible
+                  ? String(localized: "insight.error.subtitle")
+                  : String(localized: "insight.error.subtitle.generic")
+          )
+          .font(.caption)
+          .foregroundStyle(AppTheme.textSecondary)
+        }
+        Spacer()
+        if !isDeviceIneligible {
+          Button {
+            actionToken.toggle()
+            Task { await generate() }
+          } label: {
+            Image(systemName: "arrow.clockwise")
+              .font(.callout)
+              .foregroundStyle(AppTheme.adorationPurple)
+          }
+          .buttonStyle(.plain)
+          .sensoryFeedback(.selection, trigger: actionToken)
+        }
+      }
+      if isNotEnabled {
+        Button {
+          if let url = URL(string: UIApplication.openSettingsURLString) {
+            UIApplication.shared.open(url)
+          }
+        } label: {
+          Text("insight.error.open.settings")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.adorationPurple)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 8)
+            .background(
+              AppTheme.adorationPurple.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .padding(14)
+    .background {
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .fill(AppTheme.cardFill)
+        .overlay {
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+        }
+    }
+  }
+
+  // MARK: Generation
+
+  private func generate() async {
+    let withText = entries.filter { !$0.text.isEmpty }
+    guard withText.count >= 3 else { return }
+    isGenerating = true
+    insight = nil
+    failed = false
+    defer { isGenerating = false }
+    do {
+      insight = try await AIAssistantService.shared.analyzeJournal(entries: withText)
+    } catch {
+      failed = true
+    }
   }
 }
 

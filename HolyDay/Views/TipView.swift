@@ -12,13 +12,17 @@ struct TipView: View {
   @Environment(\.dismiss) private var dismiss
   @State private var tipService = TipService.shared
 
-  private var tiers: [(emoji: String, label: String, color: Color)] {
-    [
-      ("☕", String(localized: "tip.tier.0.label"), AppTheme.thanksgivingGold),
-      ("🙏", String(localized: "tip.tier.1.label"), AppTheme.confessionBlue),
-      ("✨", String(localized: "tip.tier.2.label"), AppTheme.adorationPurple),
-    ]
-  }
+  private let tierStyles: [(emoji: String, color: Color, thankKey: LocalizedStringKey)] = [
+    ("☕", AppTheme.thanksgivingGold, "tip.tier.thank.0"),
+    ("🙏", AppTheme.confessionBlue, "tip.tier.thank.1"),
+    ("✨", AppTheme.adorationPurple, "tip.tier.thank.2"),
+  ]
+
+  private let comingSoonItems: [(icon: String, key: LocalizedStringKey)] = [
+    ("paintpalette.fill", "tip.coming.soon.themes"),
+    ("app.fill", "tip.coming.soon.icons"),
+    ("bolt.fill", "tip.coming.soon.earlyaccess"),
+  ]
 
   var body: some View {
     NavigationStack {
@@ -26,15 +30,14 @@ struct TipView: View {
         if tipService.purchaseState == .success {
           successView
         } else {
-          tipOptionsView
+          supportOptionsView
         }
       }
       .navigationTitle(Text("tip.nav.title"))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
-          Button("common.close") { dismiss() }
-            .foregroundStyle(AppTheme.textSecondary)
+          Button(role: .close) { dismiss() }
         }
       }
     }
@@ -45,24 +48,50 @@ struct TipView: View {
     }
   }
 
-  // MARK: Options
+  // MARK: Support options
 
-  private var tipOptionsView: some View {
+  private var supportOptionsView: some View {
     ScrollView {
       VStack(spacing: 28) {
-        header
+        headerSection
+        impactSection
         productsContent
+        comingSoonSection
+        if tipService.purchaseState == .failed {
+          purchaseErrorBanner
+        }
         restoreButton
         legalFooter
       }
       .padding(20)
     }
+    .scrollIndicators(.hidden)
   }
 
-  private var header: some View {
-    VStack(spacing: 14) {
+  private var purchaseErrorBanner: some View {
+    HStack(spacing: 10) {
+      Image(systemName: "exclamationmark.circle")
+        .foregroundStyle(.red.opacity(0.8))
+      Text("tip.error.purchase")
+        .font(.footnote)
+        .foregroundStyle(.red.opacity(0.9))
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 10)
+    .background(.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+    .overlay {
+      RoundedRectangle(cornerRadius: 10)
+        .strokeBorder(.red.opacity(0.2), lineWidth: 1)
+    }
+    .transition(.opacity.combined(with: .scale(scale: 0.97)))
+  }
+
+  // MARK: Header
+
+  private var headerSection: some View {
+    VStack(spacing: 16) {
       Image(systemName: "heart.fill")
-        .font(.system(size: 48))
+        .font(.system(size: 44))
         .foregroundStyle(AppTheme.adorationPurple)
         .padding(.top, 8)
 
@@ -70,14 +99,58 @@ struct TipView: View {
         .font(.title2)
         .fontWeight(.bold)
         .foregroundStyle(AppTheme.textPrimary)
+        .multilineTextAlignment(.center)
 
-      Text("tip.header.subtitle")
+      Text("tip.header.creator.message")
         .font(.subheadline)
         .foregroundStyle(AppTheme.textSecondary)
         .multilineTextAlignment(.center)
-        .lineSpacing(4)
+        .lineSpacing(5)
+        .frame(maxWidth: 320)
     }
   }
+
+  // MARK: Impact
+
+  private var impactSection: some View {
+    VStack(spacing: 0) {
+      impactRow(icon: "gift.fill", color: AppTheme.supplicationGreen, key: "tip.impact.1")
+      AppTheme.divider.frame(height: 1).padding(.horizontal, 16)
+      impactRow(icon: "sparkles", color: AppTheme.adorationPurple, key: "tip.impact.2")
+      AppTheme.divider.frame(height: 1).padding(.horizontal, 16)
+      impactRow(icon: "arrow.up.heart.fill", color: AppTheme.confessionBlue, key: "tip.impact.3")
+    }
+    .background {
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .fill(.ultraThinMaterial)
+        .overlay {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+        }
+    }
+  }
+
+  private func impactRow(icon: String, color: Color, key: LocalizedStringKey) -> some View {
+    HStack(spacing: 14) {
+      Image(systemName: icon)
+        .font(.system(size: 14, weight: .semibold))
+        .foregroundStyle(color)
+        .frame(width: 32, height: 32)
+        .background(color.opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+      Text(key)
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textPrimary)
+      Spacer()
+      Image(systemName: "checkmark")
+        .font(.caption.weight(.bold))
+        .foregroundStyle(color.opacity(0.7))
+    }
+    .padding(.horizontal, 16)
+    .padding(.vertical, 13)
+  }
+
+  // MARK: Products
 
   @ViewBuilder
   private var productsContent: some View {
@@ -99,12 +172,14 @@ struct TipView: View {
   private var productsStack: some View {
     VStack(spacing: 12) {
       ForEach(Array(tipService.packages.enumerated()), id: \.element.identifier) { index, package in
-        let tier = tiers[min(index, tiers.count - 1)]
-        TipProductCard(
-          emoji: tier.emoji,
-          label: tier.label,
+        let style = tierStyles[min(index, tierStyles.count - 1)]
+        let tier = SupporterTier(rawValue: index)
+        SupporterTierCard(
+          emoji: style.emoji,
+          tierName: tier?.title ?? "",
+          thankKey: style.thankKey,
           price: package.storeProduct.localizedPriceString,
-          color: tier.color,
+          color: style.color,
           isPurchasing: tipService.purchaseState == .purchasing
         ) {
           Task { await tipService.purchase(package) }
@@ -113,55 +188,63 @@ struct TipView: View {
     }
   }
 
-  #if DEBUG
-    private var debugProductsStack: some View {
-      VStack(spacing: 12) {
-        HStack(spacing: 6) {
-          Image(systemName: "wrench.and.screwdriver.fill")
-            .font(.caption)
-            .foregroundStyle(.orange)
-          Text("Mode test — aucun paiement réel")
-            .font(.caption)
-            .foregroundStyle(.orange)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(.orange.opacity(0.12), in: Capsule())
+  // MARK: Coming soon
 
-        let mockTiers: [(tier: SupporterTier, price: String)] = [
-          (.ami, "4,99 €"),
-          (.genereux, "9,99 €"),
-          (.bienfaiteur, "19,99 €"),
-        ]
-        ForEach(mockTiers.indices, id: \.self) { i in
-          let mock = mockTiers[i]
-          let ui = tiers[i]
-          TipProductCard(
-            emoji: ui.emoji,
-            label: ui.label,
-            price: mock.price,
-            color: ui.color,
-            isPurchasing: false
-          ) {
-            tipService.debugPurchase(tier: mock.tier)
+  private var comingSoonSection: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      HStack(spacing: 6) {
+        Image(systemName: "lock.fill")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+        Text("tip.coming.soon.title")
+          .font(.caption)
+          .fontWeight(.semibold)
+          .foregroundStyle(AppTheme.textTertiary)
+          .textCase(.uppercase)
+          .tracking(0.8)
+      }
+
+      VStack(spacing: 0) {
+        ForEach(comingSoonItems.indices, id: \.self) { i in
+          HStack(spacing: 12) {
+            Image(systemName: comingSoonItems[i].icon)
+              .font(.system(size: 13, weight: .medium))
+              .foregroundStyle(AppTheme.textTertiary)
+              .frame(width: 28, height: 28)
+              .background(AppTheme.textTertiary.opacity(0.08))
+              .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            Text(comingSoonItems[i].key)
+              .font(.subheadline)
+              .foregroundStyle(AppTheme.textSecondary)
+            Spacer()
+            Text("tip.coming.soon.badge")
+              .font(.caption2)
+              .fontWeight(.semibold)
+              .foregroundStyle(AppTheme.adorationPurple)
+              .padding(.horizontal, 8)
+              .padding(.vertical, 3)
+              .background(AppTheme.adorationPurple.opacity(0.12), in: Capsule())
+          }
+          .padding(.horizontal, 16)
+          .padding(.vertical, 12)
+          if i < comingSoonItems.count - 1 {
+            AppTheme.divider.frame(height: 1).padding(.horizontal, 16)
           }
         }
       }
+      .background {
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
+          .fill(.ultraThinMaterial)
+          .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+          }
+      }
+      .opacity(0.75)
     }
-  #endif
-
-  private var unavailableView: some View {
-    VStack(spacing: 12) {
-      Image(systemName: "wifi.slash")
-        .font(.title)
-        .foregroundStyle(AppTheme.textTertiary)
-      Text("tip.unavailable")
-        .font(.subheadline)
-        .foregroundStyle(AppTheme.textSecondary)
-        .multilineTextAlignment(.center)
-    }
-    .padding(.vertical, 16)
   }
+
+  // MARK: Buttons / footer
 
   private var restoreButton: some View {
     Button {
@@ -172,6 +255,7 @@ struct TipView: View {
         .foregroundStyle(AppTheme.textTertiary)
     }
     .buttonStyle(.plain)
+    .sensoryFeedback(.selection, trigger: tipService.purchaseState)
     .disabled(tipService.purchaseState == .purchasing)
   }
 
@@ -207,27 +291,116 @@ struct TipView: View {
 
           if let tier = tipService.supporterTier {
             SupporterBadge(tier: tier, size: .large)
-          }
 
-          Text("tip.success.subtitle")
-            .font(.body)
-            .foregroundStyle(AppTheme.textSecondary)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, 24)
-            .lineSpacing(4)
+            Text(successMessage(for: tier))
+              .font(.body)
+              .foregroundStyle(AppTheme.textSecondary)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 32)
+              .lineSpacing(4)
+          }
         }
 
         Spacer()
+
+        VStack(spacing: 10) {
+          Text("tip.success.coming.title")
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(AppTheme.textTertiary)
+            .textCase(.uppercase)
+            .tracking(0.8)
+
+          HStack(spacing: 20) {
+            ForEach(comingSoonItems.indices, id: \.self) { i in
+              VStack(spacing: 4) {
+                Image(systemName: comingSoonItems[i].icon)
+                  .font(.footnote)
+                  .foregroundStyle(AppTheme.adorationPurple.opacity(0.7))
+                Text(comingSoonItems[i].key)
+                  .font(.caption2)
+                  .foregroundStyle(AppTheme.textTertiary)
+                  .multilineTextAlignment(.center)
+              }
+            }
+          }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 40)
       }
     }
   }
+
+  private func successMessage(for tier: SupporterTier) -> String {
+    switch tier {
+    case .ami: return String(localized: "tip.success.tier.message.0")
+    case .genereux: return String(localized: "tip.success.tier.message.1")
+    case .bienfaiteur: return String(localized: "tip.success.tier.message.2")
+    }
+  }
+
+  // MARK: Debug
+
+  #if DEBUG
+    private var debugProductsStack: some View {
+      VStack(spacing: 12) {
+        HStack(spacing: 6) {
+          Image(systemName: "wrench.and.screwdriver.fill")
+            .font(.caption)
+            .foregroundStyle(.orange)
+          Text("Mode test — aucun paiement réel")
+            .font(.caption)
+            .foregroundStyle(.orange)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.orange.opacity(0.12), in: Capsule())
+
+        let mockTiers: [(tier: SupporterTier, price: String)] = [
+          (.ami, "4,99 €"),
+          (.genereux, "9,99 €"),
+          (.bienfaiteur, "19,99 €"),
+        ]
+        ForEach(mockTiers.indices, id: \.self) { i in
+          let mock = mockTiers[i]
+          let style = tierStyles[i]
+          SupporterTierCard(
+            emoji: style.emoji,
+            tierName: mock.tier.title,
+            thankKey: style.thankKey,
+            price: mock.price,
+            color: style.color,
+            isPurchasing: false
+          ) {
+            tipService.debugPurchase(tier: mock.tier)
+          }
+        }
+      }
+    }
+  #endif
+
+  // MARK: Unavailable
+
+  private var unavailableView: some View {
+    VStack(spacing: 12) {
+      Image(systemName: "wifi.slash")
+        .font(.title)
+        .foregroundStyle(AppTheme.textTertiary)
+      Text("tip.unavailable")
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textSecondary)
+        .multilineTextAlignment(.center)
+    }
+    .padding(.vertical, 16)
+  }
 }
 
-// MARK: Product card
+// MARK: - Tier card
 
-private struct TipProductCard: View {
+private struct SupporterTierCard: View {
   let emoji: String
-  let label: String
+  let tierName: String
+  let thankKey: LocalizedStringKey
   let price: String
   let color: Color
   let isPurchasing: Bool
@@ -235,37 +408,59 @@ private struct TipProductCard: View {
 
   var body: some View {
     Button(action: action) {
-      HStack(spacing: 16) {
-        Text(emoji)
-          .font(.title3)
-          .frame(width: 44, height: 44)
-          .background(color.opacity(0.15))
-          .clipShape(Circle())
+      VStack(spacing: 0) {
+        HStack(spacing: 16) {
+          Text(emoji)
+            .font(.title3)
+            .frame(width: 44, height: 44)
+            .background(color.opacity(0.15))
+            .clipShape(Circle())
 
-        Text(label)
-          .font(.body)
-          .fontWeight(.semibold)
-          .foregroundStyle(AppTheme.textPrimary)
+          VStack(alignment: .leading, spacing: 3) {
+            Text(tierName)
+              .font(.body)
+              .fontWeight(.semibold)
+              .foregroundStyle(AppTheme.textPrimary)
+            Text(thankKey)
+              .font(.caption)
+              .foregroundStyle(AppTheme.textSecondary)
+              .lineLimit(2)
+              .fixedSize(horizontal: false, vertical: true)
+          }
 
-        Spacer()
+          Spacer()
 
-        if isPurchasing {
-          ProgressView()
-            .tint(color)
-            .frame(width: 44)
-        } else {
-          Text(price)
-            .font(.body)
-            .fontWeight(.bold)
-            .foregroundStyle(color)
+          if isPurchasing {
+            ProgressView()
+              .tint(color)
+              .frame(width: 52)
+          } else {
+            Text(price)
+              .font(.body)
+              .fontWeight(.bold)
+              .foregroundStyle(color)
+          }
         }
+        .padding(16)
+
+        HStack(spacing: 8) {
+          Image(systemName: "checkmark.circle.fill")
+            .font(.caption.weight(.medium))
+            .foregroundStyle(color.opacity(0.7))
+          Text("tip.perk.badge")
+            .font(.caption)
+            .foregroundStyle(AppTheme.textSecondary)
+          Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.bottom, 14)
+        .padding(.top, -4)
       }
-      .padding(16)
       .background {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
+        RoundedRectangle(cornerRadius: 16, style: .continuous)
           .fill(.ultraThinMaterial)
           .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
               .strokeBorder(color.opacity(0.3), lineWidth: 1)
           }
       }

@@ -54,16 +54,16 @@ struct VerseCardView: View {
           .padding(.horizontal, 10)
           .padding(.vertical, 4)
           .background {
-            Capsule().fill(Color.white.opacity(0.1))
+            Capsule().fill(AppTheme.buttonFillSubtle)
           }
 
         ShareLink(item: shareText) {
           Image(systemName: "square.and.arrow.up")
             .font(.callout.weight(.medium))
-            .foregroundStyle(bookAccentColor.opacity(0.9))
+            .foregroundStyle(bookAccentColor)
             .padding(9)
             .background {
-              Circle().fill(Color.white.opacity(0.08))
+              Circle().fill(AppTheme.buttonFillSubtle)
             }
         }
       }
@@ -102,7 +102,7 @@ struct VerseCardView: View {
             LinearGradient(
               colors: [
                 bookAccentColor.opacity(0.4),
-                Color.white.opacity(0.08),
+                AppTheme.cardStroke,
               ],
               startPoint: .topLeading,
               endPoint: .bottomTrailing

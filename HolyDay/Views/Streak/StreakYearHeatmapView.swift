@@ -295,8 +295,8 @@ struct StreakYearHeatmapView: View {
       .navigationTitle(String(localized: "streak.heatmap.title"))
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
-        ToolbarItem(placement: .confirmationAction) {
-          Button(String(localized: "common.close")) { dismiss() }
+        ToolbarItem(placement: .topBarLeading) {
+          Button(role: .close) { dismiss() }
         }
       }
     }
@@ -402,8 +402,8 @@ struct StreakYearHeatmapView: View {
   }
 
   private func weekDayFill(hasPrayer: Bool, isFuture: Bool) -> Color {
-    if isFuture { return Color.white.opacity(0.04) }
-    return hasPrayer ? AppTheme.thanksgivingGold : Color.white.opacity(0.10)
+    if isFuture { return AppTheme.cardFill }
+    return hasPrayer ? AppTheme.thanksgivingGold : AppTheme.buttonFillSubtle
   }
 
   private func dayInitial(for date: Date) -> String {
@@ -478,7 +478,7 @@ struct StreakYearHeatmapView: View {
       GeometryReader { geo in
         ZStack(alignment: .leading) {
           RoundedRectangle(cornerRadius: 3, style: .continuous)
-            .fill(Color.white.opacity(0.08))
+            .fill(AppTheme.buttonFillSubtle)
           RoundedRectangle(cornerRadius: 3, style: .continuous)
             .fill(consistencyColor)
             .frame(width: geo.size.width * consistencyLast30)
@@ -590,7 +590,7 @@ struct StreakYearHeatmapView: View {
 
   private func legendColor(for level: Int) -> Color {
     switch level {
-    case 0: return Color.white.opacity(0.10)
+    case 0: return AppTheme.buttonFillSubtle
     case 1: return AppTheme.thanksgivingGold.opacity(0.30)
     case 2: return AppTheme.thanksgivingGold.opacity(0.55)
     case 3: return AppTheme.thanksgivingGold.opacity(0.80)
@@ -664,7 +664,7 @@ private struct RegularityRateBlock: View {
       GeometryReader { geo in
         ZStack(alignment: .leading) {
           RoundedRectangle(cornerRadius: 3, style: .continuous)
-            .fill(Color.white.opacity(0.08))
+            .fill(AppTheme.buttonFillSubtle)
           RoundedRectangle(cornerRadius: 3, style: .continuous)
             .fill(rateColor)
             .frame(width: geo.size.width * rate)
@@ -731,9 +731,9 @@ private struct HeatCell: View {
   }()
 
   private var cellColor: Color {
-    if isFuture { return Color.white.opacity(0.04) }
+    if isFuture { return AppTheme.cardFill }
     switch prayerCount {
-    case 0: return Color.white.opacity(0.10)
+    case 0: return AppTheme.buttonFillSubtle
     case 1: return AppTheme.thanksgivingGold.opacity(0.30)
     case 2, 3: return AppTheme.thanksgivingGold.opacity(0.55)
     case 4, 5, 6: return AppTheme.thanksgivingGold.opacity(0.80)
