@@ -193,7 +193,7 @@ struct ContentView: View {
           .tracking(1.0)
         Spacer()
         if !viewModel.completedSteps.isEmpty {
-          progressRing
+          activityRings
             .transition(.opacity.combined(with: .scale))
         }
       }
@@ -227,25 +227,31 @@ struct ContentView: View {
     }
   }
 
-  private var progressRing: some View {
-    ZStack {
-      Circle()
-        .stroke(AppTheme.confessionBlue.opacity(0.2), lineWidth: 3)
-        .frame(width: 28, height: 28)
-      Circle()
-        .trim(from: 0, to: viewModel.progressPercentage)
-        .stroke(
-          viewModel.isAllCompleted ? Color.green : AppTheme.confessionBlue,
-          style: StrokeStyle(lineWidth: 3, lineCap: .round)
-        )
-        .frame(width: 28, height: 28)
-        .rotationEffect(.degrees(-90))
-        .animation(
-          .spring(response: 0.5, dampingFraction: 0.8), value: viewModel.progressPercentage)
-      Text("\(viewModel.completedSteps.count)")
-        .font(.system(size: 9, weight: .bold))
-        .foregroundStyle(viewModel.isAllCompleted ? .green : AppTheme.confessionBlue)
+  private var activityRings: some View {
+    let outerDiameter: CGFloat = 56
+    let reduction: CGFloat = 13
+    let lw: CGFloat = 4.5
+
+    return ZStack {
+      ForEach(Array(viewModel.prayerSteps.enumerated()), id: \.element.id) { index, step in
+        let diameter = outerDiameter - CGFloat(index) * reduction
+        let color = AppTheme.color(for: step.colorName)
+        let progress: CGFloat = viewModel.isCompleted(step) ? 1 : 0
+
+        Circle()
+          .stroke(color.opacity(0.15), lineWidth: lw)
+          .frame(width: diameter, height: diameter)
+
+        Circle()
+          .trim(from: 0, to: progress)
+          .stroke(color, style: StrokeStyle(lineWidth: lw, lineCap: .round))
+          .frame(width: diameter, height: diameter)
+          .rotationEffect(.degrees(-90))
+          .animation(.spring(response: 0.6, dampingFraction: 0.75), value: progress)
+      }
     }
+    .frame(width: outerDiameter, height: outerDiameter)
+    .accessibilityHidden(true)
   }
 
   // MARK: Helpers
