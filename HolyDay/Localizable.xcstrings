@@ -2925,29 +2925,18 @@
         }
       }
     },
-    "streak.milestone.days" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%dd"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%dj"
-          }
-        }
-      }
-    },
     "streak.milestones.title" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "MILESTONES"
+            "state" : "translated",
+            "value" : "Milestones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jalons"
           }
         }
       }
