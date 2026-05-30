@@ -10,10 +10,15 @@ import SwiftUI
 
 struct ContentView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
+  @Query(
+    filter: #Predicate<PrayerIntention> { !$0.isAnswered }, sort: \PrayerIntention.createdAt,
+    order: .reverse)
+  private var activeIntentions: [PrayerIntention]
   @State private var streak = StreakService.shared
   @State private var isFABExpanded = false
   @State private var showFreePrayer = false
   @State private var showStructuredPrayer = false
+  @State private var showIntentions = false
   @State private var showNavTitle = false
   @State private var topInset: CGFloat = 100
   @State private var cachedGreeting = ""
@@ -69,6 +74,9 @@ struct ContentView: View {
     .fullScreenCover(isPresented: $showStructuredPrayer) {
       StructuredPrayerSheet()
     }
+    .sheet(isPresented: $showIntentions) {
+      IntentionsView()
+    }
     .onAppear { updateGreeting() }
     .onChange(of: userName) { _, _ in updateGreeting() }
   }
@@ -83,6 +91,8 @@ struct ContentView: View {
           .padding(.horizontal, 16)
         meditateInvitation
           .padding(.horizontal, 24)
+        intentionsCard
+          .padding(.horizontal, 16)
         if let last = lastPrayer {
           continuityCard(last)
             .padding(.horizontal, 16)
@@ -137,6 +147,68 @@ struct ContentView: View {
       .multilineTextAlignment(.center)
       .lineSpacing(4)
       .frame(maxWidth: .infinity)
+  }
+
+  // MARK: - Intentions
+
+  private var intentionsCard: some View {
+    Button {
+      showIntentions = true
+    } label: {
+      VStack(alignment: .leading, spacing: 10) {
+        HStack {
+          Text("intentions.home.label")
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(AppTheme.textTertiary)
+            .textCase(.uppercase)
+            .tracking(1.0)
+          Spacer()
+          Image(systemName: activeIntentions.isEmpty ? "plus" : "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.textTertiary)
+        }
+
+        if activeIntentions.isEmpty {
+          Text("intentions.home.empty")
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.textSecondary)
+        } else {
+          VStack(alignment: .leading, spacing: 7) {
+            ForEach(activeIntentions.prefix(3)) { intention in
+              HStack(alignment: .top, spacing: 8) {
+                Circle()
+                  .fill(AppTheme.adorationPurple.opacity(0.5))
+                  .frame(width: 5, height: 5)
+                  .padding(.top, 7)
+                Text(intention.text)
+                  .font(.subheadline)
+                  .foregroundStyle(AppTheme.textPrimary)
+                  .lineLimit(1)
+              }
+            }
+          }
+          if activeIntentions.count > 3 {
+            Text(
+              String(
+                format: String(localized: "intentions.home.more"), activeIntentions.count - 3)
+            )
+            .font(.caption)
+            .foregroundStyle(AppTheme.textTertiary)
+          }
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(16)
+      .background {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+          .fill(.ultraThinMaterial)
+          .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+          }
+      }
+    }
+    .buttonStyle(.plain)
   }
 
   // MARK: - Continuity thread
@@ -300,6 +372,6 @@ struct ContentView: View {
 
 #Preview {
   ContentView()
-    .modelContainer(for: PrayerEntry.self, inMemory: true)
+    .modelContainer(for: [PrayerEntry.self, PrayerIntention.self], inMemory: true)
     .preferredColorScheme(.dark)
 }
