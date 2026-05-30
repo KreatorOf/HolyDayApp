@@ -22,13 +22,10 @@ enum AppLinks {
   }
 }
 
-// RevenueCat configuration
-// 1. Create an account at https://app.revenuecat.com
-// 2. Create a new project and add your iOS app
-// 3. Copy your public API key (starts with "appl_") and replace the placeholder below
-// 4. In the RevenueCat dashboard: create an Entitlement "supporter", an Offering "default",
-//    and 3 Packages linked to your App Store Connect product IDs above
 enum RevenueCatConfig {
-  static let apiKey = "REVENUECAT_PUBLIC_API_KEY_PLACEHOLDER"
-  static let entitlementId = "supporter"
+  static let apiKey = "appl_UlQUPWYbfJUrWXoDkEkNxuQHZkY"
+  static let entitlementId = "ia_lifetime"
+  static let aiEntitlementId = "ia_feature"
+  static let offeringId = "tips"
+  static let aiOfferingId = "default"
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct AnimatedMeshBackground: View {
   @State private var animate = false
   @Environment(\.colorScheme) private var colorScheme
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
   var body: some View {
     MeshGradient(
@@ -23,10 +24,14 @@ struct AnimatedMeshBackground: View {
       colors: colorScheme == .dark ? darkColors : lightColors
     )
     .ignoresSafeArea()
-    .onAppear {
-      withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
-        animate = true
-      }
+    .onAppear { startAnimation() }
+    .onDisappear { animate = false }
+  }
+
+  private func startAnimation() {
+    guard !reduceMotion else { return }
+    withAnimation(.easeInOut(duration: 6).repeatForever(autoreverses: true)) {
+      animate = true
     }
   }
 

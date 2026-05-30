@@ -13,6 +13,7 @@ struct ContentView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
   @State private var viewModel = PrayerGuideViewModel()
   @State private var streak = StreakService.shared
+  @State private var tipService = TipService.shared
   @State private var showNavTitle = false
   @State private var showHeatmap = false
   @State private var showCelebration = false
@@ -20,6 +21,7 @@ struct ContentView: View {
   @AppStorage("holyday.userName") private var userName = ""
   @State private var stepsAppeared = false
   @State private var topInset: CGFloat = 100
+  @State private var cachedGreeting = ""
 
   var body: some View {
     NavigationStack {
@@ -50,7 +52,9 @@ struct ContentView: View {
         .onScrollGeometryChange(for: CGFloat.self) {
           $0.contentOffset.y
         } action: { _, y in
-          withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = y > 80 }
+          let shouldShow = y > 80
+          guard shouldShow != showNavTitle else { return }
+          withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
         }
       }
       .background { AnimatedMeshBackground() }
@@ -127,6 +131,8 @@ struct ContentView: View {
       celebrationValue = streak.lastIncrementValue
       showCelebration = true
     }
+    .onAppear { updateGreeting() }
+    .onChange(of: userName) { _, _ in updateGreeting() }
   }
 
   // MARK: Accessibility
@@ -144,7 +150,7 @@ struct ContentView: View {
 
   // MARK: Header
 
-  private var greeting: String {
+  private func updateGreeting() {
     let hour = Calendar.current.component(.hour, from: Date())
     let base: String
     switch hour {
@@ -152,12 +158,12 @@ struct ContentView: View {
     case 12..<18: base = String(localized: "greeting.afternoon")
     default: base = String(localized: "greeting.evening")
     }
-    return userName.isEmpty ? base : "\(base), \(userName)"
+    cachedGreeting = userName.isEmpty ? base : "\(base), \(userName)"
   }
 
   private var headerSection: some View {
     VStack(alignment: .center, spacing: 2) {
-      Text(greeting)
+      Text(cachedGreeting)
         .font(.subheadline)
         .foregroundStyle(AppTheme.textSecondary)
         .tracking(0.3)
@@ -280,6 +286,7 @@ struct ContentView: View {
   }
 
   private func generateQuestions(for step: PrayerStep) async {
+    guard tipService.hasAIFeature else { return }
     do {
       let questions = try await AIAssistantService.shared.generateReflectionQuestions(
         for: step,

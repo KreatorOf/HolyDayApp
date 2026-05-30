@@ -15,10 +15,10 @@ struct HolyDayApp: App {
   @AppStorage("holyday.hasCompletedOnboarding") private var hasCompletedOnboarding = false
 
   init() {
-    Purchases.configure(withAPIKey: RevenueCatConfig.apiKey)
     #if DEBUG
       Purchases.logLevel = .debug
     #endif
+    Purchases.configure(withAPIKey: RevenueCatConfig.apiKey)
 
     do {
       let storeURL = FileManager.default
