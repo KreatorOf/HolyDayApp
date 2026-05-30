@@ -21,7 +21,7 @@ struct SettingsView: View {
   @State private var showResetConfirmation = false
   @State private var isEditingName = false
   @State private var pendingName = ""
-  @State private var avatarImage: UIImage? = AvatarService.shared.load()
+  @State private var avatarImage: UIImage?
   @State private var showPhotoPicker = false
   @State private var photoPickerItem: PhotosPickerItem?
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
@@ -64,7 +64,9 @@ struct SettingsView: View {
       .onScrollGeometryChange(for: CGFloat.self) {
         $0.contentOffset.y
       } action: { _, y in
-        withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = y > 80 }
+        let shouldShow = y > 80
+        guard shouldShow != showNavTitle else { return }
+        withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
       }
       .background { AnimatedMeshBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
@@ -77,7 +79,10 @@ struct SettingsView: View {
         }
       }
       .onAppear { notifications.checkStatus() }
-      .sheet(isPresented: $showTipView) { TipView() }
+      .task { avatarImage = AvatarService.shared.load() }
+      .sheet(isPresented: $showTipView) {
+        HolyDayPaywallView(context: .support)
+      }
       .alert("settings.danger.reset.confirm.title", isPresented: $showResetConfirmation) {
         Button("settings.danger.reset.confirm.action", role: .destructive) { resetAllData() }
         Button("common.cancel", role: .cancel) {}
@@ -235,13 +240,17 @@ struct SettingsView: View {
       } label: {
         HStack(spacing: 14) {
           iconBadge(systemName: "heart.fill", color: AppTheme.adorationPurple)
-          VStack(alignment: .leading, spacing: 2) {
+          VStack(alignment: .leading, spacing: 3) {
             Text("settings.support.title")
               .font(.body)
               .foregroundStyle(AppTheme.textPrimary)
-            Text("settings.support.subtitle")
-              .font(.caption)
-              .foregroundStyle(AppTheme.textSecondary)
+            if let tier = tipService.supporterTier {
+              SupporterBadge(tier: tier)
+            } else {
+              Text("settings.support.subtitle")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+            }
           }
           Spacer()
           Image(systemName: "chevron.right")
@@ -344,44 +353,6 @@ struct SettingsView: View {
         .buttonStyle(.plain)
         .sensoryFeedback(.warning, trigger: resetFeedbackToken)
 
-        #if DEBUG
-          cardDivider
-
-          Button {
-            tipService.debugUnlock()
-          } label: {
-            HStack(spacing: 14) {
-              iconBadge(systemName: "wrench.and.screwdriver.fill", color: .orange)
-              VStack(alignment: .leading, spacing: 2) {
-                Text("DEBUG — Unlock Mécène")
-                  .font(.body)
-                  .foregroundStyle(.orange)
-                Text("Simule un achat sans StoreKit")
-                  .font(.caption)
-                  .foregroundStyle(.orange.opacity(0.65))
-              }
-              Spacer()
-            }
-            .padding(16)
-          }
-          .buttonStyle(.plain)
-
-          cardDivider
-
-          Button {
-            tipService.debugReset()
-          } label: {
-            HStack(spacing: 14) {
-              iconBadge(systemName: "arrow.counterclockwise", color: .orange)
-              Text("DEBUG — Reset supporter")
-                .font(.body)
-                .foregroundStyle(.orange)
-              Spacer()
-            }
-            .padding(16)
-          }
-          .buttonStyle(.plain)
-        #endif
       }
     }
   }

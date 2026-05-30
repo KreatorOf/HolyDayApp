@@ -20,6 +20,30 @@ enum SupporterTier: Int {
     }
   }
 
+  var emoji: String {
+    switch self {
+    case .ami: return "☕"
+    case .genereux: return "🙏"
+    case .bienfaiteur: return "✨"
+    }
+  }
+
+  var tipLabel: LocalizedStringKey {
+    switch self {
+    case .ami: return "tip.tier.0.label"
+    case .genereux: return "tip.tier.1.label"
+    case .bienfaiteur: return "tip.tier.2.label"
+    }
+  }
+
+  var phrase: LocalizedStringKey {
+    switch self {
+    case .ami: return "paywall.tip.ami.phrase"
+    case .genereux: return "paywall.tip.genereux.phrase"
+    case .bienfaiteur: return "paywall.tip.bienfaiteur.phrase"
+    }
+  }
+
   var icon: String {
     switch self {
     case .ami: return "heart.fill"
@@ -34,5 +58,12 @@ enum SupporterTier: Int {
     case .genereux: return AppTheme.confessionBlue
     case .bienfaiteur: return AppTheme.adorationPurple
     }
+  }
+
+  static func tier(for productIdentifier: String) -> SupporterTier? {
+    if productIdentifier.contains("tip_large") { return .bienfaiteur }
+    if productIdentifier.contains("tip_medium") { return .genereux }
+    if productIdentifier.contains("tip_small") { return .ami }
+    return nil
   }
 }

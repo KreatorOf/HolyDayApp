@@ -10,7 +10,7 @@ import UserNotifications
 
 @MainActor
 @Observable
-final class NotificationService {
+final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   static let shared = NotificationService()
 
   var isDailyReminderEnabled = false
@@ -24,8 +24,18 @@ final class NotificationService {
 
   private static let notificationID = "holyday.daily-prayer"
 
-  private init() {
+  private override init() {
+    super.init()
+    UNUserNotificationCenter.current().delegate = self
     checkStatus()
+  }
+
+  // Allows notifications (purchase thanks, etc.) to appear while the app is in the foreground
+  nonisolated func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification
+  ) async -> UNNotificationPresentationOptions {
+    return [.banner, .sound]
   }
 
   func checkStatus() {

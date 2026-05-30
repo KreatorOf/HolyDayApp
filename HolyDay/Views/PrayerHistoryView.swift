@@ -12,6 +12,7 @@ import SwiftUI
 struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
   @Environment(\.modelContext) private var modelContext
+  @State private var tipService = TipService.shared
   @State private var displayedMonth: Date = Self.firstOfCurrentMonth()
   @State private var selectedDate: Date? = Calendar.current.startOfDay(for: Date())
   @State private var topInset: CGFloat = 100
@@ -20,6 +21,7 @@ struct PrayerHistoryView: View {
   @State private var isSearching = false
   @State private var cachedSearchResults: [(date: Date, entries: [PrayerEntry])] = []
   @State private var showInsight = false
+  @State private var showAIPaywall = false
 
   private static func firstOfCurrentMonth() -> Date {
     let cal = Calendar.current
@@ -56,7 +58,9 @@ struct PrayerHistoryView: View {
       .onScrollGeometryChange(for: CGFloat.self) {
         $0.contentOffset.y
       } action: { _, y in
-        withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = y > 80 }
+        let shouldShow = y > 80
+        guard shouldShow != showNavTitle else { return }
+        withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
       }
       .background { AnimatedMeshBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
@@ -69,16 +73,20 @@ struct PrayerHistoryView: View {
         }
         ToolbarItem(placement: .topBarTrailing) {
           HStack(spacing: 14) {
-            if aiButtonVisible {
-              Button {
+            Button {
+              if tipService.hasAIFeature {
                 showInsight = true
-              } label: {
-                Image(systemName: "sparkles")
-                  .foregroundStyle(AppTheme.adorationPurple)
+              } else {
+                showAIPaywall = true
               }
-              .sensoryFeedback(.selection, trigger: showInsight)
-              .accessibilityLabel(String(localized: "accessibility.ai.button"))
+            } label: {
+              Image(systemName: "sparkles")
+                .foregroundStyle(
+                  tipService.hasAIFeature ? AppTheme.adorationPurple : AppTheme.textTertiary
+                )
             }
+            .sensoryFeedback(.selection, trigger: showInsight)
+            .accessibilityLabel(String(localized: "accessibility.ai.button"))
             Button {
               withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
                 isSearching.toggle()
@@ -137,6 +145,9 @@ struct PrayerHistoryView: View {
       }
       .presentationDragIndicator(.visible)
     }
+    .sheet(isPresented: $showAIPaywall) {
+      HolyDayPaywallView(context: .aiFeature)
+    }
     .background(
       GeometryReader { geo in
         Color.clear.onAppear { topInset = geo.safeAreaInsets.top }
@@ -192,11 +203,12 @@ struct PrayerHistoryView: View {
   // MARK: Calendar card
 
   private var calendarCard: some View {
-    VStack(spacing: 0) {
+    let prayedDays = prayedDaysInMonth
+    return VStack(spacing: 0) {
       monthNavigationHeader
-      monthInsightStrip
+      monthInsightStrip(dayCount: prayedDays.count)
       weekDayLabels
-      calendarDayGrid
+      calendarDayGrid(prayedDays: prayedDays)
     }
     .background {
       RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -261,19 +273,20 @@ struct PrayerHistoryView: View {
     .padding(.vertical, 14)
   }
 
-  private var monthInsightStrip: some View {
-    HStack(spacing: 6) {
+  private func monthInsightStrip(dayCount: Int) -> some View {
+    let text = monthInsightText(dayCount: dayCount)
+    return HStack(spacing: 6) {
       Image(systemName: "hands.sparkles")
         .font(.system(size: 11, weight: .medium))
         .foregroundStyle(AppTheme.thanksgivingGold)
-      Text(monthInsightText)
+      Text(text)
         .font(.caption)
         .foregroundStyle(AppTheme.textTertiary)
       Spacer()
     }
     .padding(.horizontal, 16)
     .padding(.bottom, 8)
-    .animation(.easeInOut(duration: 0.2), value: monthInsightText)
+    .animation(.easeInOut(duration: 0.2), value: text)
   }
 
   private var weekDayLabels: some View {
@@ -290,9 +303,8 @@ struct PrayerHistoryView: View {
     .padding(.bottom, 10)
   }
 
-  private var calendarDayGrid: some View {
-    let prayedDays = prayedDaysInMonth
-    return LazyVGrid(
+  private func calendarDayGrid(prayedDays: [Date: Int]) -> some View {
+    LazyVGrid(
       columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7),
       spacing: 6
     ) {
@@ -621,10 +633,9 @@ struct PrayerHistoryView: View {
     Calendar.current.isDate(displayedMonth, equalTo: Date(), toGranularity: .month)
   }
 
-  private var monthInsightText: String {
-    let count = prayedDaysInMonth.count
-    if count == 0 { return String(localized: "journal.month.prayed.none") }
-    return String(format: String(localized: "journal.month.prayed.days"), count)
+  private func monthInsightText(dayCount: Int) -> String {
+    if dayCount == 0 { return String(localized: "journal.month.prayed.none") }
+    return String(format: String(localized: "journal.month.prayed.days"), dayCount)
   }
 
   private func goToCurrentMonth() {

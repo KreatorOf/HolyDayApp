@@ -8,14 +8,11 @@
 import Foundation
 import Observation
 import RevenueCat
+import UserNotifications
 
 @Observable
 final class TipService {
   static let shared = TipService()
-
-  private(set) var packages: [Package] = []
-  private(set) var isLoading = false
-  var purchaseState: PurchaseState = .idle
 
   // Derived from RevenueCat CustomerInfo; falls back to cached UserDefaults value
   private(set) var hasTipped: Bool = UserDefaults.standard.bool(forKey: "holyday.hasTipped") {
@@ -29,104 +26,87 @@ final class TipService {
     didSet { UserDefaults.standard.set(highestTipIndexStored, forKey: "holyday.highestTipIndex") }
   }
 
+  private(set) var hasAIFeature: Bool = UserDefaults.standard.bool(
+    forKey: "holyday.hasAIFeature")
+  {
+    didSet { UserDefaults.standard.set(hasAIFeature, forKey: "holyday.hasAIFeature") }
+  }
+
+  private(set) var tipsOffering: Offering?
+  private(set) var aiOffering: Offering?
+
   var supporterTier: SupporterTier? {
     guard hasTipped else { return nil }
     return SupporterTier(rawValue: highestTipIndexStored - 1)
-  }
-
-  enum PurchaseState: Equatable {
-    case idle, purchasing, success, failed
   }
 
   private init() {
     Task { await refreshCustomerInfo() }
   }
 
-  func loadProducts() async {
-    guard packages.isEmpty else { return }
-    isLoading = true
-    defer { isLoading = false }
-    do {
-      let offerings = try await Purchases.shared.offerings()
-      packages =
-        offerings.current?.availablePackages
-        .sorted { $0.storeProduct.price < $1.storeProduct.price } ?? []
-    } catch {
-      // Offerings fetch failed — packages stay empty, UI shows unavailable state
+  func refreshCustomerInfo() async {
+    async let customerInfoTask: CustomerInfo? = try? Purchases.shared.customerInfo()
+    async let offeringsTask: Offerings? = try? Purchases.shared.offerings()
+
+    if let info = await customerInfoTask {
+      applyCustomerInfo(info)
     }
+    let offs = await offeringsTask
+    tipsOffering = offs?.offering(identifier: RevenueCatConfig.offeringId)
+    // Use explicit identifier — offs?.current returns whatever is marked "current" in the
+    // RevenueCat dashboard, which may be "tips" and not the AI offering.
+    aiOffering = offs?.offering(identifier: RevenueCatConfig.aiOfferingId)
   }
 
-  func purchase(_ package: Package) async {
-    purchaseState = .purchasing
-    do {
-      let (_, customerInfo, userCancelled) = try await Purchases.shared.purchase(package: package)
-      if userCancelled {
-        purchaseState = .idle
-        return
-      }
-      applyCustomerInfo(customerInfo, purchasedPackage: package)
-    } catch {
-      purchaseState = .failed
-    }
+  func grantAIFeatureAccess() {
+    hasAIFeature = true
   }
 
-  func restorePurchases() async {
-    purchaseState = .purchasing
-    do {
-      let customerInfo = try await Purchases.shared.restorePurchases()
-      if customerInfo.entitlements[RevenueCatConfig.entitlementId]?.isActive == true {
-        hasTipped = true
-        purchaseState = .success
-      } else {
-        purchaseState = .idle
-      }
-    } catch {
-      purchaseState = .failed
+  func applyCustomerInfo(_ info: CustomerInfo) {
+    let aiEntitlementActive =
+      info.entitlements[RevenueCatConfig.aiEntitlementId]?.isActive == true
+    if aiEntitlementActive {
+      // Entitlement confirmed by RevenueCat — always grant
+      hasAIFeature = true
+    } else if info.nonSubscriptions.isEmpty {
+      // No purchases at all — safe to revoke (user never bought anything)
+      hasAIFeature = false
     }
-  }
+    // If there are purchases but no entitlement yet, preserve existing state:
+    // RevenueCat can lag on sandbox receipt validation and we don't want to
+    // revoke access that was just purchased.
 
-  func resetState() {
-    purchaseState = .idle
-  }
+    let wasAlreadyTipped = hasTipped
+    let entitlementActive = info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true
+    let hasTransactions = !info.nonSubscriptions.isEmpty
 
-  private func applyCustomerInfo(_ info: CustomerInfo, purchasedPackage: Package? = nil) {
-    guard info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true else {
-      purchaseState = .idle
-      return
-    }
+    guard entitlementActive || hasTransactions else { return }
     hasTipped = true
-    if let pkg = purchasedPackage,
-      let purchasedIndex = packages.firstIndex(where: { $0.identifier == pkg.identifier })
-    {
-      let stored = purchasedIndex + 1
-      if stored > highestTipIndexStored {
-        highestTipIndexStored = stored
+    updateHighestTier(from: info.nonSubscriptions)
+    if !wasAlreadyTipped { scheduleThankYouNotification() }
+  }
+
+  private func updateHighestTier(from transactions: [NonSubscriptionTransaction]) {
+    for tx in transactions {
+      if let tier = SupporterTier.tier(for: tx.productIdentifier) {
+        let stored = tier.rawValue + 1
+        if stored > highestTipIndexStored { highestTipIndexStored = stored }
       }
     }
-    purchaseState = .success
+    if highestTipIndexStored == 0 { highestTipIndexStored = 1 }
   }
 
-  private func refreshCustomerInfo() async {
-    guard let info = try? await Purchases.shared.customerInfo() else { return }
-    if info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true {
-      hasTipped = true
-    }
+  private func scheduleThankYouNotification() {
+    let content = UNMutableNotificationContent()
+    content.title = String(localized: "notification.purchase.title")
+    content.body = String(localized: "notification.purchase.body")
+    content.sound = .default
+
+    let request = UNNotificationRequest(
+      identifier: "holyday.purchase-thanks",
+      content: content,
+      trigger: nil
+    )
+    UNUserNotificationCenter.current().add(request)
   }
-
-  #if DEBUG
-    func debugUnlock(tier: SupporterTier = .bienfaiteur) {
-      highestTipIndexStored = tier.rawValue + 1
-      hasTipped = true
-    }
-
-    func debugPurchase(tier: SupporterTier) {
-      debugUnlock(tier: tier)
-      purchaseState = .success
-    }
-
-    func debugReset() {
-      highestTipIndexStored = 0
-      hasTipped = false
-    }
-  #endif
 }
