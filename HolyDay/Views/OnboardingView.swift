@@ -5,6 +5,7 @@
 //  Created by Matthias Cadet on 15/05/2026.
 //
 
+import SwiftData
 import SwiftUI
 
 struct OnboardingView: View {
@@ -29,6 +30,9 @@ struct OnboardingView: View {
           advance(to: 2)
         }
         .transition(slideTransition)
+      } else if currentPage == 2 {
+        FirstIntentionPage { advance(to: 3) }
+          .transition(slideTransition)
       } else {
         NotificationsPage(onComplete: onComplete)
           .transition(slideTransition)
@@ -81,7 +85,7 @@ struct OnboardingView: View {
 
   private var pageIndicator: some View {
     HStack(spacing: 6) {
-      ForEach(0..<3, id: \.self) { i in
+      ForEach(0..<4, id: \.self) { i in
         Capsule()
           .fill(i == currentPage ? AppTheme.textPrimary : AppTheme.textTertiary.opacity(0.4))
           .frame(width: i == currentPage ? 20 : 6, height: 6)
@@ -103,21 +107,17 @@ private struct Feature: Identifiable {
 
 private let onboardingFeatures: [Feature] = [
   Feature(
-    icon: "book.pages", label: String(localized: "onboarding.feature.verse.label"),
-    description: String(localized: "onboarding.feature.verse.desc"),
-    color: AppTheme.thanksgivingGold),
-  Feature(
-    icon: "hands.sparkles", label: String(localized: "onboarding.feature.prayer.label"),
-    description: String(localized: "onboarding.feature.prayer.desc"),
+    icon: "checklist", label: String(localized: "onboarding.pillar.way.label"),
+    description: String(localized: "onboarding.pillar.way.desc"),
     color: AppTheme.adorationPurple),
   Feature(
-    icon: "calendar", label: String(localized: "onboarding.feature.journal.label"),
-    description: String(localized: "onboarding.feature.journal.desc"),
-    color: AppTheme.confessionBlue),
+    icon: "hands.and.sparkles", label: String(localized: "onboarding.pillar.intentions.label"),
+    description: String(localized: "onboarding.pillar.intentions.desc"),
+    color: AppTheme.thanksgivingGold),
   Feature(
-    icon: "bell", label: String(localized: "onboarding.feature.reminders.label"),
-    description: String(localized: "onboarding.feature.reminders.desc"),
-    color: AppTheme.supplicationGreen),
+    icon: "book.pages", label: String(localized: "onboarding.pillar.thread.label"),
+    description: String(localized: "onboarding.pillar.thread.desc"),
+    color: AppTheme.confessionBlue),
 ]
 
 // MARK: - Welcome page
@@ -214,8 +214,8 @@ private struct FeatureTile: View {
         Text(feature.description)
           .font(.caption)
           .foregroundStyle(AppTheme.textTertiary)
-          .lineLimit(1)
-          .minimumScaleFactor(0.85)
+          .lineLimit(2)
+          .fixedSize(horizontal: false, vertical: true)
       }
 
       Spacer()
@@ -326,6 +326,95 @@ private struct NamePage: View {
       try? await Task.sleep(for: .milliseconds(280))
       onNext()
     }
+  }
+}
+
+// MARK: - First intention page
+
+private struct FirstIntentionPage: View {
+  var onNext: () -> Void
+  @Environment(\.modelContext) private var modelContext
+  @FocusState private var focused: Bool
+  @State private var breathe = false
+  @State private var intentionInput = ""
+
+  private var trimmed: String { intentionInput.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+  var body: some View {
+    VStack(spacing: 0) {
+      Spacer()
+
+      VStack(spacing: 36) {
+        ZStack {
+          Circle()
+            .fill(AppTheme.adorationPurple.opacity(0.15))
+            .frame(width: 120, height: 120)
+            .blur(radius: 14)
+            .scaleEffect(breathe ? 1.25 : 0.8)
+
+          Image(systemName: "hands.and.sparkles.fill")
+            .font(.system(size: 64))
+            .foregroundStyle(AppTheme.adorationPurple)
+            .scaleEffect(breathe ? 1.06 : 0.94)
+        }
+        .onAppear {
+          withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) {
+            breathe = true
+          }
+        }
+
+        VStack(spacing: 10) {
+          Text("onboarding.intention.title")
+            .font(.system(.largeTitle, design: .serif).weight(.bold))
+            .foregroundStyle(AppTheme.textPrimary)
+            .multilineTextAlignment(.center)
+
+          Text("onboarding.intention.subtitle")
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.textTertiary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: 300)
+        }
+
+        TextField(
+          "", text: $intentionInput,
+          prompt: Text("onboarding.intention.placeholder").foregroundStyle(AppTheme.textTertiary),
+          axis: .vertical
+        )
+        .font(.title3)
+        .foregroundStyle(AppTheme.textPrimary)
+        .multilineTextAlignment(.center)
+        .lineLimit(1...3)
+        .focused($focused)
+        .padding(.vertical, 16)
+        .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .strokeBorder(
+              focused ? AppTheme.adorationPurple.opacity(0.7) : Color.clear,
+              lineWidth: 1
+            )
+        }
+        .padding(.horizontal, 32)
+        .animation(.easeInOut(duration: 0.2), value: focused)
+        .submitLabel(.done)
+        .onSubmit(commit)
+      }
+
+      Spacer()
+
+      OnboardingPrimaryButton(title: String(localized: "onboarding.name.cta"), action: commit)
+        .padding(.horizontal, 32)
+        .padding(.bottom, 60)
+    }
+  }
+
+  private func commit() {
+    if !trimmed.isEmpty {
+      modelContext.insert(PrayerIntention(text: trimmed))
+    }
+    focused = false
+    onNext()
   }
 }
 

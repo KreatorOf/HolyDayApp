@@ -2156,130 +2156,50 @@
         }
       }
     },
-    "onboarding.feature.journal.desc" : {
+    "onboarding.intention.placeholder" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Find all your prayers"
+            "value" : "Your intention…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Retrouvez toutes vos prières"
+            "value" : "Ton intention…"
           }
         }
       }
     },
-    "onboarding.feature.journal.label" : {
+    "onboarding.intention.subtitle" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journal"
+            "value" : "Entrust a first intention. You can add more later."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Journal"
+            "value" : "Confie une première intention. Tu pourras en ajouter d'autres."
           }
         }
       }
     },
-    "onboarding.feature.prayer.desc" : {
+    "onboarding.intention.title" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adore, confess, thank, ask"
+            "value" : "What do you carry today?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adorez, confessez, remerciez, demandez"
-          }
-        }
-      }
-    },
-    "onboarding.feature.prayer.label" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guided prayer"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prière guidée"
-          }
-        }
-      }
-    },
-    "onboarding.feature.reminders.desc" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "One notification a day"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Une notification chaque jour"
-          }
-        }
-      }
-    },
-    "onboarding.feature.reminders.label" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gentle reminders"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rappels discrets"
-          }
-        }
-      }
-    },
-    "onboarding.feature.verse.desc" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A word to start your day"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Une parole pour débuter votre journée"
-          }
-        }
-      }
-    },
-    "onboarding.feature.verse.label" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verse of the day"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verset du jour"
+            "value" : "Que portes-tu aujourd'hui ?"
           }
         }
       }
@@ -2311,7 +2231,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Votre prénom"
+            "value" : "Ton prénom"
           }
         }
       }
@@ -2321,13 +2241,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your first name will appear on the home screen"
+            "value" : "To greet you each day by name."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Votre prénom apparaîtra sur l'écran d'accueil"
+            "value" : "Pour t'accueillir chaque jour par ton prénom."
           }
         }
       }
@@ -2337,13 +2257,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "What is your\nname?"
+            "value" : "What's your\nname?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Comment vous\nappelez-vous ?"
+            "value" : "Comment\nt'appelles-tu ?"
           }
         }
       }
@@ -2465,13 +2385,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Don't worry, we know how to be discreet. We just send you a small nudge from time to time for your prayer moments!"
+            "value" : "A gentle nudge to come back and pray. Opt out anytime."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pas de panique, on sait se faire discret. On vous envoie juste un petit signe de temps en temps pour vos moments de prière !"
+            "value" : "Un rappel doux pour revenir prier. Désactivable quand tu veux."
           }
         }
       }
@@ -2481,13 +2401,109 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Just the essentials!"
+            "value" : "A moment for Him, each day"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Juste l'essentiel !"
+            "value" : "Un instant pour Lui, chaque jour"
+          }
+        }
+      }
+    },
+    "onboarding.pillar.intentions.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrust what weighs on you, and see answered prayers."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confie ce qui pèse, et vois les prières exaucées."
+          }
+        }
+      }
+    },
+    "onboarding.pillar.intentions.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carry your intentions"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porte tes intentions"
+          }
+        }
+      }
+    },
+    "onboarding.pillar.thread.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily verse, journal, and your own rhythm."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verset du jour, journal et ton propre rythme."
+          }
+        }
+      }
+    },
+    "onboarding.pillar.thread.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your spiritual thread"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton fil spirituel"
+          }
+        }
+      }
+    },
+    "onboarding.pillar.way.desc" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free or guided prayer. Never a checklist."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une prière libre ou guidée. Jamais une checklist."
+          }
+        }
+      }
+    },
+    "onboarding.pillar.way.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your way"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À ta façon"
           }
         }
       }
@@ -2513,13 +2529,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Guide every day through prayer"
+            "value" : "A real relationship with God — wherever, whenever, without pressure."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Guidez chaque journée par la prière"
+            "value" : "Une vraie relation avec Dieu — où tu veux, quand tu veux, sans pression."
           }
         }
       }
