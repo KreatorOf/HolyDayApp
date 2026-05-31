@@ -61,6 +61,47 @@ struct JournalInsight {
   var answeredPrayers: [String]
 }
 
+@Generable
+struct DetectedIntentions {
+  @Guide(
+    description: """
+      Les sujets de prière concrets explicitement mentionnés dans le texte : \
+      personnes, situations, demandes pour lesquelles l'utilisateur prie. \
+      N'invente rien, n'ajoute aucune interprétation. Formule chaque sujet en \
+      2 à 6 mots, tels qu'exprimés par l'utilisateur. Liste vide si aucun sujet clair.
+      """)
+  var intentions: [String]
+}
+
+@Generable
+struct MonthlyRecap {
+  @Guide(
+    description: """
+      Un court récit chaleureux et personnel (2 à 3 phrases, 2e personne « tu ») qui reflète \
+      le cheminement de prière de l'utilisateur ce mois-ci, uniquement à partir de ses \
+      propres mots et tendances. Aucune citation de l'Écriture, aucune interprétation \
+      théologique, aucun enseignement.
+      """)
+  var narrative: String
+
+  @Guide(
+    description: """
+      1 à 3 thèmes récurrents observés dans les prières du mois, formulés en quelques mots, \
+      ancrés dans le texte réel de l'utilisateur.
+      """)
+  var themes: [String]
+}
+
+@Generable
+struct SearchMatches {
+  @Guide(
+    description: """
+      Les numéros des prières dont le sens correspond à la recherche de l'utilisateur, \
+      même sans mots identiques. Liste vide si aucune ne correspond.
+      """)
+  var indices: [Int]
+}
+
 // MARK: - Service
 
 final class AIAssistantService {
@@ -89,6 +130,62 @@ final class AIAssistantService {
     return response.content
   }
 
+  // MARK: Intention detection
+
+  func detectIntentions(in text: String) async throws -> [String] {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return [] }
+    let session = LanguageModelSession(instructions: intentionDetectionPrompt)
+    let response = try await session.respond(to: trimmed, generating: DetectedIntentions.self)
+    return response.content.intentions
+  }
+
+  // MARK: Listening companion
+
+  func makeCompanionSession() -> LanguageModelSession {
+    LanguageModelSession(instructions: companionSystemPrompt)
+  }
+
+  private var companionSystemPrompt: String {
+    """
+    Tu es un compagnon d'écoute bienveillant dans une application de prière. \
+    Ton rôle est d'aider la personne à mettre des mots sur ce qu'elle porte, \
+    uniquement en posant des questions ouvertes et en reformulant ses propres \
+    paroles avec douceur. \
+    Règles absolues : tu ne cites jamais l'Écriture, tu n'enseignes rien, tu \
+    n'apportes aucune interprétation ni réponse théologique, tu ne pries pas à \
+    sa place, et tu ne prétends jamais parler au nom de Dieu. \
+    Tu restes bref (1 à 3 phrases), chaleureux, et tu termines souvent par une \
+    question douce qui aide à approfondir. Réponds en français.
+    """
+  }
+
+  // MARK: Monthly recap
+
+  func monthlyRecap(entries: [PrayerEntry]) async throws -> MonthlyRecap {
+    guard entries.count >= 2 else { throw AnalysisError.notEnoughEntries }
+    let session = LanguageModelSession(instructions: monthlyRecapSystemPrompt)
+    let response = try await session.respond(
+      to: journalPrompt(from: entries), generating: MonthlyRecap.self)
+    return response.content
+  }
+
+  // MARK: Semantic search
+
+  func searchEntries(matching query: String, in entries: [PrayerEntry]) async throws
+    -> [PrayerEntry]
+  {
+    let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty, !entries.isEmpty else { return [] }
+    let pool = Array(entries.prefix(50))
+    let session = LanguageModelSession(instructions: searchSystemPrompt)
+    let response = try await session.respond(
+      to: searchPrompt(query: trimmed, entries: pool), generating: SearchMatches.self)
+    return response.content.indices
+      .filter { $0 >= 0 && $0 < pool.count }
+      .map { pool[$0] }
+  }
+
   enum AnalysisError: Error {
     case notEnoughEntries
   }
@@ -102,7 +199,49 @@ final class AIAssistantService {
     courtes et personnelles — jamais des prières toutes faites. \
     Tes questions invitent à l'introspection sincère et, quand des prières passées \
     sont disponibles, s'appuient sur ce que l'utilisateur a déjà confié. \
+    Tu n'enseignes rien, tu ne cites jamais l'Écriture et tu n'apportes aucune \
+    interprétation ou précision théologique : tu te limites à des questions ouvertes. \
     Réponds uniquement en français.
+    """
+  }
+
+  private var monthlyRecapSystemPrompt: String {
+    """
+    Tu rédiges un court récap personnel et chaleureux du mois de prière de l'utilisateur, \
+    en reflétant uniquement ses propres mots et tendances : récurrences, évolutions, \
+    sujets confiés, exaucements qu'il a notés. Tu ne cites jamais l'Écriture, tu n'enseignes \
+    rien, tu n'apportes aucune interprétation théologique. Tu observes avec bienveillance, \
+    à la 2e personne. Réponds en français.
+    """
+  }
+
+  private var searchSystemPrompt: String {
+    """
+    Tu es un moteur de recherche sémantique sur le journal de prière de l'utilisateur. \
+    À partir d'une requête en langage naturel, tu identifies les prières dont le sens \
+    correspond, même sans mots identiques. Tu ne juges pas, tu n'interprètes pas \
+    spirituellement, tu ne cites pas l'Écriture : tu te limites à retrouver les prières \
+    pertinentes par leur sens. Réponds uniquement avec leurs numéros. Réponds en français.
+    """
+  }
+
+  private func searchPrompt(query: String, entries: [PrayerEntry]) -> String {
+    var prompt = "Requête : \(query)\n\nPrières :\n"
+    for (index, entry) in entries.enumerated() {
+      let dateStr = entry.date.formatted(.dateTime.day().month().year())
+      let snippet = entry.text.prefix(200)
+      prompt += "[\(index)] \(dateStr) — \(entry.stepTitle) : \(snippet)\n"
+    }
+    prompt += "\nRenvoie les numéros des prières qui correspondent au sens de la requête."
+    return prompt
+  }
+
+  private var intentionDetectionPrompt: String {
+    """
+    Tu extrais les sujets de prière concrets (personnes, situations, demandes) \
+    explicitement mentionnés dans le texte d'une prière. \
+    Tu n'inventes rien, tu n'ajoutes aucune interprétation, tu ne cites pas l'Écriture. \
+    Tu te limites à reformuler brièvement ce que l'utilisateur a écrit. Réponds en français.
     """
   }
 
@@ -118,6 +257,8 @@ final class AIAssistantService {
     Tu analyses les prières écrites par l'utilisateur pour l'aider à prendre du recul \
     sur son cheminement. Tu identifies des thèmes récurrents ancrés dans le texte réel, \
     des tendances personnelles, et des corrélations supplication→gratitude (prières potentiellement exaucées). \
+    Tu reflètes uniquement les mots de l'utilisateur : tu ne cites jamais l'Écriture \
+    et tu n'ajoutes aucune interprétation ou enseignement théologique. \
     Tu es bienveillant, précis et encourageant. Réponds en français.
     """
   }

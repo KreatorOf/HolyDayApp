@@ -13,6 +13,10 @@ struct StructuredPrayerSheet: View {
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
+  @Query(
+    filter: #Predicate<PrayerIntention> { !$0.isAnswered }, sort: \PrayerIntention.createdAt,
+    order: .reverse)
+  private var activeIntentions: [PrayerIntention]
   @State private var viewModel = PrayerGuideViewModel()
   @State private var tipService = TipService.shared
   @State private var stepsAppeared = false
@@ -64,6 +68,7 @@ struct StructuredPrayerSheet: View {
           isCompleted: viewModel.isCompleted(step),
           prayerText: prayerTextBinding(for: step),
           reflectionQuestions: viewModel.reflectionQuestions[step.id, default: []],
+          intentions: intentions(for: step),
           onTap: { onStepTap(step, proxy: proxy) },
           onPray: { viewModel.save(step: step, in: modelContext) }
         )
@@ -129,6 +134,12 @@ struct StructuredPrayerSheet: View {
   }
 
   // MARK: - Helpers
+
+  // Active intentions surface only in the Supplication step, where the user lifts them up.
+  private func intentions(for step: PrayerStep) -> [String] {
+    guard step.colorName == "supplicationGreen" else { return [] }
+    return activeIntentions.map(\.text)
+  }
 
   private func prayerTextBinding(for step: PrayerStep) -> Binding<String> {
     Binding(

@@ -13,6 +13,7 @@ struct PrayerStepView: View {
   let isCompleted: Bool
   @Binding var prayerText: String
   var reflectionQuestions: [String] = []
+  var intentions: [String] = []
   let onTap: () -> Void
   @State private var showReflection = false
   @State private var prayFeedbackToken = false
@@ -150,6 +151,10 @@ struct PrayerStepView: View {
         reflectionQuestionsView
       }
 
+      if !intentions.isEmpty {
+        intentionsView
+      }
+
       prayerTextEditor
 
       if isCompleted {
@@ -202,6 +207,47 @@ struct PrayerStepView: View {
     }
     .padding(.horizontal, 22)
     .transition(.opacity.combined(with: .scale(scale: 0.97)))
+  }
+
+  // MARK: Intentions
+
+  private var intentionsView: some View {
+    VStack(spacing: 10) {
+      Text("step.intentions.title")
+        .font(.caption)
+        .fontWeight(.semibold)
+        .foregroundStyle(AppTheme.textTertiary)
+        .textCase(.uppercase)
+        .tracking(0.8)
+
+      VStack(spacing: 8) {
+        ForEach(intentions, id: \.self) { intention in
+          HStack(alignment: .top, spacing: 8) {
+            Image(systemName: "hands.and.sparkles.fill")
+              .font(.caption2)
+              .foregroundStyle(step.color.opacity(0.7))
+              .padding(.top, 2)
+            Text(intention)
+              .font(.subheadline)
+              .foregroundStyle(AppTheme.textPrimary)
+              .multilineTextAlignment(.center)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        }
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .padding(.horizontal, 22)
+    .padding(14)
+    .background {
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .fill(step.color.opacity(0.06))
+        .overlay {
+          RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .strokeBorder(step.color.opacity(0.2), lineWidth: 1)
+        }
+    }
+    .padding(.horizontal, 22)
   }
 
   // MARK: Text editor

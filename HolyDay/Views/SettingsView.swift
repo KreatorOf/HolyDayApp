@@ -102,7 +102,7 @@ struct SettingsView: View {
 
   private var pageHeader: some View {
     Text("tab.settings")
-      .font(.system(size: 34, weight: .bold, design: .serif).italic())
+      .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
       .foregroundStyle(AppTheme.textPrimary)
       .padding(.top, topInset + 44 + 50)
   }

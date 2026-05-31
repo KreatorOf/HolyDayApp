@@ -78,8 +78,11 @@ struct IntentionsView: View {
           Image(systemName: "arrow.up.circle.fill")
             .font(.title3)
             .foregroundStyle(AppTheme.adorationPurple)
+            .frame(width: 44, height: 44)
+            .contentShape(Circle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "intentions.suggest.add"))
       }
     }
     .padding(16)
@@ -121,10 +124,20 @@ struct IntentionsView: View {
         Image(systemName: intention.isAnswered ? "checkmark.seal.fill" : "circle")
           .font(.title3)
           .foregroundStyle(
-            intention.isAnswered ? AppTheme.supplicationGreen : AppTheme.textTertiary)
+            intention.isAnswered ? AppTheme.supplicationGreen : AppTheme.textTertiary
+          )
+          .frame(width: 44, height: 44)
+          .contentShape(Circle())
       }
       .buttonStyle(.plain)
       .sensoryFeedback(.success, trigger: intention.isAnswered)
+      .accessibilityLabel(intention.text)
+      .accessibilityValue(
+        String(
+          localized: intention.isAnswered
+            ? "intentions.section.answered" : "intentions.section.active")
+      )
+      .accessibilityAddTraits(intention.isAnswered ? .isSelected : [])
 
       VStack(alignment: .leading, spacing: 3) {
         Text(intention.text)
@@ -170,6 +183,7 @@ struct IntentionsView: View {
       Image(systemName: "hands.and.sparkles.fill")
         .font(.system(size: 32))
         .foregroundStyle(AppTheme.adorationPurple.opacity(0.7))
+        .accessibilityHidden(true)
       Text("intentions.empty.title")
         .font(.system(.title3, design: .serif, weight: .semibold))
         .foregroundStyle(AppTheme.textPrimary)

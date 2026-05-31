@@ -15,9 +15,12 @@ struct ContentView: View {
     order: .reverse)
   private var activeIntentions: [PrayerIntention]
   @State private var streak = StreakService.shared
+  @State private var tipService = TipService.shared
   @State private var isFABExpanded = false
   @State private var showFreePrayer = false
   @State private var showStructuredPrayer = false
+  @State private var showCompanion = false
+  @State private var showAIPaywall = false
   @State private var showIntentions = false
   @State private var showNavTitle = false
   @State private var topInset: CGFloat = 100
@@ -77,6 +80,12 @@ struct ContentView: View {
     .sheet(isPresented: $showIntentions) {
       IntentionsView()
     }
+    .fullScreenCover(isPresented: $showCompanion) {
+      PrayerCompanionView()
+    }
+    .sheet(isPresented: $showAIPaywall) {
+      HolyDayPaywallView(context: .aiFeature)
+    }
     .onAppear { updateGreeting() }
     .onChange(of: userName) { _, _ in updateGreeting() }
   }
@@ -122,10 +131,10 @@ struct ContentView: View {
         .multilineTextAlignment(.center)
       HStack(spacing: 0) {
         Text("Holy")
-          .font(.system(size: 38, weight: .bold, design: .serif).italic())
+          .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
           .foregroundStyle(AppTheme.textPrimary)
         Text("Day")
-          .font(.system(size: 38, weight: .thin, design: .serif))
+          .font(.system(.largeTitle, design: .serif).weight(.thin))
           .foregroundStyle(AppTheme.textSecondary)
       }
       #if DEBUG
@@ -260,7 +269,7 @@ struct ContentView: View {
     VStack(alignment: .trailing, spacing: 14) {
       if isFABExpanded {
         fabOption(
-          icon: "sparkles",
+          icon: "checklist",
           label: String(localized: "prayer.fab.structured")
         ) {
           collapse()
@@ -286,6 +295,24 @@ struct ContentView: View {
             removal: .opacity
           )
         )
+
+        fabOption(
+          icon: "sparkles",
+          label: String(localized: "prayer.fab.companion")
+        ) {
+          collapse()
+          if tipService.hasAIFeature {
+            showCompanion = true
+          } else {
+            showAIPaywall = true
+          }
+        }
+        .transition(
+          .asymmetric(
+            insertion: .move(edge: .bottom).combined(with: .opacity),
+            removal: .opacity
+          )
+        )
       }
 
       Button {
@@ -303,6 +330,11 @@ struct ContentView: View {
       .buttonStyle(.plain)
       .glassEffect(.regular.tint(AppTheme.adorationPurple.opacity(0.5)), in: Circle())
       .sensoryFeedback(.impact(flexibility: .soft), trigger: isFABExpanded)
+      .accessibilityLabel(
+        String(
+          localized: isFABExpanded ? "fab.accessibility.close" : "fab.accessibility.open")
+      )
+      .accessibilityAddTraits(isFABExpanded ? .isSelected : [])
     }
   }
 

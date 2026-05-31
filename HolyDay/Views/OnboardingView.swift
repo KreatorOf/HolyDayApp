@@ -153,10 +153,10 @@ private struct WelcomePage: View {
         VStack(spacing: 6) {
           HStack(spacing: 0) {
             Text("Holy")
-              .font(.system(size: 48, weight: .bold, design: .serif).italic())
+              .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
               .foregroundStyle(AppTheme.textPrimary)
             Text("Day")
-              .font(.system(size: 48, weight: .thin, design: .serif))
+              .font(.system(.largeTitle, design: .serif).weight(.thin))
               .foregroundStyle(AppTheme.textSecondary)
           }
 
@@ -273,7 +273,7 @@ private struct NamePage: View {
 
         VStack(spacing: 10) {
           Text("onboarding.name.title")
-            .font(.system(size: 34, weight: .bold, design: .serif))
+            .font(.system(.largeTitle, design: .serif).weight(.bold))
             .foregroundStyle(AppTheme.textPrimary)
             .multilineTextAlignment(.center)
 
@@ -381,7 +381,7 @@ private struct NotificationsPage: View {
 
         VStack(spacing: 10) {
           Text("onboarding.notifications.title")
-            .font(.system(size: 30, weight: .bold, design: .serif))
+            .font(.system(.title, design: .serif).weight(.bold))
             .foregroundStyle(AppTheme.textPrimary)
             .multilineTextAlignment(.center)
             .frame(maxWidth: .infinity)

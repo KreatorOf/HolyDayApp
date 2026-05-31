@@ -349,6 +349,102 @@
         }
       }
     },
+    "companion.error" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sorry, I couldn't respond just now. Try again?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désolé, je n'ai pas pu répondre à l'instant. On réessaie ?"
+          }
+        }
+      }
+    },
+    "companion.intro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I'm here to listen. What's on your heart today?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Je suis là pour t'écouter. Qu'est-ce qui est sur ton cœur aujourd'hui ?"
+          }
+        }
+      }
+    },
+    "companion.nav.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logos"
+          }
+        }
+      }
+    },
+    "companion.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write what's on your heart…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écris ce que tu portes…"
+          }
+        }
+      }
+    },
+    "companion.send" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envoyer"
+          }
+        }
+      }
+    },
+    "companion.thinking" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logos is writing…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logos écrit…"
+          }
+        }
+      }
+    },
     "content.completion.subtitle" : {
       "localizations" : {
         "en" : {
@@ -478,6 +574,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucun texte enregistré pour cette prière."
+          }
+        }
+      }
+    },
+    "fab.accessibility.close" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close prayer options"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer les options de prière"
+          }
+        }
+      }
+    },
+    "fab.accessibility.open" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New prayer"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouvelle prière"
           }
         }
       }
@@ -906,6 +1036,22 @@
         }
       }
     },
+    "insight.recap.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your month in prayer"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton mois en prière"
+          }
+        }
+      }
+    },
     "insight.section.title" : {
       "localizations" : {
         "en" : {
@@ -1055,13 +1201,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "My Intentions"
+            "value" : "I pray for"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mes intentions"
+            "value" : "Je prie pour"
           }
         }
       }
@@ -1094,6 +1240,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exaucées"
+          }
+        }
+      }
+    },
+    "intentions.suggest.add" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter"
+          }
+        }
+      }
+    },
+    "intentions.suggest.skip" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non merci"
+          }
+        }
+      }
+    },
+    "intentions.suggest.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detected in your prayer. Add them to your intentions."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Détectés dans ta prière. Ajoute-les à tes intentions."
+          }
+        }
+      }
+    },
+    "intentions.suggest.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pray for these?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prier pour ces sujets ?"
           }
         }
       }
@@ -1158,6 +1368,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aucune prière ce mois"
+          }
+        }
+      }
+    },
+    "journal.search.ai" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search by meaning"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chercher par le sens"
+          }
+        }
+      }
+    },
+    "journal.search.ai.active" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smart results"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Résultats intelligents"
           }
         }
       }
@@ -2411,6 +2653,22 @@
         }
       }
     },
+    "prayer.fab.companion" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logos"
+          }
+        }
+      }
+    },
     "prayer.fab.free" : {
       "localizations" : {
         "en" : {
@@ -3179,6 +3437,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Confession"
+          }
+        }
+      }
+    },
+    "step.intentions.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you carry"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce que tu portes"
           }
         }
       }

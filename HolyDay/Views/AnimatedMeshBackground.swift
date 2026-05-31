@@ -24,6 +24,7 @@ struct AnimatedMeshBackground: View {
       colors: colorScheme == .dark ? darkColors : lightColors
     )
     .ignoresSafeArea()
+    .accessibilityHidden(true)
     .onAppear { startAnimation() }
     .onDisappear { animate = false }
   }
