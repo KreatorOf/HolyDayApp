@@ -216,74 +216,6 @@
         }
       }
     },
-    "accessibility.streak.atrisk" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Streak at risk: %d days, pray today!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Série à risque : %d jours, prie aujourd'hui !"
-          }
-        }
-      }
-    },
-    "accessibility.streak.hint" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "View statistics"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voir les statistiques"
-          }
-        }
-      }
-    },
-    "accessibility.streak.label" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d consecutive days of prayer"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d jours de prière consécutifs"
-          }
-        }
-      }
-    },
-    "accessibility.streak.zero" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No active streak"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucune série active"
-          }
-        }
-      }
-    },
     "calendar.weekday.labels" : {
       "localizations" : {
         "en" : {
@@ -892,6 +824,22 @@
         }
       }
     },
+    "insight.balance.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your balance"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton équilibre"
+          }
+        }
+      }
+    },
     "insight.error.open.settings" : {
       "localizations" : {
         "en" : {
@@ -968,22 +916,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple Intelligence n'est pas activé. Vérifiez Réglages → Apple Intelligence & Siri."
-          }
-        }
-      }
-    },
-    "insight.balance.title" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your balance"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ton équilibre"
           }
         }
       }
@@ -2160,14 +2092,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Your intention…"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton intention…"
+            "value" : "Je prie pour…"
           }
         }
       }
@@ -2176,14 +2108,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Entrust a first intention. You can add more later."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confie une première intention. Tu pourras en ajouter d'autres."
+            "value" : "Note le ici. Tu pourras en ajouter d’autres."
           }
         }
       }
@@ -2192,14 +2124,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "What do you carry today?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Que portes-tu aujourd'hui ?"
+            "value" : "Ton premier sujet de prière "
           }
         }
       }
@@ -2384,14 +2316,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "A gentle nudge to come back and pray. Opt out anytime."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un rappel doux pour revenir prier. Désactivable quand tu veux."
+            "value" : "Un rappel quotidien pour bâtir une relation intentionnelle avec Dieu"
           }
         }
       }
@@ -2416,14 +2348,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Entrust what weighs on you, and see answered prayers."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confie ce qui pèse, et vois les prières exaucées."
+            "value" : "Note ce qui pèse sur ton coeur, et vois les prières s’exaucer."
           }
         }
       }
@@ -2432,14 +2364,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Carry your intentions"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Porte tes intentions"
+            "value" : "Tes sujets de prière"
           }
         }
       }
@@ -2448,14 +2380,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Daily verse, journal, and your own rhythm."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verset du jour, journal et ton propre rythme."
+            "value" : "Retrouve ton historique de prières."
           }
         }
       }
@@ -2464,14 +2396,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Your spiritual thread"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ton fil spirituel"
+            "value" : "Ton journal"
           }
         }
       }
@@ -2480,14 +2412,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Free or guided prayer. Never a checklist."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une prière libre ou guidée. Jamais une checklist."
+            "value" : "Une prière libre ou guidée. Tu choisis."
           }
         }
       }
@@ -2496,14 +2428,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Your way"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "À ta façon"
+            "value" : "Ton rythme"
           }
         }
       }
@@ -2528,14 +2460,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "A real relationship with God — wherever, whenever, without pressure."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Une vraie relation avec Dieu — où tu veux, quand tu veux, sans pression."
+            "value" : "« Développe une vraie relation avec Dieu,\noù tu veux, quand tu veux. »"
           }
         }
       }

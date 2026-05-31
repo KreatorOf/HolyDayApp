@@ -164,6 +164,7 @@ private struct WelcomePage: View {
             .font(.subheadline)
             .foregroundStyle(AppTheme.textTertiary)
             .multilineTextAlignment(.center)
+            .padding(.horizontal, 32)
         }
 
         VStack(spacing: 12) {
