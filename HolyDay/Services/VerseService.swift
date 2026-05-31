@@ -126,9 +126,14 @@ final class VerseService {
   }
 
   func getVerseOfTheDay() -> Verse {
+    verse(for: Date())
+  }
+
+  // Deterministic by day-of-year, so a given date always maps to the same verse —
+  // lets notifications pre-schedule the right verse for each upcoming day.
+  func verse(for date: Date) -> Verse {
     let verses = localizedVerses
-    let calendar = Calendar.current
-    let dayOfYear = calendar.ordinality(of: .day, in: .year, for: Date()) ?? 1
+    let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
     let index = (dayOfYear - 1) % verses.count
     return verses[index]
   }
