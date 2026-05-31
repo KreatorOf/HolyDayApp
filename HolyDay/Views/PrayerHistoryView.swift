@@ -76,16 +76,10 @@ struct PrayerHistoryView: View {
         ToolbarItem(placement: .topBarTrailing) {
           HStack(spacing: 14) {
             Button {
-              if tipService.hasAIFeature {
-                showInsight = true
-              } else {
-                showAIPaywall = true
-              }
+              showInsight = true
             } label: {
               Image(systemName: "sparkles")
-                .foregroundStyle(
-                  tipService.hasAIFeature ? AppTheme.adorationPurple : AppTheme.textTertiary
-                )
+                .foregroundStyle(AppTheme.adorationPurple)
             }
             .sensoryFeedback(.selection, trigger: showInsight)
             .accessibilityLabel(String(localized: "accessibility.ai.button"))
@@ -135,8 +129,18 @@ struct PrayerHistoryView: View {
       NavigationStack {
         ScrollView {
           VStack(alignment: .leading, spacing: 24) {
-            MonthlyRecapSection(entries: currentMonthEntries)
-            JournalAIInsightSection(entries: entries)
+            AnsweredPrayersInsight()
+            PrayerRhythmInsight()
+            ACTSBalanceInsight()
+            if tipService.hasAIFeature {
+              MonthlyRecapSection(entries: currentMonthEntries)
+              JournalAIInsightSection(entries: entries)
+            } else {
+              AIInsightUpsellCard {
+                showInsight = false
+                showAIPaywall = true
+              }
+            }
           }
           .padding(.horizontal, 20)
           .padding(.top, 8)

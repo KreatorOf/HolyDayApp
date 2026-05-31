@@ -860,6 +860,22 @@
         }
       }
     },
+    "insight.answered.label" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in total"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "au total"
+          }
+        }
+      }
+    },
     "insight.answered.title" : {
       "localizations" : {
         "en" : {
@@ -952,6 +968,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apple Intelligence n'est pas activé. Vérifiez Réglages → Apple Intelligence & Siri."
+          }
+        }
+      }
+    },
+    "insight.balance.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your balance"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton équilibre"
           }
         }
       }
@@ -1052,6 +1084,86 @@
         }
       }
     },
+    "insight.rhythm.afternoon" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You often pray in the afternoon"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pries souvent l'après-midi"
+          }
+        }
+      }
+    },
+    "insight.rhythm.evening" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You often pray in the evening"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pries souvent le soir"
+          }
+        }
+      }
+    },
+    "insight.rhythm.morning" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You often pray in the morning"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pries souvent le matin"
+          }
+        }
+      }
+    },
+    "insight.rhythm.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your rhythm"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ton rythme"
+          }
+        }
+      }
+    },
+    "insight.rhythm.weekday" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostly on %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surtout le %@"
+          }
+        }
+      }
+    },
     "insight.section.title" : {
       "localizations" : {
         "en" : {
@@ -1084,6 +1196,54 @@
         }
       }
     },
+    "insight.upsell.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalized analysis of your journal"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Analyse personnalisée de ton journal"
+          }
+        }
+      }
+    },
+    "insight.upsell.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI insights"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insights IA"
+          }
+        }
+      }
+    },
+    "intentions.action.edit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier"
+          }
+        }
+      }
+    },
     "intentions.add.placeholder" : {
       "localizations" : {
         "en" : {
@@ -1112,6 +1272,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Exaucée"
+          }
+        }
+      }
+    },
+    "intentions.edit.save" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer"
+          }
+        }
+      }
+    },
+    "intentions.edit.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit intention"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifier l'intention"
           }
         }
       }
