@@ -25,7 +25,8 @@ struct HolyDayApp: App {
         .urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         .appendingPathComponent("HolyDay.sqlite")
       let config = ModelConfiguration(url: storeURL)
-      container = try ModelContainer(for: PrayerEntry.self, configurations: config)
+      container = try ModelContainer(
+        for: PrayerEntry.self, PrayerIntention.self, configurations: config)
       // Chiffrement du store SwiftData — protège les prières si l'appareil est compromis
       try? FileManager.default.setAttributes(
         [.protectionKey: FileProtectionType.complete],

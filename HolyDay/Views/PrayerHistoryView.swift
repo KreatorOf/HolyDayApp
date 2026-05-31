@@ -20,6 +20,8 @@ struct PrayerHistoryView: View {
   @State private var searchText = ""
   @State private var isSearching = false
   @State private var cachedSearchResults: [(date: Date, entries: [PrayerEntry])] = []
+  @State private var aiResults: [(date: Date, entries: [PrayerEntry])]?
+  @State private var isAISearching = false
   @State private var showInsight = false
   @State private var showAIPaywall = false
 
@@ -74,16 +76,10 @@ struct PrayerHistoryView: View {
         ToolbarItem(placement: .topBarTrailing) {
           HStack(spacing: 14) {
             Button {
-              if tipService.hasAIFeature {
-                showInsight = true
-              } else {
-                showAIPaywall = true
-              }
+              showInsight = true
             } label: {
               Image(systemName: "sparkles")
-                .foregroundStyle(
-                  tipService.hasAIFeature ? AppTheme.adorationPurple : AppTheme.textTertiary
-                )
+                .foregroundStyle(AppTheme.adorationPurple)
             }
             .sensoryFeedback(.selection, trigger: showInsight)
             .accessibilityLabel(String(localized: "accessibility.ai.button"))
@@ -105,6 +101,8 @@ struct PrayerHistoryView: View {
         }
       }
       .task(id: searchText) {
+        // A new query exits semantic-search mode back to instant local matching.
+        aiResults = nil
         guard !searchText.isEmpty else {
           cachedSearchResults = []
           return
@@ -130,10 +128,23 @@ struct PrayerHistoryView: View {
     .sheet(isPresented: $showInsight) {
       NavigationStack {
         ScrollView {
-          JournalAIInsightSection(entries: entries)
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 32)
+          VStack(alignment: .leading, spacing: 24) {
+            AnsweredPrayersInsight()
+            PrayerRhythmInsight()
+            ACTSBalanceInsight()
+            if tipService.hasAIFeature {
+              MonthlyRecapSection(entries: currentMonthEntries)
+              JournalAIInsightSection(entries: entries)
+            } else {
+              AIInsightUpsellCard {
+                showInsight = false
+                showAIPaywall = true
+              }
+            }
+          }
+          .padding(.horizontal, 20)
+          .padding(.top, 8)
+          .padding(.bottom, 32)
         }
         .scrollIndicators(.hidden)
         .background(AppTheme.backgroundPrimary.ignoresSafeArea())
@@ -161,7 +172,7 @@ struct PrayerHistoryView: View {
   private var pageHeader: some View {
     VStack(alignment: .leading, spacing: isSearching ? 12 : 4) {
       Text("tab.journal")
-        .font(.system(size: 34, weight: .bold, design: .serif).italic())
+        .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
         .foregroundStyle(AppTheme.textPrimary)
       if isSearching {
         HStack(spacing: 10) {
@@ -515,28 +526,14 @@ struct PrayerHistoryView: View {
 
   @ViewBuilder
   private var searchResultsSection: some View {
-    let results = cachedSearchResults
-    if results.isEmpty {
-      HStack(spacing: 14) {
-        Image(systemName: "magnifyingglass")
-          .font(.title3)
-          .foregroundStyle(AppTheme.textTertiary)
-        Text("journal.search.empty")
-          .font(.subheadline)
-          .foregroundStyle(AppTheme.textTertiary)
-        Spacer()
+    let results = aiResults ?? cachedSearchResults
+    VStack(alignment: .leading, spacing: 16) {
+      if tipService.hasAIFeature {
+        aiSearchButton
       }
-      .padding(16)
-      .background {
-        RoundedRectangle(cornerRadius: 14, style: .continuous)
-          .fill(AppTheme.cardFill)
-          .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
-          }
-      }
-    } else {
-      VStack(alignment: .leading, spacing: 20) {
+      if results.isEmpty {
+        searchEmptyState
+      } else {
         ForEach(results, id: \.date) { group in
           VStack(alignment: .leading, spacing: 10) {
             Text(searchDayLabel(group.date))
@@ -557,6 +554,69 @@ struct PrayerHistoryView: View {
         }
       }
     }
+  }
+
+  private var aiSearchButton: some View {
+    Button {
+      Task { await runSemanticSearch() }
+    } label: {
+      HStack(spacing: 8) {
+        if isAISearching {
+          ProgressView().scaleEffect(0.8).tint(AppTheme.adorationPurple)
+        } else {
+          Image(systemName: aiResults == nil ? "sparkles" : "checkmark")
+            .font(.caption.weight(.semibold))
+        }
+        Text(aiResults == nil ? "journal.search.ai" : "journal.search.ai.active")
+          .font(.caption.weight(.semibold))
+      }
+      .foregroundStyle(AppTheme.adorationPurple)
+      .padding(.horizontal, 14)
+      .padding(.vertical, 9)
+      .background(
+        AppTheme.adorationPurple.opacity(0.1),
+        in: Capsule()
+      )
+    }
+    .buttonStyle(.plain)
+    .disabled(isAISearching || searchText.isEmpty)
+  }
+
+  private var searchEmptyState: some View {
+    HStack(spacing: 14) {
+      Image(systemName: "magnifyingglass")
+        .font(.title3)
+        .foregroundStyle(AppTheme.textTertiary)
+      Text("journal.search.empty")
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textTertiary)
+      Spacer()
+    }
+    .padding(16)
+    .background {
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .fill(AppTheme.cardFill)
+        .overlay {
+          RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+        }
+    }
+  }
+
+  private func runSemanticSearch() async {
+    let query = searchText
+    guard !query.isEmpty else { return }
+    isAISearching = true
+    defer { isAISearching = false }
+    let matches = (try? await AIAssistantService.shared.searchEntries(matching: query, in: entries))
+    guard let matches else { return }
+    let grouped = Dictionary(grouping: matches) {
+      Calendar.current.startOfDay(for: $0.date)
+    }
+    aiResults =
+      grouped
+      .sorted { $0.key > $1.key }
+      .map { ($0.key, $0.value.sorted { $0.date < $1.date }) }
   }
 
   private func searchDayLabel(_ date: Date) -> String {
@@ -591,6 +651,13 @@ struct PrayerHistoryView: View {
 
   private var aiButtonVisible: Bool {
     entries.lazy.filter({ !$0.text.isEmpty }).prefix(3).count >= 3
+  }
+
+  private var currentMonthEntries: [PrayerEntry] {
+    entries.filter {
+      !$0.text.isEmpty
+        && Calendar.current.isDate($0.date, equalTo: Date(), toGranularity: .month)
+    }
   }
 
   private var selectedDayEntries: [PrayerEntry] {
@@ -659,6 +726,111 @@ struct PrayerHistoryView: View {
     else { return }
     displayedMonth = newMonth
     selectedDate = nil
+  }
+}
+
+// MARK: Monthly recap section
+
+private struct MonthlyRecapSection: View {
+  let entries: [PrayerEntry]
+
+  @State private var recap: MonthlyRecap?
+  @State private var isGenerating = false
+
+  var body: some View {
+    if entries.count >= 2 {
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(spacing: 6) {
+          Image(systemName: "calendar")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.thanksgivingGold)
+          Text("insight.recap.title")
+            .font(.caption)
+            .fontWeight(.semibold)
+            .foregroundStyle(AppTheme.textTertiary)
+            .textCase(.uppercase)
+            .tracking(1.0)
+        }
+
+        Group {
+          if let recap {
+            recapCard(recap)
+          } else if isGenerating {
+            loadingCard
+          }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.85), value: recap == nil)
+      }
+      .task {
+        guard recap == nil, !isGenerating else { return }
+        isGenerating = true
+        recap = try? await AIAssistantService.shared.monthlyRecap(entries: entries)
+        isGenerating = false
+      }
+    }
+  }
+
+  private func recapCard(_ recap: MonthlyRecap) -> some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text(recap.narrative)
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textPrimary)
+        .lineSpacing(5)
+        .fixedSize(horizontal: false, vertical: true)
+
+      if !recap.themes.isEmpty {
+        FlowChips(items: recap.themes)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(16)
+    .background {
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .fill(AppTheme.cardFill)
+        .overlay {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(AppTheme.thanksgivingGold.opacity(0.2), lineWidth: 1)
+        }
+    }
+  }
+
+  private var loadingCard: some View {
+    HStack(spacing: 14) {
+      ProgressView()
+        .scaleEffect(0.85)
+        .tint(AppTheme.thanksgivingGold)
+      Text("insight.loading")
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textSecondary)
+      Spacer()
+    }
+    .padding(14)
+    .background {
+      RoundedRectangle(cornerRadius: 16, style: .continuous)
+        .fill(AppTheme.cardFill)
+        .overlay {
+          RoundedRectangle(cornerRadius: 16, style: .continuous)
+            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+        }
+    }
+  }
+}
+
+// Simple wrapping chips layout for theme tags.
+private struct FlowChips: View {
+  let items: [String]
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 6) {
+      ForEach(items, id: \.self) { item in
+        Text(item)
+          .font(.caption.weight(.medium))
+          .foregroundStyle(AppTheme.thanksgivingGold)
+          .padding(.horizontal, 10)
+          .padding(.vertical, 5)
+          .background(AppTheme.thanksgivingGold.opacity(0.12), in: Capsule())
+      }
+    }
   }
 }
 

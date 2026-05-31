@@ -9,54 +9,43 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-  @Environment(\.modelContext) private var modelContext
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
-  @State private var viewModel = PrayerGuideViewModel()
+  @Query(
+    filter: #Predicate<PrayerIntention> { !$0.isAnswered }, sort: \PrayerIntention.createdAt,
+    order: .reverse)
+  private var activeIntentions: [PrayerIntention]
   @State private var streak = StreakService.shared
   @State private var tipService = TipService.shared
+  @State private var isFABExpanded = false
+  @State private var showFreePrayer = false
+  @State private var showStructuredPrayer = false
+  @State private var showCompanion = false
+  @State private var showAIPaywall = false
+  @State private var showIntentions = false
   @State private var showNavTitle = false
-  @State private var showHeatmap = false
-  @State private var showCelebration = false
-  @State private var celebrationValue: Int = 0
-  @AppStorage("holyday.userName") private var userName = ""
-  @State private var stepsAppeared = false
   @State private var topInset: CGFloat = 100
   @State private var cachedGreeting = ""
+  @State private var verseOfTheDay = VerseService.shared.getVerseOfTheDay()
+  @State private var selectedEntry: PrayerEntry?
+  @AppStorage("holyday.userName") private var userName = ""
 
   var body: some View {
     NavigationStack {
-      ScrollViewReader { proxy in
-        ScrollView {
-          VStack(spacing: 20) {
-            headerSection
-              .padding(.horizontal, 16)
-              .padding(.top, topInset + 44 + 50)
-
-            VerseCardView(verse: viewModel.verseOfTheDay)
-              .padding(.horizontal, 16)
-
-            prayerStepsSection(proxy: proxy)
-              .padding(.horizontal, 16)
-
-            if viewModel.isAllCompleted {
-              CompletionBanner()
-                .padding(.horizontal, 16)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-          }
-          .padding(.bottom, 20)
-          .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isAllCompleted)
-        }
-        .scrollIndicators(.hidden)
-        .ignoresSafeArea(.all, edges: .top)
-        .onScrollGeometryChange(for: CGFloat.self) {
-          $0.contentOffset.y
-        } action: { _, y in
-          let shouldShow = y > 80
-          guard shouldShow != showNavTitle else { return }
-          withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
+      ZStack {
+        scrollContent
+        if isFABExpanded {
+          Color.black.opacity(0.001)
+            .contentShape(Rectangle())
+            .ignoresSafeArea()
+            .onTapGesture { collapse() }
         }
       }
+      .overlay(alignment: .bottomTrailing) {
+        fabStack
+          .padding(.trailing, 24)
+          .padding(.bottom, 24)
+      }
+      .ignoresSafeArea(.all, edges: .top)
       .background { AnimatedMeshBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
@@ -71,84 +60,335 @@ struct ContentView: View {
           }
           .opacity(showNavTitle ? 1 : 0)
         }
-        ToolbarItem(placement: .topBarTrailing) {
-          Button {
-            showHeatmap = true
-          } label: {
-            HStack(spacing: 4) {
-              Image(systemName: "flame.fill")
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(
-                  streak.currentStreak > 0 ? AppTheme.adaptiveOrange : AppTheme.textTertiary)
-              Text("\(streak.currentStreak)")
-                .monospacedDigit()
-                .contentTransition(.numericText(value: Double(streak.currentStreak)))
-                .animation(.spring(response: 0.35), value: streak.currentStreak)
-              if streak.freezesAvailable > 0 {
-                Image(systemName: "shield.fill")
-                  .font(.caption2)
-                  .foregroundStyle(AppTheme.confessionBlue.opacity(0.85))
-              }
-            }
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(AppTheme.textPrimary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .glassEffect(
-              .regular.tint(
-                streak.isStreakAtRisk
-                  ? Color.orange.opacity(0.30)
-                  : Color.white.opacity(streak.currentStreak > 0 ? 0.05 : 0.02)
-              ),
-              in: Capsule()
-            )
-          }
-          .buttonStyle(.plain)
-          .sensoryFeedback(.selection, trigger: showHeatmap)
-          .accessibilityLabel(streakAccessibilityLabel)
-          .accessibilityHint(String(localized: "accessibility.streak.hint"))
-        }
+      }
+      .navigationDestination(item: $selectedEntry) { entry in
+        PrayerEntryDetailView(entry: entry)
       }
     }
     .background(
       GeometryReader { geo in
-        Color.clear
-          .onAppear { topInset = geo.safeAreaInsets.top }
+        Color.clear.onAppear { topInset = geo.safeAreaInsets.top }
       }
       .ignoresSafeArea()
     )
-    .sheet(isPresented: $showHeatmap) {
-      StreakYearHeatmapView(streak: streak)
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
+    .fullScreenCover(isPresented: $showFreePrayer) {
+      FreePrayerView()
     }
-    .fullScreenCover(isPresented: $showCelebration) {
-      StreakCelebrationView(streakValue: celebrationValue)
-        .presentationBackground(.clear)
+    .fullScreenCover(isPresented: $showStructuredPrayer) {
+      StructuredPrayerSheet()
     }
-    .onChange(of: streak.lastIncrementToken) { _, newToken in
-      guard newToken != nil else { return }
-      celebrationValue = streak.lastIncrementValue
-      showCelebration = true
+    .sheet(isPresented: $showIntentions) {
+      IntentionsView()
+    }
+    .fullScreenCover(isPresented: $showCompanion) {
+      PrayerCompanionView()
+    }
+    .sheet(isPresented: $showAIPaywall) {
+      HolyDayPaywallView(context: .aiFeature)
     }
     .onAppear { updateGreeting() }
     .onChange(of: userName) { _, _ in updateGreeting() }
   }
 
-  // MARK: Accessibility
+  // MARK: - Scroll content
 
-  private var streakAccessibilityLabel: String {
-    if streak.currentStreak == 0 {
-      return String(localized: "accessibility.streak.zero")
+  private var scrollContent: some View {
+    ScrollView {
+      VStack(spacing: 24) {
+        headerSection
+        VerseCardView(verse: verseOfTheDay)
+          .padding(.horizontal, 16)
+        meditateInvitation
+          .padding(.horizontal, 24)
+        intentionsCard
+          .padding(.horizontal, 16)
+        if let last = lastPrayer {
+          continuityCard(last)
+            .padding(.horizontal, 16)
+        }
+      }
+      .padding(.top, topInset + 44 + 50)
+      .padding(.bottom, 140)
     }
-    if streak.isStreakAtRisk {
-      return String(
-        format: String(localized: "accessibility.streak.atrisk"), streak.currentStreak)
+    .scrollIndicators(.hidden)
+    .onScrollGeometryChange(for: CGFloat.self) {
+      $0.contentOffset.y
+    } action: { _, y in
+      let shouldShow = y > 80
+      guard shouldShow != showNavTitle else { return }
+      withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
     }
-    return String(format: String(localized: "accessibility.streak.label"), streak.currentStreak)
   }
 
-  // MARK: Header
+  // MARK: - Header
+
+  private var headerSection: some View {
+    VStack(alignment: .center, spacing: 2) {
+      Text(cachedGreeting)
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textSecondary)
+        .tracking(0.3)
+        .multilineTextAlignment(.center)
+      HStack(spacing: 0) {
+        Text("Holy")
+          .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
+          .foregroundStyle(AppTheme.textPrimary)
+        Text("Day")
+          .font(.system(.largeTitle, design: .serif).weight(.thin))
+          .foregroundStyle(AppTheme.textSecondary)
+      }
+      #if DEBUG
+        .onTapGesture(count: 3) {
+          streak.resetTodaysPrayer()
+          UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        }
+      #endif
+    }
+    .padding(.horizontal, 16)
+  }
+
+  // MARK: - Meditate invitation
+
+  private var meditateInvitation: some View {
+    Text(meditatePrompt)
+      .font(.system(.body, design: .serif).italic())
+      .foregroundStyle(AppTheme.textSecondary)
+      .multilineTextAlignment(.center)
+      .lineSpacing(4)
+      .frame(maxWidth: .infinity)
+  }
+
+  // MARK: - Intentions
+
+  private var intentionsCard: some View {
+    Button {
+      showIntentions = true
+    } label: {
+      VStack(alignment: .leading, spacing: 10) {
+        HStack {
+          Text("intentions.home.label")
+            .font(.caption2.weight(.semibold))
+            .foregroundStyle(AppTheme.textTertiary)
+            .textCase(.uppercase)
+            .tracking(1.0)
+          Spacer()
+          Image(systemName: activeIntentions.isEmpty ? "plus" : "chevron.right")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.textTertiary)
+        }
+
+        if activeIntentions.isEmpty {
+          Text("intentions.home.empty")
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.textSecondary)
+        } else {
+          VStack(alignment: .leading, spacing: 7) {
+            ForEach(activeIntentions.prefix(3)) { intention in
+              HStack(alignment: .top, spacing: 8) {
+                Circle()
+                  .fill(AppTheme.adorationPurple.opacity(0.5))
+                  .frame(width: 5, height: 5)
+                  .padding(.top, 7)
+                Text(intention.text)
+                  .font(.subheadline)
+                  .foregroundStyle(AppTheme.textPrimary)
+                  .lineLimit(1)
+              }
+            }
+          }
+          if activeIntentions.count > 3 {
+            Text(
+              String(
+                format: String(localized: "intentions.home.more"), activeIntentions.count - 3)
+            )
+            .font(.caption)
+            .foregroundStyle(AppTheme.textTertiary)
+          }
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(16)
+      .background {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+          .fill(.ultraThinMaterial)
+          .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+          }
+      }
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - Continuity thread
+
+  private func continuityCard(_ entry: PrayerEntry) -> some View {
+    Button {
+      selectedEntry = entry
+    } label: {
+      VStack(alignment: .leading, spacing: 6) {
+        Text("home.continuity.label")
+          .font(.caption2.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+          .textCase(.uppercase)
+          .tracking(1.0)
+
+        HStack(spacing: 6) {
+          Image(systemName: entry.stepIcon)
+            .font(.caption)
+            .foregroundStyle(AppTheme.color(for: entry.stepColorName))
+          Text("\(relativeDay(entry.date)) · \(entry.stepTitle)")
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(AppTheme.textPrimary)
+        }
+
+        Text(entry.text)
+          .font(.caption)
+          .foregroundStyle(AppTheme.textSecondary)
+          .italic()
+          .lineLimit(2)
+          .multilineTextAlignment(.leading)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(16)
+      .background {
+        RoundedRectangle(cornerRadius: 18, style: .continuous)
+          .fill(.ultraThinMaterial)
+          .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+          }
+      }
+    }
+    .buttonStyle(.plain)
+  }
+
+  // MARK: - FAB
+
+  private var fabStack: some View {
+    VStack(alignment: .trailing, spacing: 14) {
+      if isFABExpanded {
+        fabOption(
+          icon: "checklist",
+          label: String(localized: "prayer.fab.structured")
+        ) {
+          collapse()
+          showStructuredPrayer = true
+        }
+        .transition(
+          .asymmetric(
+            insertion: .move(edge: .bottom).combined(with: .opacity),
+            removal: .opacity
+          )
+        )
+
+        fabOption(
+          icon: "square.and.pencil",
+          label: String(localized: "prayer.fab.free")
+        ) {
+          collapse()
+          showFreePrayer = true
+        }
+        .transition(
+          .asymmetric(
+            insertion: .move(edge: .bottom).combined(with: .opacity),
+            removal: .opacity
+          )
+        )
+
+        fabOption(
+          icon: "sparkles",
+          label: String(localized: "prayer.fab.companion")
+        ) {
+          collapse()
+          if tipService.hasAIFeature {
+            showCompanion = true
+          } else {
+            showAIPaywall = true
+          }
+        }
+        .transition(
+          .asymmetric(
+            insertion: .move(edge: .bottom).combined(with: .opacity),
+            removal: .opacity
+          )
+        )
+      }
+
+      Button {
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+          isFABExpanded.toggle()
+        }
+      } label: {
+        Image(systemName: "plus")
+          .font(.title2.weight(.semibold))
+          .foregroundStyle(.white)
+          .rotationEffect(.degrees(isFABExpanded ? 45 : 0))
+          .frame(width: 56, height: 56)
+          .contentShape(Circle())
+      }
+      .buttonStyle(.plain)
+      .glassEffect(.regular.tint(AppTheme.adorationPurple.opacity(0.5)), in: Circle())
+      .sensoryFeedback(.impact(flexibility: .soft), trigger: isFABExpanded)
+      .accessibilityLabel(
+        String(
+          localized: isFABExpanded ? "fab.accessibility.close" : "fab.accessibility.open")
+      )
+      .accessibilityAddTraits(isFABExpanded ? .isSelected : [])
+    }
+  }
+
+  private func fabOption(icon: String, label: String, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      HStack(spacing: 10) {
+        Image(systemName: icon)
+          .font(.body.weight(.semibold))
+          .foregroundStyle(AppTheme.adorationPurple)
+        Text(label)
+          .font(.subheadline.weight(.semibold))
+          .foregroundStyle(AppTheme.textPrimary)
+      }
+      .padding(.horizontal, 18)
+      .padding(.vertical, 13)
+    }
+    .buttonStyle(.plain)
+    .glassEffect(.regular, in: Capsule())
+  }
+
+  private func collapse() {
+    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+      isFABExpanded = false
+    }
+  }
+
+  // MARK: - Helpers
+
+  private var lastPrayer: PrayerEntry? {
+    entries.first { !$0.text.isEmpty }
+  }
+
+  // Literal keys — a LocalizedStringKey built from string interpolation is treated as a
+  // format string and never resolves against the catalog.
+  private static let meditatePrompts: [LocalizedStringKey] = [
+    "home.meditate.0", "home.meditate.1", "home.meditate.2", "home.meditate.3",
+    "home.meditate.4", "home.meditate.5", "home.meditate.6",
+  ]
+
+  private var meditatePrompt: LocalizedStringKey {
+    let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+    return Self.meditatePrompts[(dayOfYear - 1) % Self.meditatePrompts.count]
+  }
+
+  private func relativeDay(_ date: Date) -> String {
+    let calendar = Calendar.current
+    let days =
+      calendar.dateComponents(
+        [.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: .now)
+      ).day ?? 0
+    if days <= 0 { return String(localized: "home.continuity.today") }
+    if days == 1 { return String(localized: "home.continuity.yesterday") }
+    return String(format: String(localized: "home.continuity.days"), days)
+  }
 
   private func updateGreeting() {
     let hour = Calendar.current.component(.hour, from: Date())
@@ -160,180 +400,10 @@ struct ContentView: View {
     }
     cachedGreeting = userName.isEmpty ? base : "\(base), \(userName)"
   }
-
-  private var headerSection: some View {
-    VStack(alignment: .center, spacing: 2) {
-      Text(cachedGreeting)
-        .font(.subheadline)
-        .foregroundStyle(AppTheme.textSecondary)
-        .tracking(0.3)
-        .multilineTextAlignment(.center)
-      HStack(spacing: 0) {
-        Text("Holy")
-          .font(.system(size: 38, weight: .bold, design: .serif).italic())
-          .foregroundStyle(AppTheme.textPrimary)
-        Text("Day")
-          .font(.system(size: 38, weight: .thin, design: .serif))
-          .foregroundStyle(AppTheme.textSecondary)
-      }
-      #if DEBUG
-        .onTapGesture(count: 3) {
-          streak.resetTodaysPrayer()
-          viewModel.resetProgress()
-          UINotificationFeedbackGenerator().notificationOccurred(.warning)
-        }
-      #endif
-    }
-  }
-
-  // MARK: Sections
-
-  private func prayerStepsSection(proxy: ScrollViewProxy) -> some View {
-    VStack(alignment: .leading, spacing: 12) {
-      HStack {
-        Text("content.prayer.guide.title")
-          .font(.caption)
-          .fontWeight(.semibold)
-          .foregroundStyle(AppTheme.textTertiary)
-          .textCase(.uppercase)
-          .tracking(1.0)
-        Spacer()
-        if !viewModel.completedSteps.isEmpty {
-          activityRings
-            .transition(.opacity.combined(with: .scale))
-        }
-      }
-
-      VStack(spacing: 10) {
-        ForEach(Array(viewModel.prayerSteps.enumerated()), id: \.element.id) { index, step in
-          PrayerStepView(
-            step: step,
-            isExpanded: viewModel.isExpanded(step),
-            isCompleted: viewModel.isCompleted(step),
-            prayerText: prayerTextBinding(for: step),
-            reflectionQuestions: viewModel.reflectionQuestions[step.id, default: []],
-            onTap: { onStepTap(step, proxy: proxy) },
-            onPray: { viewModel.save(step: step, in: modelContext) }
-          )
-          .id(step.id)
-          .offset(y: stepsAppeared ? 0 : 18)
-          .opacity(stepsAppeared ? 1 : 0)
-          .animation(
-            .spring(response: 0.5, dampingFraction: 0.85).delay(Double(index) * 0.07),
-            value: stepsAppeared
-          )
-          .scrollTransition { content, phase in
-            content
-              .opacity(phase.isIdentity ? 1 : 0.65)
-              .scaleEffect(phase.isIdentity ? 1 : 0.97)
-          }
-        }
-      }
-      .onAppear { stepsAppeared = true }
-    }
-  }
-
-  private var activityRings: some View {
-    let outerDiameter: CGFloat = 56
-    let reduction: CGFloat = 13
-    let lw: CGFloat = 4.5
-
-    return ZStack {
-      ForEach(Array(viewModel.prayerSteps.enumerated()), id: \.element.id) { index, step in
-        let diameter = outerDiameter - CGFloat(index) * reduction
-        let color = AppTheme.color(for: step.colorName)
-        let progress: CGFloat = viewModel.isCompleted(step) ? 1 : 0
-
-        Circle()
-          .stroke(color.opacity(0.15), lineWidth: lw)
-          .frame(width: diameter, height: diameter)
-
-        Circle()
-          .trim(from: 0, to: progress)
-          .stroke(color, style: StrokeStyle(lineWidth: lw, lineCap: .round))
-          .frame(width: diameter, height: diameter)
-          .rotationEffect(.degrees(-90))
-          .animation(.spring(response: 0.6, dampingFraction: 0.75), value: progress)
-      }
-    }
-    .frame(width: outerDiameter, height: outerDiameter)
-    .accessibilityHidden(true)
-  }
-
-  // MARK: Helpers
-
-  private func prayerTextBinding(for step: PrayerStep) -> Binding<String> {
-    Binding(
-      get: { viewModel.prayerTexts[step.id, default: ""] },
-      set: { viewModel.prayerTexts[step.id] = $0 }
-    )
-  }
-
-  private func onStepTap(_ step: PrayerStep, proxy: ScrollViewProxy) {
-    let wasExpanded = viewModel.isExpanded(step)
-    viewModel.toggleStep(step)
-    if !wasExpanded {
-      Task {
-        try? await Task.sleep(for: .milliseconds(150))
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
-          proxy.scrollTo(step.id, anchor: .top)
-        }
-      }
-      if viewModel.reflectionQuestions[step.id] == nil {
-        Task { await generateQuestions(for: step) }
-      }
-    }
-  }
-
-  private func generateQuestions(for step: PrayerStep) async {
-    guard tipService.hasAIFeature else { return }
-    do {
-      let questions = try await AIAssistantService.shared.generateReflectionQuestions(
-        for: step,
-        recentEntries: Array(entries.prefix(30))
-      )
-      withAnimation(.easeInOut(duration: 0.4)) {
-        viewModel.reflectionQuestions[step.id] = questions
-      }
-    } catch {
-      // silent — no questions shown, user still prays freely
-    }
-  }
-}
-
-// MARK: Completion banner
-
-private struct CompletionBanner: View {
-  var body: some View {
-    HStack(spacing: 14) {
-      Image(systemName: "checkmark.seal.fill")
-        .font(.title2)
-        .foregroundStyle(.green)
-      VStack(alignment: .leading, spacing: 2) {
-        Text("content.completion.title")
-          .font(.subheadline)
-          .fontWeight(.semibold)
-          .foregroundStyle(AppTheme.textPrimary)
-        Text("content.completion.subtitle")
-          .font(.caption)
-          .foregroundStyle(AppTheme.textSecondary)
-      }
-      Spacer()
-    }
-    .padding(16)
-    .background {
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(.green.opacity(0.12))
-        .overlay {
-          RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .strokeBorder(.green.opacity(0.25), lineWidth: 1)
-        }
-    }
-  }
 }
 
 #Preview {
   ContentView()
-    .modelContainer(for: PrayerEntry.self, inMemory: true)
+    .modelContainer(for: [PrayerEntry.self, PrayerIntention.self], inMemory: true)
     .preferredColorScheme(.dark)
 }
