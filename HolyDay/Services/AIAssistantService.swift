@@ -27,10 +27,6 @@ struct JournalInsight {
       Exactly 3 recurring spiritual themes DIRECTLY DETECTED in the prayer texts provided. \
       Never write generic themes like 'foi' or 'confiance' in isolation — \
       always anchor them in what this specific user actually wrote. \
-      Formulate as concise personal phrases, e.g.: \
-      'Inquiétude récurrente pour la santé d'un proche', \
-      'Gratitude profonde après des épreuves professionnelles', \
-      'Difficulté à pardonner dans une relation difficile'. \
       Always in French. Must be specific to this user's actual words.
       """,
     .count(3)
