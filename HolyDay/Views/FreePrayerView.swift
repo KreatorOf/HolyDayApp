@@ -37,7 +37,7 @@ struct FreePrayerView: View {
         }
         ToolbarItem(placement: .principal) {
           Text("prayer.free.nav.title")
-            .font(.system(.callout, design: .serif, weight: .bold))
+            .font(.headline)
             .foregroundStyle(AppTheme.textPrimary)
         }
       }
@@ -82,8 +82,7 @@ struct FreePrayerView: View {
           Image(systemName: "hands.sparkles.fill")
           Text("prayer.free.amen")
         }
-        .font(.system(.callout, design: .serif, weight: .bold))
-        .tracking(1.0)
+        .font(.callout.weight(.semibold))
         .foregroundStyle(.white)
         .padding(.horizontal, 24)
         .padding(.vertical, 12)

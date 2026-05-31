@@ -32,7 +32,7 @@ struct PrayerCompanionView: View {
         }
         ToolbarItem(placement: .principal) {
           Text("companion.nav.title")
-            .font(.system(.callout, design: .serif, weight: .bold))
+            .font(.headline)
             .foregroundStyle(AppTheme.textPrimary)
         }
       }

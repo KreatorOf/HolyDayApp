@@ -49,7 +49,7 @@ struct StructuredPrayerSheet: View {
         }
         ToolbarItem(placement: .principal) {
           Text("prayer.structured.title")
-            .font(.system(.callout, design: .serif, weight: .bold))
+            .font(.headline)
             .foregroundStyle(AppTheme.textPrimary)
         }
       }
