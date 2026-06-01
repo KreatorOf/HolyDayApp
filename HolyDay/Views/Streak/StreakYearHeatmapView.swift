@@ -573,7 +573,7 @@ struct StreakYearHeatmapView: View {
 
   private var legend: some View {
     HStack(spacing: 6) {
-      Text(String(localized: "streak.heatmap.legend.less", defaultValue: "Moins"))
+      Text("streak.heatmap.legend.more")
         .font(.system(size: 9))
         .foregroundStyle(AppTheme.textTertiary)
       ForEach(0..<5, id: \.self) { level in
@@ -581,7 +581,7 @@ struct StreakYearHeatmapView: View {
           .fill(legendColor(for: level))
           .frame(width: 10, height: 10)
       }
-      Text(String(localized: "streak.heatmap.legend.more", defaultValue: "Plus"))
+      Text("streak.heatmap.legend.more")
         .font(.system(size: 9))
         .foregroundStyle(AppTheme.textTertiary)
     }
