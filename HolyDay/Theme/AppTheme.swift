@@ -19,8 +19,8 @@ struct AppTheme {
     endPoint: .bottomTrailing
   )
 
-  // MARK: - Prayer step colors
-  // Light/dark variants defined in Assets.xcassets colorsets (WCAG AA on cream #F8F3EC)
+  // MARK: - Prayer step / brand colors
+  // Tons de marque conservés. Variantes light/dark définies dans Assets.xcassets (WCAG AA).
 
   static let adorationPurple = Color("adorationPurple")
   static let confessionBlue = Color("confessionBlue")
@@ -29,22 +29,25 @@ struct AppTheme {
   static let adaptiveOrange = Color("adaptiveOrange")
 
   // MARK: - Backgrounds
+  // Light = blanc neutre, dark = violet profond (variantes définies dans Assets.xcassets).
 
   static let backgroundPrimary = Color("backgroundPrimary")
-  static let backgroundSecondary = Color("backgroundSecondary")
-  static let backgroundTertiary = Color("backgroundTertiary")
+  static let backgroundSecondary = Color(uiColor: .secondarySystemBackground)
+  static let backgroundTertiary = Color(uiColor: .tertiarySystemBackground)
 
   // MARK: - Text
+  // Couleurs système : contraste et « Augmenter le contraste » gérés automatiquement (HIG Apple).
 
-  static let textPrimary = Color("textPrimary")
-  static let textSecondary = Color("textSecondary")
-  static let textTertiary = Color("textTertiary")
+  static let textPrimary = Color(uiColor: .label)
+  static let textSecondary = Color(uiColor: .secondaryLabel)
+  static let textTertiary = Color(uiColor: .tertiaryLabel)
 
   // MARK: - Shadows
 
   static let premiumShadow = Color("premiumShadow")
 
   // MARK: - Adaptive surfaces
+  // Translucides : se superposent proprement sur le blanc comme sur le violet profond.
 
   static let cardStroke = Color("cardStroke")
   static let cardFill = Color("cardFill")

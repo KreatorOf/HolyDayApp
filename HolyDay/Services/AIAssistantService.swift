@@ -58,18 +58,6 @@ struct JournalInsight {
 }
 
 @Generable
-struct DetectedIntentions {
-  @Guide(
-    description: """
-      Les sujets de prière concrets explicitement mentionnés dans le texte : \
-      personnes, situations, demandes pour lesquelles l'utilisateur prie. \
-      N'invente rien, n'ajoute aucune interprétation. Formule chaque sujet en \
-      2 à 6 mots, tels qu'exprimés par l'utilisateur. Liste vide si aucun sujet clair.
-      """)
-  var intentions: [String]
-}
-
-@Generable
 struct MonthlyRecap {
   @Guide(
     description: """
@@ -124,36 +112,6 @@ final class AIAssistantService {
     let prompt = journalPrompt(from: entries)
     let response = try await session.respond(to: prompt, generating: JournalInsight.self)
     return response.content
-  }
-
-  // MARK: Intention detection
-
-  func detectIntentions(in text: String) async throws -> [String] {
-    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty else { return [] }
-    let session = LanguageModelSession(instructions: intentionDetectionPrompt)
-    let response = try await session.respond(to: trimmed, generating: DetectedIntentions.self)
-    return response.content.intentions
-  }
-
-  // MARK: Listening companion
-
-  func makeCompanionSession() -> LanguageModelSession {
-    LanguageModelSession(instructions: companionSystemPrompt)
-  }
-
-  private var companionSystemPrompt: String {
-    """
-    Tu es un compagnon d'écoute bienveillant dans une application de prière. \
-    Ton rôle est d'aider la personne à mettre des mots sur ce qu'elle porte, \
-    uniquement en posant des questions ouvertes et en reformulant ses propres \
-    paroles avec douceur. \
-    Règles absolues : tu ne cites jamais l'Écriture, tu n'enseignes rien, tu \
-    n'apportes aucune interprétation ni réponse théologique, tu ne pries pas à \
-    sa place, et tu ne prétends jamais parler au nom de Dieu. \
-    Tu restes bref (1 à 3 phrases), chaleureux, et tu termines souvent par une \
-    question douce qui aide à approfondir. Réponds en français.
-    """
   }
 
   // MARK: Monthly recap
@@ -230,15 +188,6 @@ final class AIAssistantService {
     }
     prompt += "\nRenvoie les numéros des prières qui correspondent au sens de la requête."
     return prompt
-  }
-
-  private var intentionDetectionPrompt: String {
-    """
-    Tu extrais les sujets de prière concrets (personnes, situations, demandes) \
-    explicitement mentionnés dans le texte d'une prière. \
-    Tu n'inventes rien, tu n'ajoutes aucune interprétation, tu ne cites pas l'Écriture. \
-    Tu te limites à reformuler brièvement ce que l'utilisateur a écrit. Réponds en français.
-    """
   }
 
   private var journalSystemPrompt: String {

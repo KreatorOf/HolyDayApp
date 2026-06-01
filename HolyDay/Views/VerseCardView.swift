@@ -118,7 +118,7 @@ struct VerseCardView: View {
 
 #Preview {
   ZStack {
-    AppTheme.backgroundPrimary.ignoresSafeArea()
+    AppBackground()
     VStack(spacing: 16) {
       VerseCardView(
         verse: Verse(

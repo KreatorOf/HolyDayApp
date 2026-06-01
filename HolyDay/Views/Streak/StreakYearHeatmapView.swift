@@ -281,7 +281,7 @@ struct StreakYearHeatmapView: View {
             .padding(.bottom, 8)
         }
       }
-      .background { AnimatedMeshBackground() }
+      .background { AppBackground() }
       .task {
         cachedHeatData = computeHeatData()
         cachedRegularityStats = computeRegularityStats()
@@ -485,7 +485,7 @@ struct StreakYearHeatmapView: View {
         }
       }
       .frame(height: 5)
-      Text("\(Int(consistencyLast30 * 100))%")
+      Text(consistencyLast30.formatted(.percent.precision(.fractionLength(0))))
         .font(.caption2.weight(.semibold))
         .foregroundStyle(consistencyColor)
         .monospacedDigit()
@@ -671,7 +671,7 @@ private struct RegularityRateBlock: View {
         }
       }
       .frame(height: 4)
-      Text("\(Int(rate * 100))%")
+      Text(rate.formatted(.percent.precision(.fractionLength(0))))
         .font(.system(size: 11, weight: .semibold, design: .serif))
         .foregroundStyle(rateColor)
         .monospacedDigit()
