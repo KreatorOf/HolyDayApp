@@ -25,7 +25,7 @@ struct PrayerEntryDetailView: View {
       .padding(20)
     }
     .navigationBarTitleDisplayMode(.inline)
-    .background { AnimatedMeshBackground() }
+    .background { AppBackground() }
   }
 
   private var answeredButton: some View {

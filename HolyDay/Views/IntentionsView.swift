@@ -11,25 +11,40 @@ import SwiftUI
 struct IntentionsView: View {
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @Query(sort: \PrayerIntention.createdAt, order: .reverse) private var intentions:
     [PrayerIntention]
+  @State private var segment: Segment = .active
   @State private var newText = ""
   @State private var editingIntention: PrayerIntention?
   @State private var editText = ""
+  // Ligne en cours de glissement « exaucée » avant que la bascule ne la retire des actives.
+  @State private var departingID: PersistentIdentifier?
+  // Phase suivante : le 🙏, resté en place ~1 s, glisse à son tour vers la droite.
+  @State private var handsLeavingID: PersistentIdentifier?
+  @State private var answeredHaptic = 0
   @FocusState private var isFocused: Bool
+
+  private enum Segment { case active, answered }
+
+  // Distance suffisante pour sortir la ligne par la droite quelle que soit la largeur du sheet.
+  private let departOffset: CGFloat = 900
 
   private var active: [PrayerIntention] { intentions.filter { !$0.isAnswered } }
   private var answered: [PrayerIntention] { intentions.filter(\.isAnswered) }
+  private var shown: [PrayerIntention] { segment == .active ? active : answered }
 
   var body: some View {
     NavigationStack {
       ZStack {
-        AnimatedMeshBackground().ignoresSafeArea()
+        AppBackground()
         VStack(spacing: 0) {
-          intentionList
-          inputBar
+          segmentedControl
+          content
+          if segment == .active { inputBar }
         }
       }
+      .sensoryFeedback(.success, trigger: answeredHaptic)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
@@ -50,28 +65,56 @@ struct IntentionsView: View {
     }
   }
 
-  // MARK: - List
+  // MARK: - Segmented control
+
+  private var segmentedControl: some View {
+    GlassEffectContainer(spacing: 4) {
+      HStack(spacing: 4) {
+        segmentButton(.active, label: "intentions.segment.active", count: active.count)
+        segmentButton(.answered, label: "intentions.section.answered", count: answered.count)
+      }
+    }
+    .padding(.horizontal, 16)
+    .padding(.top, 8)
+    .padding(.bottom, 4)
+  }
+
+  private func segmentButton(_ seg: Segment, label: LocalizedStringKey, count: Int) -> some View {
+    let selected = segment == seg
+    return Button {
+      withAnimation(.smooth(duration: 0.3)) { segment = seg }
+    } label: {
+      HStack(spacing: 6) {
+        Text(label)
+          .font(.subheadline.weight(.semibold))
+        Text("\(count)")
+          .font(.caption.weight(.semibold))
+          .opacity(0.6)
+      }
+      .foregroundStyle(selected ? AppTheme.textPrimary : AppTheme.textSecondary)
+      .frame(maxWidth: .infinity)
+      .padding(.vertical, 10)
+      .contentShape(Capsule())
+    }
+    .buttonStyle(.plain)
+    .glassEffect(
+      selected
+        ? .regular.tint(AppTheme.adorationPurple.opacity(0.35)).interactive()
+        : .regular.interactive(),
+      in: .capsule
+    )
+  }
+
+  // MARK: - Content
 
   @ViewBuilder
-  private var intentionList: some View {
-    if intentions.isEmpty {
+  private var content: some View {
+    if shown.isEmpty {
       emptyState
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     } else {
       List {
-        if !active.isEmpty {
-          Section {
-            ForEach(active) { intentionRow($0) }
-          } header: {
-            sectionHeader(String(localized: "intentions.section.active"))
-          }
-        }
-        if !answered.isEmpty {
-          Section {
-            ForEach(answered) { intentionRow($0) }
-          } header: {
-            sectionHeader(String(localized: "intentions.section.answered"))
-          }
-        }
+        ForEach(shown) { intentionRow($0) }
       }
       .listStyle(.plain)
       .scrollContentBackground(.hidden)
@@ -79,54 +122,82 @@ struct IntentionsView: View {
     }
   }
 
-  private func intentionRow(_ intention: PrayerIntention) -> some View {
-    HStack(spacing: 12) {
-      Button {
-        toggle(intention)
-      } label: {
-        Image(systemName: intention.isAnswered ? "checkmark.seal.fill" : "circle")
-          .font(.title3)
-          .foregroundStyle(
-            intention.isAnswered ? AppTheme.supplicationGreen : AppTheme.textTertiary
-          )
-          .contentShape(Circle())
+  @ViewBuilder
+  private var emptyState: some View {
+    switch segment {
+    case .active:
+      ContentUnavailableView {
+        Label("intentions.empty.title", systemImage: "heart.text.square.fill")
+      } description: {
+        Text("intentions.empty.subtitle")
       }
-      .buttonStyle(.plain)
-      .sensoryFeedback(.success, trigger: intention.isAnswered)
-      .accessibilityLabel(intention.text)
-      .accessibilityValue(
-        String(
-          localized: intention.isAnswered
-            ? "intentions.section.answered" : "intentions.section.active")
-      )
-      .accessibilityAddTraits(intention.isAnswered ? .isSelected : [])
-
-      VStack(alignment: .leading, spacing: 2) {
-        Text(intention.text)
-          .font(.subheadline)
-          .foregroundStyle(intention.isAnswered ? AppTheme.textSecondary : AppTheme.textPrimary)
-          .strikethrough(intention.isAnswered, color: AppTheme.textTertiary)
-
-        if intention.isAnswered, let date = intention.answeredAt {
-          Text(
-            "\(String(localized: "intentions.answered.label")) · \(date.formatted(.dateTime.day().month()))"
-          )
-          .font(.caption2)
-          .foregroundStyle(AppTheme.supplicationGreen)
-        }
+    case .answered:
+      ContentUnavailableView {
+        Label("intentions.empty.answered.title", systemImage: "checkmark.seal")
+      } description: {
+        Text("intentions.empty.answered.subtitle")
       }
-
-      Spacer(minLength: 0)
     }
-    .padding(.horizontal, 14)
-    .padding(.vertical, 10)
-    .background {
-      RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(.ultraThinMaterial)
-        .overlay {
-          RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+  }
+
+  private func intentionRow(_ intention: PrayerIntention) -> some View {
+    let isDeparting = departingID == intention.persistentModelID
+    let handsLeaving = handsLeavingID == intention.persistentModelID
+    // On affiche l'état « exaucé » dès le tap (sceau plein, barré) pendant que la ligne s'en va.
+    let answered = intention.isAnswered || isDeparting
+    return ZStack {
+      // Mains jointes : éclosent en place quand la ligne part, tiennent ~1 s, puis sortent à droite.
+      Text(verbatim: "🙏")
+        .font(.system(size: 34))
+        .scaleEffect(isDeparting ? 1 : 0.2)
+        .opacity(isDeparting ? 1 : 0)
+        .offset(x: handsLeaving && !reduceMotion ? departOffset : 0)
+        .accessibilityHidden(true)
+
+      HStack(spacing: 12) {
+        Button {
+          toggle(intention)
+        } label: {
+          Image(systemName: answered ? "checkmark.seal.fill" : "circle")
+            .font(.title3)
+            .foregroundStyle(answered ? AppTheme.supplicationGreen : AppTheme.textTertiary)
+            .symbolEffect(.bounce, value: answered)
+            .contentShape(Circle())
         }
+        .buttonStyle(.plain)
+        .accessibilityLabel(intention.text)
+        .accessibilityValue(
+          String(
+            localized: intention.isAnswered
+              ? "intentions.section.answered" : "intentions.section.active")
+        )
+        .accessibilityAddTraits(intention.isAnswered ? .isSelected : [])
+
+        VStack(alignment: .leading, spacing: 3) {
+          Text(intention.text)
+            .font(.subheadline)
+            .foregroundStyle(answered ? AppTheme.textSecondary : AppTheme.textPrimary)
+            .strikethrough(answered, color: AppTheme.textTertiary)
+
+          Text(subtitle(for: intention))
+            .font(.caption2)
+            .foregroundStyle(answered ? AppTheme.supplicationGreen : AppTheme.textTertiary)
+        }
+
+        Spacer(minLength: 0)
+      }
+      .padding(.horizontal, 14)
+      .padding(.vertical, 12)
+      .background {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .fill(.ultraThinMaterial)
+          .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+          }
+      }
+      .offset(x: isDeparting && !reduceMotion ? departOffset : 0)
+      .opacity(isDeparting ? 0 : 1)
     }
     .listRowBackground(Color.clear)
     .listRowSeparator(.hidden)
@@ -144,38 +215,6 @@ struct IntentionsView: View {
       }
       .tint(AppTheme.adorationPurple)
     }
-  }
-
-  private func sectionHeader(_ text: String) -> some View {
-    Text(text)
-      .font(.caption)
-      .fontWeight(.semibold)
-      .foregroundStyle(AppTheme.textTertiary)
-      .textCase(.uppercase)
-      .tracking(1.0)
-      .listRowInsets(EdgeInsets(top: 16, leading: 20, bottom: 6, trailing: 20))
-  }
-
-  // MARK: - Empty state
-
-  private var emptyState: some View {
-    VStack(spacing: 12) {
-      Spacer()
-      Image(systemName: "hands.and.sparkles.fill")
-        .font(.system(size: 32))
-        .foregroundStyle(AppTheme.adorationPurple.opacity(0.7))
-        .accessibilityHidden(true)
-      Text("intentions.empty.title")
-        .font(.headline)
-        .foregroundStyle(AppTheme.textPrimary)
-      Text("intentions.empty.subtitle")
-        .font(.subheadline)
-        .foregroundStyle(AppTheme.textSecondary)
-        .multilineTextAlignment(.center)
-      Spacer()
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .padding(.horizontal, 24)
   }
 
   // MARK: - Input
@@ -218,6 +257,27 @@ struct IntentionsView: View {
     !newText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   }
 
+  // MARK: - Helpers
+
+  private func subtitle(for intention: PrayerIntention) -> String {
+    if intention.isAnswered, let date = intention.answeredAt {
+      return
+        "\(String(localized: "intentions.answered.label")) · \(date.formatted(.dateTime.day().month()))"
+    }
+    return durationText(since: intention.createdAt)
+  }
+
+  private func durationText(since date: Date) -> String {
+    let calendar = Calendar.current
+    let days =
+      calendar.dateComponents(
+        [.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: .now)
+      ).day ?? 0
+    if days <= 0 { return String(localized: "intentions.duration.today") }
+    if days == 1 { return String(localized: "intentions.duration.yesterday") }
+    return String(format: String(localized: "intentions.duration.days"), days)
+  }
+
   // MARK: - Actions
 
   private var editAlertBinding: Binding<Bool> {
@@ -235,8 +295,37 @@ struct IntentionsView: View {
   }
 
   private func toggle(_ intention: PrayerIntention) {
-    intention.isAnswered.toggle()
-    intention.answeredAt = intention.isAnswered ? .now : nil
+    if intention.isAnswered {
+      // Annulation : retour direct dans les actives, sans effet.
+      intention.isAnswered = false
+      intention.answeredAt = nil
+    } else {
+      answer(intention)
+    }
+  }
+
+  // Fait glisser la ligne hors de l'écran, puis bascule l'intention en exaucée une fois hors champ,
+  // pour que la sortie soit visible avant que `@Query` ne la retire de la liste des actives.
+  private func answer(_ intention: PrayerIntention) {
+    let id = intention.persistentModelID
+    answeredHaptic += 1
+    // Phase A : la ligne glisse à droite, les mains jointes éclosent à sa place.
+    withAnimation(.easeIn(duration: 0.4)) { departingID = id }
+
+    Task {
+      // On laisse les mains jointes bien visibles ~1 s avant de les faire sortir.
+      try? await Task.sleep(for: .seconds(1))
+      // Phase B : les mains jointes suivent vers la droite.
+      withAnimation(.easeIn(duration: 0.4)) { handsLeavingID = id }
+      try? await Task.sleep(for: .milliseconds(400))
+      // Une fois hors champ, on bascule réellement l'intention en exaucée.
+      withAnimation(.easeOut(duration: 0.2)) {
+        intention.isAnswered = true
+        intention.answeredAt = .now
+      }
+      departingID = nil
+      handsLeavingID = nil
+    }
   }
 
   private func startEdit(_ intention: PrayerIntention) {

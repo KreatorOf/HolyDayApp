@@ -18,8 +18,7 @@ struct OnboardingView: View {
 
   var body: some View {
     ZStack {
-      AnimatedMeshBackground()
-        .ignoresSafeArea()
+      AppBackground()
 
       if currentPage == 0 {
         WelcomePage { advance(to: 1) }

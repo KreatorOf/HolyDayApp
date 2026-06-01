@@ -18,7 +18,6 @@ struct StructuredPrayerSheet: View {
     order: .reverse)
   private var activeIntentions: [PrayerIntention]
   @State private var viewModel = PrayerGuideViewModel()
-  @State private var tipService = TipService.shared
   @State private var stepsAppeared = false
 
   var body: some View {
@@ -41,7 +40,7 @@ struct StructuredPrayerSheet: View {
         }
         .scrollIndicators(.hidden)
       }
-      .background { AnimatedMeshBackground().ignoresSafeArea() }
+      .background { AppBackground() }
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
@@ -165,7 +164,6 @@ struct StructuredPrayerSheet: View {
   }
 
   private func generateQuestions(for step: PrayerStep) async {
-    guard tipService.hasAIFeature else { return }
     do {
       let questions = try await AIAssistantService.shared.generateReflectionQuestions(
         for: step,

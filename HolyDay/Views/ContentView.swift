@@ -9,70 +9,39 @@ import SwiftData
 import SwiftUI
 
 struct ContentView: View {
-  @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
-  @Query(
-    filter: #Predicate<PrayerIntention> { !$0.isAnswered }, sort: \PrayerIntention.createdAt,
-    order: .reverse)
-  private var activeIntentions: [PrayerIntention]
+  @Environment(\.modelContext) private var modelContext
   @State private var streak = StreakService.shared
-  @State private var tipService = TipService.shared
-  @State private var isFABExpanded = false
-  @State private var showFreePrayer = false
+
+  @State private var selectedEmotion: Emotion?
+  @State private var emotionVerse: Verse?
+  @State private var prayerText = ""
+  @FocusState private var isComposerFocused: Bool
+
   @State private var showStructuredPrayer = false
-  @State private var showCompanion = false
-  @State private var showAIPaywall = false
   @State private var showIntentions = false
-  @State private var showNavTitle = false
-  @State private var topInset: CGFloat = 100
-  @State private var cachedGreeting = ""
-  @State private var verseOfTheDay = VerseService.shared.getVerseOfTheDay()
-  @State private var selectedEntry: PrayerEntry?
+
   @AppStorage("holyday.userName") private var userName = ""
+
+  private let verseAnchorID = "verse"
+
+  private var canSave: Bool {
+    !prayerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
 
   var body: some View {
     NavigationStack {
       ZStack {
-        scrollContent
-        if isFABExpanded {
-          Color.black.opacity(0.001)
-            .contentShape(Rectangle())
-            .ignoresSafeArea()
-            .onTapGesture { collapse() }
-        }
+        composerLayer
       }
-      .overlay(alignment: .bottomTrailing) {
-        fabStack
-          .padding(.trailing, 24)
-          .padding(.bottom, 24)
-      }
-      .ignoresSafeArea(.all, edges: .top)
-      .background { AnimatedMeshBackground() }
+      .contentShape(Rectangle())
+      .onTapGesture { isComposerFocused = false }
+      .background { AppBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
-        ToolbarItem(placement: .principal) {
-          HStack(spacing: 0) {
-            Text("Holy")
-              .font(.system(.callout, design: .serif, weight: .bold).italic())
-              .foregroundStyle(AppTheme.textPrimary)
-            Text("Day")
-              .font(.system(.callout, design: .serif, weight: .thin))
-              .foregroundStyle(AppTheme.textPrimary)
-          }
-          .opacity(showNavTitle ? 1 : 0)
-        }
+        ToolbarItem(placement: .principal) { brandingTitle }
+        ToolbarItem(placement: .topBarTrailing) { intentionsButton }
+        ToolbarItem(placement: .topBarTrailing) { structuredPrayerButton }
       }
-      .navigationDestination(item: $selectedEntry) { entry in
-        PrayerEntryDetailView(entry: entry)
-      }
-    }
-    .background(
-      GeometryReader { geo in
-        Color.clear.onAppear { topInset = geo.safeAreaInsets.top }
-      }
-      .ignoresSafeArea()
-    )
-    .fullScreenCover(isPresented: $showFreePrayer) {
-      FreePrayerView()
     }
     .fullScreenCover(isPresented: $showStructuredPrayer) {
       StructuredPrayerSheet()
@@ -80,325 +49,173 @@ struct ContentView: View {
     .sheet(isPresented: $showIntentions) {
       IntentionsView()
     }
-    .fullScreenCover(isPresented: $showCompanion) {
-      PrayerCompanionView()
-    }
-    .sheet(isPresented: $showAIPaywall) {
-      HolyDayPaywallView(context: .aiFeature)
-    }
-    .onAppear { updateGreeting() }
-    .onChange(of: userName) { _, _ in updateGreeting() }
   }
 
-  // MARK: - Scroll content
+  // MARK: - Composer layer
 
-  private var scrollContent: some View {
-    ScrollView {
-      VStack(spacing: 24) {
-        headerSection
-        VerseCardView(verse: verseOfTheDay)
-          .padding(.horizontal, 16)
-        meditateInvitation
-          .padding(.horizontal, 24)
-        intentionsCard
-          .padding(.horizontal, 16)
-        if let last = lastPrayer {
-          continuityCard(last)
-            .padding(.horizontal, 16)
-        }
-      }
-      .padding(.top, topInset + 44 + 50)
-      .padding(.bottom, 140)
-    }
-    .scrollIndicators(.hidden)
-    .onScrollGeometryChange(for: CGFloat.self) {
-      $0.contentOffset.y
-    } action: { _, y in
-      let shouldShow = y > 80
-      guard shouldShow != showNavTitle else { return }
-      withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
-    }
-  }
+  private var composerLayer: some View {
+    // ScrollView + minHeight = hauteur du viewport : le contenu reste centré au repos, et devient
+    // défilable quand le clavier réduit l'espace. On défile alors vers le verset pour qu'il reste
+    // entièrement visible au-dessus du champ de saisie.
+    GeometryReader { geo in
+      ScrollViewReader { proxy in
+        ScrollView {
+          VStack(spacing: 28) {
+            Spacer(minLength: 0)
 
-  // MARK: - Header
+            Text(feelingQuestion)
+              .font(.system(.title2, design: .serif).weight(.semibold))
+              .foregroundStyle(AppTheme.textPrimary)
+              .multilineTextAlignment(.center)
+              .padding(.horizontal, 32)
 
-  private var headerSection: some View {
-    VStack(alignment: .center, spacing: 2) {
-      Text(cachedGreeting)
-        .font(.subheadline)
-        .foregroundStyle(AppTheme.textSecondary)
-        .tracking(0.3)
-        .multilineTextAlignment(.center)
-      HStack(spacing: 0) {
-        Text("Holy")
-          .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
-          .foregroundStyle(AppTheme.textPrimary)
-        Text("Day")
-          .font(.system(.largeTitle, design: .serif).weight(.thin))
-          .foregroundStyle(AppTheme.textSecondary)
-      }
-      #if DEBUG
-        .onTapGesture(count: 3) {
-          streak.resetTodaysPrayer()
-          UINotificationFeedbackGenerator().notificationOccurred(.warning)
-        }
-      #endif
-    }
-    .padding(.horizontal, 16)
-  }
+            EmotionRibbonView { select($0) }
 
-  // MARK: - Meditate invitation
-
-  private var meditateInvitation: some View {
-    Text(meditatePrompt)
-      .font(.system(.body, design: .serif).italic())
-      .foregroundStyle(AppTheme.textSecondary)
-      .multilineTextAlignment(.center)
-      .lineSpacing(4)
-      .frame(maxWidth: .infinity)
-  }
-
-  // MARK: - Intentions
-
-  private var intentionsCard: some View {
-    Button {
-      showIntentions = true
-    } label: {
-      VStack(alignment: .leading, spacing: 10) {
-        HStack {
-          Text("intentions.home.label")
-            .font(.caption2.weight(.semibold))
-            .foregroundStyle(AppTheme.textTertiary)
-            .textCase(.uppercase)
-            .tracking(1.0)
-          Spacer()
-          Image(systemName: activeIntentions.isEmpty ? "plus" : "chevron.right")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(AppTheme.textTertiary)
-        }
-
-        if activeIntentions.isEmpty {
-          Text("intentions.home.empty")
-            .font(.subheadline)
-            .foregroundStyle(AppTheme.textSecondary)
-        } else {
-          VStack(alignment: .leading, spacing: 7) {
-            ForEach(activeIntentions.prefix(3)) { intention in
-              HStack(alignment: .top, spacing: 8) {
-                Circle()
-                  .fill(AppTheme.adorationPurple.opacity(0.5))
-                  .frame(width: 5, height: 5)
-                  .padding(.top, 7)
-                Text(intention.text)
-                  .font(.subheadline)
-                  .foregroundStyle(AppTheme.textPrimary)
-                  .lineLimit(1)
-              }
+            if let emotionVerse {
+              EmotionVerseView(
+                verse: emotionVerse,
+                accent: selectedEmotion?.color ?? AppTheme.adorationPurple
+              )
+              .id(verseAnchorID)
+              .transition(.opacity)
             }
+
+            composer
+
+            Spacer(minLength: 0)
+            Spacer(minLength: 0)
           }
-          if activeIntentions.count > 3 {
-            Text(
-              String(
-                format: String(localized: "intentions.home.more"), activeIntentions.count - 3)
-            )
-            .font(.caption)
-            .foregroundStyle(AppTheme.textTertiary)
+          .frame(minHeight: geo.size.height)
+          .animation(.spring(response: 0.45, dampingFraction: 0.85), value: emotionVerse?.id)
+        }
+        .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.interactively)
+        .onChange(of: isComposerFocused) { _, focused in
+          guard focused, emotionVerse != nil else { return }
+          withAnimation(.easeOut(duration: 0.3)) {
+            proxy.scrollTo(verseAnchorID, anchor: .top)
           }
         }
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(16)
-      .background {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .fill(.ultraThinMaterial)
-          .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
-          }
       }
     }
-    .buttonStyle(.plain)
   }
 
-  // MARK: - Continuity thread
-
-  private func continuityCard(_ entry: PrayerEntry) -> some View {
-    Button {
-      selectedEntry = entry
-    } label: {
-      VStack(alignment: .leading, spacing: 6) {
-        Text("home.continuity.label")
-          .font(.caption2.weight(.semibold))
-          .foregroundStyle(AppTheme.textTertiary)
-          .textCase(.uppercase)
-          .tracking(1.0)
-
-        HStack(spacing: 6) {
-          Image(systemName: entry.stepIcon)
-            .font(.caption)
-            .foregroundStyle(AppTheme.color(for: entry.stepColorName))
-          Text("\(relativeDay(entry.date)) · \(entry.stepTitle)")
-            .font(.subheadline.weight(.medium))
-            .foregroundStyle(AppTheme.textPrimary)
-        }
-
-        Text(entry.text)
-          .font(.caption)
-          .foregroundStyle(AppTheme.textSecondary)
-          .italic()
-          .lineLimit(2)
-          .multilineTextAlignment(.leading)
-      }
-      .frame(maxWidth: .infinity, alignment: .leading)
-      .padding(16)
-      .background {
-        RoundedRectangle(cornerRadius: 18, style: .continuous)
-          .fill(.ultraThinMaterial)
-          .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
-          }
-      }
-    }
-    .buttonStyle(.plain)
-  }
-
-  // MARK: - FAB
-
-  private var fabStack: some View {
-    VStack(alignment: .trailing, spacing: 14) {
-      if isFABExpanded {
-        fabOption(
-          icon: "checklist",
-          label: String(localized: "prayer.fab.structured")
-        ) {
-          collapse()
-          showStructuredPrayer = true
-        }
-        .transition(
-          .asymmetric(
-            insertion: .move(edge: .bottom).combined(with: .opacity),
-            removal: .opacity
-          )
+  private var composer: some View {
+    HStack(alignment: .bottom, spacing: 8) {
+      TextField("prayer.free.placeholder", text: $prayerText, axis: .vertical)
+        .font(.body)
+        .foregroundStyle(AppTheme.textPrimary)
+        .focused($isComposerFocused)
+        .lineLimit(1...6)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .glassEffect(
+          .regular.interactive(),
+          in: RoundedRectangle(cornerRadius: 24, style: .continuous)
         )
-
-        fabOption(
-          icon: "square.and.pencil",
-          label: String(localized: "prayer.fab.free")
-        ) {
-          collapse()
-          showFreePrayer = true
-        }
-        .transition(
-          .asymmetric(
-            insertion: .move(edge: .bottom).combined(with: .opacity),
-            removal: .opacity
-          )
-        )
-
-        fabOption(
-          icon: "sparkles",
-          label: String(localized: "prayer.fab.companion")
-        ) {
-          collapse()
-          if tipService.hasAIFeature {
-            showCompanion = true
-          } else {
-            showAIPaywall = true
-          }
-        }
-        .transition(
-          .asymmetric(
-            insertion: .move(edge: .bottom).combined(with: .opacity),
-            removal: .opacity
-          )
-        )
-      }
 
       Button {
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-          isFABExpanded.toggle()
-        }
+        save()
       } label: {
-        Image(systemName: "plus")
-          .font(.title2.weight(.semibold))
-          .foregroundStyle(.white)
-          .rotationEffect(.degrees(isFABExpanded ? 45 : 0))
-          .frame(width: 56, height: 56)
+        Image(systemName: "arrow.up.circle.fill")
+          .font(.system(size: 34))
+          .foregroundStyle(canSave ? AppTheme.adorationPurple : AppTheme.textTertiary.opacity(0.4))
+          .frame(width: 44, height: 44)
           .contentShape(Circle())
       }
       .buttonStyle(.plain)
-      .glassEffect(.regular.tint(AppTheme.adorationPurple.opacity(0.5)), in: Circle())
-      .sensoryFeedback(.impact(flexibility: .soft), trigger: isFABExpanded)
-      .accessibilityLabel(
-        String(
-          localized: isFABExpanded ? "fab.accessibility.close" : "fab.accessibility.open")
-      )
-      .accessibilityAddTraits(isFABExpanded ? .isSelected : [])
+      .disabled(!canSave)
+      .animation(.easeInOut(duration: 0.2), value: canSave)
+      .accessibilityLabel(String(localized: "prayer.free.amen"))
     }
+    .padding(.horizontal, 20)
   }
 
-  private func fabOption(icon: String, label: String, action: @escaping () -> Void) -> some View {
-    Button(action: action) {
-      HStack(spacing: 10) {
-        Image(systemName: icon)
-          .font(.body.weight(.semibold))
-          .foregroundStyle(AppTheme.adorationPurple)
-        Text(label)
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(AppTheme.textPrimary)
+  // MARK: - Toolbar
+
+  private var brandingTitle: some View {
+    HStack(spacing: 0) {
+      Text("Holy")
+        .font(.system(.title, design: .serif, weight: .bold).italic())
+        .foregroundStyle(AppTheme.textPrimary)
+      Text("Day")
+        .font(.system(.title, design: .serif, weight: .thin))
+        .foregroundStyle(AppTheme.textPrimary)
+    }
+    #if DEBUG
+      .onTapGesture(count: 3) {
+        streak.resetTodaysPrayer()
+        UINotificationFeedbackGenerator().notificationOccurred(.warning)
       }
-      .padding(.horizontal, 18)
-      .padding(.vertical, 13)
-    }
-    .buttonStyle(.plain)
-    .glassEffect(.regular, in: Capsule())
+    #endif
   }
 
-  private func collapse() {
-    withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
-      isFABExpanded = false
+  // Filet discret pour qui ne sait pas quoi dire : lance la prière structurée.
+  private var structuredPrayerButton: some View {
+    Button {
+      showStructuredPrayer = true
+    } label: {
+      Image(systemName: "hands.sparkles")
+        .font(.body.weight(.semibold))
+        .foregroundStyle(AppTheme.textPrimary)
+    }
+    .accessibilityLabel(String(localized: "home.guided.cta"))
+  }
+
+  private var intentionsButton: some View {
+    Button {
+      showIntentions = true
+    } label: {
+      Image(systemName: "heart.text.square")
+        .font(.body.weight(.semibold))
+        .foregroundStyle(AppTheme.textPrimary)
+    }
+    .accessibilityLabel(String(localized: "intentions.nav.title"))
+  }
+
+  // MARK: - Actions
+
+  private func select(_ emotion: Emotion) {
+    UISelectionFeedbackGenerator().selectionChanged()
+    withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
+      selectedEmotion = emotion
+      emotionVerse = VerseService.shared.verse(for: emotion)
+    }
+  }
+
+  private func save() {
+    let trimmed = prayerText.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return }
+    isComposerFocused = false
+
+    let entry = PrayerEntry(
+      stepTitle: String(localized: "prayer.free.title"),
+      stepIcon: "square.and.pencil",
+      stepColorName: "adorationPurple",
+      text: trimmed,
+      emotion: selectedEmotion,
+      verseReference: emotionVerse?.reference
+    )
+    modelContext.insert(entry)
+    StreakService.shared.recordPrayer()
+    resetComposer()
+  }
+
+  private func resetComposer() {
+    withAnimation(.easeInOut(duration: 0.3)) {
+      prayerText = ""
+      selectedEmotion = nil
+      emotionVerse = nil
     }
   }
 
   // MARK: - Helpers
 
-  private var lastPrayer: PrayerEntry? {
-    entries.first { !$0.text.isEmpty }
-  }
-
-  // Literal keys — a LocalizedStringKey built from string interpolation is treated as a
-  // format string and never resolves against the catalog.
-  private static let meditatePrompts: [LocalizedStringKey] = [
-    "home.meditate.0", "home.meditate.1", "home.meditate.2", "home.meditate.3",
-    "home.meditate.4", "home.meditate.5", "home.meditate.6",
-  ]
-
-  private var meditatePrompt: LocalizedStringKey {
-    let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-    return Self.meditatePrompts[(dayOfYear - 1) % Self.meditatePrompts.count]
-  }
-
-  private func relativeDay(_ date: Date) -> String {
-    let calendar = Calendar.current
-    let days =
-      calendar.dateComponents(
-        [.day], from: calendar.startOfDay(for: date), to: calendar.startOfDay(for: .now)
-      ).day ?? 0
-    if days <= 0 { return String(localized: "home.continuity.today") }
-    if days == 1 { return String(localized: "home.continuity.yesterday") }
-    return String(format: String(localized: "home.continuity.days"), days)
-  }
-
-  private func updateGreeting() {
-    let hour = Calendar.current.component(.hour, from: Date())
-    let base: String
-    switch hour {
-    case 5..<12: base = String(localized: "greeting.morning")
-    case 12..<18: base = String(localized: "greeting.afternoon")
-    default: base = String(localized: "greeting.evening")
+  private var feelingQuestion: String {
+    if userName.isEmpty {
+      return String(localized: "home.feeling.question")
     }
-    cachedGreeting = userName.isEmpty ? base : "\(base), \(userName)"
+    return String(format: String(localized: "home.feeling.question.named"), userName)
   }
 }
 

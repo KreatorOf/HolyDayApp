@@ -12,7 +12,6 @@ import SwiftUI
 struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
   @Environment(\.modelContext) private var modelContext
-  @State private var tipService = TipService.shared
   @State private var displayedMonth: Date = Self.firstOfCurrentMonth()
   @State private var selectedDate: Date? = Calendar.current.startOfDay(for: Date())
   @State private var topInset: CGFloat = 100
@@ -23,7 +22,6 @@ struct PrayerHistoryView: View {
   @State private var aiResults: [(date: Date, entries: [PrayerEntry])]?
   @State private var isAISearching = false
   @State private var showInsight = false
-  @State private var showAIPaywall = false
 
   private static func firstOfCurrentMonth() -> Date {
     let cal = Calendar.current
@@ -64,7 +62,7 @@ struct PrayerHistoryView: View {
         guard shouldShow != showNavTitle else { return }
         withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
       }
-      .background { AnimatedMeshBackground() }
+      .background { AppBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .principal) {
@@ -132,22 +130,15 @@ struct PrayerHistoryView: View {
             AnsweredPrayersInsight()
             PrayerRhythmInsight()
             ACTSBalanceInsight()
-            if tipService.hasAIFeature {
-              MonthlyRecapSection(entries: currentMonthEntries)
-              JournalAIInsightSection(entries: entries)
-            } else {
-              AIInsightUpsellCard {
-                showInsight = false
-                showAIPaywall = true
-              }
-            }
+            MonthlyRecapSection(entries: currentMonthEntries)
+            JournalAIInsightSection(entries: entries)
           }
           .padding(.horizontal, 20)
           .padding(.top, 8)
           .padding(.bottom, 32)
         }
         .scrollIndicators(.hidden)
-        .background(AppTheme.backgroundPrimary.ignoresSafeArea())
+        .background { AppBackground() }
         .toolbar {
           ToolbarItem(placement: .topBarLeading) {
             Button(role: .close) { showInsight = false }
@@ -155,9 +146,6 @@ struct PrayerHistoryView: View {
         }
       }
       .presentationDragIndicator(.visible)
-    }
-    .sheet(isPresented: $showAIPaywall) {
-      HolyDayPaywallView(context: .aiFeature)
     }
     .background(
       GeometryReader { geo in
@@ -528,9 +516,7 @@ struct PrayerHistoryView: View {
   private var searchResultsSection: some View {
     let results = aiResults ?? cachedSearchResults
     VStack(alignment: .leading, spacing: 16) {
-      if tipService.hasAIFeature {
-        aiSearchButton
-      }
+      aiSearchButton
       if results.isEmpty {
         searchEmptyState
       } else {
@@ -1191,6 +1177,10 @@ struct JournalEntryRow: View {
               .foregroundStyle(AppTheme.textSecondary)
               .lineLimit(2)
           }
+
+          if entry.emotion != nil || entry.verseReference != nil {
+            metadataRow
+          }
         }
       }
       .padding(.leading, 17)
@@ -1199,6 +1189,31 @@ struct JournalEntryRow: View {
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+  }
+
+  @ViewBuilder
+  private var metadataRow: some View {
+    HStack(spacing: 10) {
+      if let emotion = entry.emotion {
+        Label {
+          Text(emotion.titleKey)
+        } icon: {
+          Image(systemName: emotion.icon)
+        }
+        .font(.caption2.weight(.medium))
+        .foregroundStyle(emotion.color)
+      }
+      if let reference = entry.verseReference {
+        Label {
+          Text(reference)
+        } icon: {
+          Image(systemName: "book.closed.fill")
+        }
+        .font(.caption2)
+        .foregroundStyle(AppTheme.textTertiary)
+      }
+    }
+    .padding(.top, 2)
   }
 }
 
