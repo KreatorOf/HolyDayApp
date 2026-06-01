@@ -68,7 +68,7 @@ struct SettingsView: View {
         guard shouldShow != showNavTitle else { return }
         withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
       }
-      .background { AnimatedMeshBackground() }
+      .background { AppBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .principal) {
@@ -81,7 +81,7 @@ struct SettingsView: View {
       .onAppear { notifications.checkStatus() }
       .task { avatarImage = AvatarService.shared.load() }
       .sheet(isPresented: $showTipView) {
-        HolyDayPaywallView(context: .support)
+        HolyDayPaywallView()
       }
       .alert("settings.danger.reset.confirm.title", isPresented: $showResetConfirmation) {
         Button("settings.danger.reset.confirm.action", role: .destructive) { resetAllData() }

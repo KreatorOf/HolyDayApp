@@ -56,7 +56,7 @@ struct HolyDayApp: App {
         }
       }
       .modelContainer(container)
-      .background(AppTheme.backgroundPrimary)
+      .background { AppBackground() }
     }
   }
 }

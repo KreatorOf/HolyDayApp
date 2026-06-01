@@ -385,7 +385,7 @@ struct PrayerStepView: View {
   @Previewable @State var text2 = ""
 
   ZStack {
-    AppTheme.backgroundPrimary.ignoresSafeArea()
+    AppBackground()
     VStack(spacing: 16) {
       PrayerStepView(
         step: PrayerStep.defaultSteps[0], isExpanded: false,

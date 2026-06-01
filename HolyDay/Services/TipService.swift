@@ -26,14 +26,7 @@ final class TipService {
     didSet { UserDefaults.standard.set(highestTipIndexStored, forKey: "holyday.highestTipIndex") }
   }
 
-  private(set) var hasAIFeature: Bool = UserDefaults.standard.bool(
-    forKey: "holyday.hasAIFeature")
-  {
-    didSet { UserDefaults.standard.set(hasAIFeature, forKey: "holyday.hasAIFeature") }
-  }
-
   private(set) var tipsOffering: Offering?
-  private(set) var aiOffering: Offering?
 
   var supporterTier: SupporterTier? {
     guard hasTipped else { return nil }
@@ -53,29 +46,9 @@ final class TipService {
     }
     let offs = await offeringsTask
     tipsOffering = offs?.offering(identifier: RevenueCatConfig.offeringId)
-    // Use explicit identifier — offs?.current returns whatever is marked "current" in the
-    // RevenueCat dashboard, which may be "tips" and not the AI offering.
-    aiOffering = offs?.offering(identifier: RevenueCatConfig.aiOfferingId)
-  }
-
-  func grantAIFeatureAccess() {
-    hasAIFeature = true
   }
 
   func applyCustomerInfo(_ info: CustomerInfo) {
-    let aiEntitlementActive =
-      info.entitlements[RevenueCatConfig.aiEntitlementId]?.isActive == true
-    if aiEntitlementActive {
-      // Entitlement confirmed by RevenueCat — always grant
-      hasAIFeature = true
-    } else if info.nonSubscriptions.isEmpty {
-      // No purchases at all — safe to revoke (user never bought anything)
-      hasAIFeature = false
-    }
-    // If there are purchases but no entitlement yet, preserve existing state:
-    // RevenueCat can lag on sandbox receipt validation and we don't want to
-    // revoke access that was just purchased.
-
     let wasAlreadyTipped = hasTipped
     let entitlementActive = info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true
     let hasTransactions = !info.nonSubscriptions.isEmpty

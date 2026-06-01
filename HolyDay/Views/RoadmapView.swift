@@ -48,7 +48,7 @@ struct RoadmapView: View {
     }
     .navigationTitle("Roadmap")
     .navigationBarTitleDisplayMode(.large)
-    .background(AppTheme.backgroundPrimary.ignoresSafeArea())
+    .background { AppBackground() }
     .task { await service.load() }
     .refreshable { await service.load() }
   }
