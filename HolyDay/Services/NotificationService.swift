@@ -22,14 +22,37 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
   private static let windowSize = 60
   private static let hourKey = "holyday.reminderHour"
   private static let minuteKey = "holyday.reminderMinute"
+  private static let userNameKey = "holyday.userName"
 
-  // Gentle, rotating invitations — never an injunction. (Honors the onboarding promise.)
-  private static let invitations: [LocalizedStringResource] = [
+  // Titres : invitations douces — jamais une injonction. (Honore la promesse de l'onboarding.)
+  // Deux jeux parallèles : générique et personnalisé (`%@` = prénom) au même index.
+  private static let titlesGeneric: [LocalizedStringResource] = [
     "notification.invite.0",
     "notification.invite.1",
     "notification.invite.2",
     "notification.invite.3",
     "notification.invite.4",
+  ]
+  private static let titlesNamed: [LocalizedStringResource] = [
+    "notification.invite.named.0",
+    "notification.invite.named.1",
+    "notification.invite.named.2",
+    "notification.invite.named.3",
+    "notification.invite.named.4",
+  ]
+
+  // Corps : questions de réflexion intemporelles, qui invitent à ouvrir l'app et prier.
+  private static let questions: [LocalizedStringResource] = [
+    "notification.question.0",
+    "notification.question.1",
+    "notification.question.2",
+    "notification.question.3",
+    "notification.question.4",
+    "notification.question.5",
+    "notification.question.6",
+    "notification.question.7",
+    "notification.question.8",
+    "notification.question.9",
   ]
 
   private override init() {
@@ -105,6 +128,9 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
 
     let center = UNUserNotificationCenter.current()
     let now = Date()
+    let userName =
+      UserDefaults.standard.string(forKey: Self.userNameKey)?
+      .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
     var scheduled = 0
     var offset = 0
 
@@ -119,10 +145,10 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
       fireComponents.minute = timeComponents.minute
       guard let fireDate = calendar.date(from: fireComponents), fireDate > now else { continue }
 
-      let verse = VerseService.shared.verse(for: fireDate)
+      let reminder = Self.reminderContent(for: fireDate, name: userName)
       let content = UNMutableNotificationContent()
-      content.title = String(localized: Self.invitations[offset % Self.invitations.count])
-      content.body = "« \(verse.text) » — \(verse.reference)"
+      content.title = reminder.title
+      content.body = reminder.body
       content.sound = .default
 
       let trigger = UNCalendarNotificationTrigger(dateMatching: fireComponents, repeats: false)
@@ -134,6 +160,23 @@ final class NotificationService: NSObject, UNUserNotificationCenterDelegate {
       center.add(request)
       scheduled += 1
     }
+  }
+
+  // Titre + corps déterministes par jour de l'année : un jour donné mappe toujours sur le même
+  // couple, et deux jours consécutifs diffèrent toujours (titre mod 5, question mod 10). Le titre
+  // est personnalisé avec le prénom s'il est connu, sinon repli sur la variante générique.
+  static func reminderContent(for date: Date, name: String) -> (title: String, body: String) {
+    let dayIndex = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
+    let titleIndex = dayIndex % titlesGeneric.count
+
+    let title: String
+    if name.isEmpty {
+      title = String(localized: titlesGeneric[titleIndex])
+    } else {
+      title = String(format: String(localized: titlesNamed[titleIndex]), name)
+    }
+    let body = String(localized: questions[dayIndex % questions.count])
+    return (title, body)
   }
 
   private func removeScheduledReminders() {
