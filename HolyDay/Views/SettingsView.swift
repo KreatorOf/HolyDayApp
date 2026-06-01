@@ -48,13 +48,16 @@ struct SettingsView: View {
           pageHeader
           profileCard
           supportCard
-          communitySection
-          notificationsCard
           appearanceCard
+          notificationsCard
+          communitySection
           aboutCard
           legalCard
           dangerZoneSection
-          copyrightFooter
+          VStack(spacing: 0) {
+            thanksFooter
+            copyrightFooter
+          }
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 32)
@@ -516,6 +519,16 @@ struct SettingsView: View {
     }
   }
 
+  // MARK: thanksFooter
+
+  private var thanksFooter: some View {
+    Text("settings.thanks")
+      .font(.caption2)
+      .foregroundStyle(AppTheme.textTertiary)
+      .frame(maxWidth: .infinity, alignment: .center)
+      .padding(.top, 4)
+  }
+
   // MARK: Copyright
 
   private var copyrightFooter: some View {
@@ -523,7 +536,6 @@ struct SettingsView: View {
       .font(.caption2)
       .foregroundStyle(AppTheme.textTertiary)
       .frame(maxWidth: .infinity, alignment: .center)
-      .padding(.top, 4)
   }
 
   // MARK: Reusable primitives

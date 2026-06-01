@@ -21,62 +21,6 @@ struct ReflectionQuestions {
 }
 
 @Generable
-struct JournalInsight {
-  @Guide(
-    description: """
-      Exactly 3 recurring spiritual themes DIRECTLY DETECTED in the prayer texts provided. \
-      Never write generic themes like 'foi' or 'confiance' in isolation — \
-      always anchor them in what this specific user actually wrote. \
-      Always in French. Must be specific to this user's actual words.
-      """,
-    .count(3)
-  )
-  var themes: [String]
-
-  @Guide(
-    description: """
-      Exactly 2 encouraging and personal observations about this user's spiritual journey, \
-      grounded in concrete patterns observed across the prayer texts. \
-      Focus on evolution over time, emotional texture, or prayer depth. \
-      Never generic encouragements — always tied to something actually written. \
-      In French.
-      """,
-    .count(2)
-  )
-  var observations: [String]
-
-  @Guide(
-    description: """
-      Identify supplication→thanksgiving correlations: cases where a specific request \
-      in a Confession or Supplication entry at an earlier date finds an explicit echo \
-      in a later Thanksgiving (Action de grâce) entry. \
-      Format each as: 'Demande de [X] → Remerciement pour [Y]'. \
-      Return an empty array if no clear correlation exists — do not invent connections. \
-      In French.
-      """)
-  var answeredPrayers: [String]
-}
-
-@Generable
-struct MonthlyRecap {
-  @Guide(
-    description: """
-      Un court récit chaleureux et personnel (2 à 3 phrases, 2e personne « tu ») qui reflète \
-      le cheminement de prière de l'utilisateur ce mois-ci, uniquement à partir de ses \
-      propres mots et tendances. Aucune citation de l'Écriture, aucune interprétation \
-      théologique, aucun enseignement.
-      """)
-  var narrative: String
-
-  @Guide(
-    description: """
-      1 à 3 thèmes récurrents observés dans les prières du mois, formulés en quelques mots, \
-      ancrés dans le texte réel de l'utilisateur.
-      """)
-  var themes: [String]
-}
-
-@Generable
 struct SearchMatches {
   @Guide(
     description: """
@@ -104,26 +48,6 @@ final class AIAssistantService {
     return response.content.questions
   }
 
-  // MARK: Journal analysis
-
-  func analyzeJournal(entries: [PrayerEntry]) async throws -> JournalInsight {
-    guard !entries.isEmpty else { throw AnalysisError.notEnoughEntries }
-    let session = LanguageModelSession(instructions: journalSystemPrompt)
-    let prompt = journalPrompt(from: entries)
-    let response = try await session.respond(to: prompt, generating: JournalInsight.self)
-    return response.content
-  }
-
-  // MARK: Monthly recap
-
-  func monthlyRecap(entries: [PrayerEntry]) async throws -> MonthlyRecap {
-    guard entries.count >= 2 else { throw AnalysisError.notEnoughEntries }
-    let session = LanguageModelSession(instructions: monthlyRecapSystemPrompt)
-    let response = try await session.respond(
-      to: journalPrompt(from: entries), generating: MonthlyRecap.self)
-    return response.content
-  }
-
   // MARK: Semantic search
 
   func searchEntries(matching query: String, in entries: [PrayerEntry]) async throws
@@ -140,10 +64,6 @@ final class AIAssistantService {
       .map { pool[$0] }
   }
 
-  enum AnalysisError: Error {
-    case notEnoughEntries
-  }
-
   // MARK: Prompts
 
   private var reflectionSystemPrompt: String {
@@ -156,16 +76,6 @@ final class AIAssistantService {
     Tu n'enseignes rien, tu ne cites jamais l'Écriture et tu n'apportes aucune \
     interprétation ou précision théologique : tu te limites à des questions ouvertes. \
     Réponds uniquement en français.
-    """
-  }
-
-  private var monthlyRecapSystemPrompt: String {
-    """
-    Tu rédiges un court récap personnel et chaleureux du mois de prière de l'utilisateur, \
-    en reflétant uniquement ses propres mots et tendances : récurrences, évolutions, \
-    sujets confiés, exaucements qu'il a notés. Tu ne cites jamais l'Écriture, tu n'enseignes \
-    rien, tu n'apportes aucune interprétation théologique. Tu observes avec bienveillance, \
-    à la 2e personne. Réponds en français.
     """
   }
 
@@ -190,24 +100,6 @@ final class AIAssistantService {
     return prompt
   }
 
-  private var journalSystemPrompt: String {
-    """
-    Tu es un assistant spirituel dans une application de prière chrétienne structurée \
-    selon la méthode ACTS (Adoration, Confession, Action de grâce, Supplication). \
-    Définitions des étapes : \
-    • Adoration : louange et contemplation de Dieu pour ce qu'Il est. \
-    • Confession : reconnaissance sincère de ses fautes et manquements. \
-    • Action de grâce : remerciements pour les bénédictions reçues. \
-    • Supplication : demandes pour soi-même et pour les autres. \
-    Tu analyses les prières écrites par l'utilisateur pour l'aider à prendre du recul \
-    sur son cheminement. Tu identifies des thèmes récurrents ancrés dans le texte réel, \
-    des tendances personnelles, et des corrélations supplication→gratitude (prières potentiellement exaucées). \
-    Tu reflètes uniquement les mots de l'utilisateur : tu ne cites jamais l'Écriture \
-    et tu n'ajoutes aucune interprétation ou enseignement théologique. \
-    Tu es bienveillant, précis et encourageant. Réponds en français.
-    """
-  }
-
   private func reflectionPrompt(for step: PrayerStep, recentEntries: [PrayerEntry]) -> String {
     var prompt = "Étape « \(step.title) » : \(step.description)\n\n"
 
@@ -230,54 +122,4 @@ final class AIAssistantService {
     return prompt
   }
 
-  private func journalPrompt(from entries: [PrayerEntry]) -> String {
-    let selected = stratifiedEntries(from: entries)
-
-    let prayedDays = Set(entries.map { Calendar.current.startOfDay(for: $0.date) }).count
-    let dateRange: String = {
-      guard let first = entries.last?.date, let last = entries.first?.date else { return "" }
-      let from = first.formatted(.dateTime.day().month().year())
-      let to = last.formatted(.dateTime.day().month().year())
-      return "\(from) au \(to)"
-    }()
-
-    var prompt = """
-      Données : \(entries.count) entrées, \(prayedDays) jours de prière distincts\
-      \(dateRange.isEmpty ? "" : " (\(dateRange))").
-      Entrées analysées : \(selected.count) (échantillon représentatif).
-
-      Prières de l'utilisateur :
-
-      """
-
-    let lines = selected.compactMap { entry -> String? in
-      guard !entry.text.isEmpty else { return nil }
-      let dateStr = entry.date.formatted(.dateTime.day().month().year())
-      let truncated = entry.text.prefix(500)
-      return "[\(dateStr) — \(entry.stepTitle)] \(truncated)"
-    }
-    prompt += lines.joined(separator: "\n\n")
-    prompt +=
-      "\n\nAnalyse ces prières et génère des insights spirituels bienveillants et personnalisés."
-    return prompt
-  }
-
-  // Stratified sampling: 20 most recent + 1 representative per older week
-  private func stratifiedEntries(from entries: [PrayerEntry]) -> [PrayerEntry] {
-    let withText = entries.filter { !$0.text.isEmpty }
-    let recent = Array(withText.prefix(20))
-    let older = Array(withText.dropFirst(20))
-
-    let weeklyRepresentatives: [PrayerEntry] = Dictionary(
-      grouping: older,
-      by: { Calendar.current.component(.weekOfYear, from: $0.date) }
-    )
-    .values
-    .compactMap { group in
-      // Pick the entry with the longest text as the most informative
-      group.max(by: { $0.text.count < $1.text.count })
-    }
-
-    return (recent + weeklyRepresentatives).sorted { $0.date > $1.date }
-  }
 }
