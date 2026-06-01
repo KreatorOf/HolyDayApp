@@ -283,7 +283,13 @@ final class VerseService {
   }
 
   func getVerseOfTheDay() -> Verse {
-    let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
+    verse(for: Date())
+  }
+
+  // Déterministe par jour de l'année : une date donnée renvoie toujours le même verset — permet
+  // aux notifications de pré-planifier le bon verset pour chaque jour à venir.
+  func verse(for date: Date) -> Verse {
+    let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: date) ?? 1
     return makeVerse(corpus[(dayOfYear - 1) % corpus.count])
   }
 

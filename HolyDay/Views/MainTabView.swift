@@ -37,7 +37,10 @@ struct MainTabView: View {
     .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     .preferredColorScheme(preferredScheme)
     .onChange(of: scenePhase) { _, phase in
-      if phase == .active { StreakService.shared.refresh() }
+      if phase == .active {
+        StreakService.shared.refresh()
+        NotificationService.shared.refreshScheduledReminders()
+      }
     }
   }
 }
