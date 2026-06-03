@@ -22,7 +22,7 @@ struct SupporterBadge: View {
     HStack(spacing: 5) {
       Image(systemName: tier.icon)
         .font(iconFont)
-      Text(tier.title)
+      Text(tier.badgeName)
         .font(font)
         .fontWeight(.semibold)
     }
