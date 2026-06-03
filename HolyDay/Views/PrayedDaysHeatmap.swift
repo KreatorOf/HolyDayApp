@@ -20,7 +20,6 @@ struct PrayedDaysHeatmap: View {
   private let monthRowHeight: CGFloat = 13
   private let calendar = Calendar.current
 
-  private var counts: [Date: Int] { PrayerStats.dailyCounts(entries) }
   private var today: Date { calendar.startOfDay(for: Date()) }
 
   // Initiales des jours, lundi en premier (ex. « L,M,M,J,V,S,D »).
@@ -70,13 +69,17 @@ struct PrayedDaysHeatmap: View {
   }
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 10) {
+    // Calculés une seule fois par rendu : `dailyCounts` est O(n) sur toutes les prières et était
+    // auparavant relu pour chacune des ~365 cellules ; `weekColumns` était évalué deux fois.
+    let columns = weekColumns
+    let counts = PrayerStats.dailyCounts(entries)
+    return VStack(alignment: .leading, spacing: 10) {
       HStack(alignment: .top, spacing: 6) {
         weekdayColumn
         ScrollView(.horizontal, showsIndicators: false) {
           VStack(alignment: .leading, spacing: 4) {
-            monthRow
-            grid
+            monthRow(columns)
+            grid(columns, counts: counts)
           }
         }
         .defaultScrollAnchor(.trailing)
@@ -101,9 +104,9 @@ struct PrayedDaysHeatmap: View {
 
   // Labels positionnés en absolu (offset par index de colonne) pour qu'ils débordent librement
   // sans être tronqués à la largeur d'une cellule.
-  private var monthRow: some View {
+  private func monthRow(_ columns: [WeekColumn]) -> some View {
     ZStack(alignment: .topLeading) {
-      ForEach(weekColumns.filter { !$0.monthLabel.isEmpty }) { column in
+      ForEach(columns.filter { !$0.monthLabel.isEmpty }) { column in
         Text(column.monthLabel)
           .font(.system(size: 9, weight: .medium))
           .foregroundStyle(AppTheme.textTertiary)
@@ -116,12 +119,12 @@ struct PrayedDaysHeatmap: View {
     .frame(height: monthRowHeight, alignment: .leading)
   }
 
-  private var grid: some View {
+  private func grid(_ columns: [WeekColumn], counts: [Date: Int]) -> some View {
     HStack(spacing: cellGap) {
-      ForEach(weekColumns) { column in
+      ForEach(columns) { column in
         VStack(spacing: cellGap) {
           ForEach(column.days, id: \.self) { day in
-            cell(day)
+            cell(day, counts: counts)
           }
         }
         .id(column.id)
@@ -129,7 +132,7 @@ struct PrayedDaysHeatmap: View {
     }
   }
 
-  private func cell(_ day: Date) -> some View {
+  private func cell(_ day: Date, counts: [Date: Int]) -> some View {
     RoundedRectangle(cornerRadius: 3, style: .continuous)
       .fill(color(forCount: counts[day] ?? 0))
       .frame(width: cellSize, height: cellSize)

@@ -16,28 +16,31 @@ struct JournalStatsView: View {
 
   @State private var period: StatsPeriod = .month
 
-  private var activityPoints: [StatPoint] { PrayerStats.activity(entries, period: period) }
-  private var emotionPoints: [EmotionStatPoint] { PrayerStats.emotions(entries, period: period) }
-
   // Émotions réellement présentes, dans l'ordre stable de `allCases` (couleurs/empilement cohérents).
-  private var presentEmotions: [Emotion] {
-    let present = Set(emotionPoints.map(\.emotion))
+  private func presentEmotions(in points: [EmotionStatPoint]) -> [Emotion] {
+    let present = Set(points.map(\.emotion))
     return Emotion.allCases.filter(present.contains)
   }
 
   var body: some View {
-    VStack(spacing: 20) {
+    // Agrégations O(n) calculées une seule fois par rendu (auparavant relues plusieurs fois
+    // via les propriétés calculées, dont `presentEmotions` qui relançait le regroupement).
+    let activity = PrayerStats.activity(entries, period: period)
+    let emotions = PrayerStats.emotions(entries, period: period)
+    return VStack(spacing: 20) {
       periodPicker
 
-      if activityPoints.isEmpty {
+      if activity.isEmpty {
         emptyState
       } else {
-        chartCard(activityTitleKey) { activityChart }
+        chartCard(activityTitleKey) { activityChart(activity) }
         chartCard("stats.heatmap.title") {
           PrayedDaysHeatmap(entries: entries, period: period)
         }
-        if !emotionPoints.isEmpty {
-          chartCard("stats.emotions.title") { emotionsChart }
+        if !emotions.isEmpty {
+          chartCard("stats.emotions.title") {
+            emotionsChart(emotions, present: presentEmotions(in: emotions))
+          }
         }
       }
     }
@@ -68,7 +71,7 @@ struct JournalStatsView: View {
 
   // MARK: - Charts
 
-  private var activityChart: some View {
+  private func activityChart(_ activityPoints: [StatPoint]) -> some View {
     Chart(activityPoints) { point in
       AreaMark(x: .value("date", point.date), y: .value("value", point.value))
         .interpolationMethod(.catmullRom)
@@ -83,7 +86,7 @@ struct JournalStatsView: View {
     .frame(height: 180)
   }
 
-  private var emotionsChart: some View {
+  private func emotionsChart(_ emotionPoints: [EmotionStatPoint], present: [Emotion]) -> some View {
     Chart(emotionPoints) { point in
       BarMark(
         x: .value("date", point.date, unit: period.bucket),
@@ -92,8 +95,8 @@ struct JournalStatsView: View {
       .foregroundStyle(by: .value("emotion", point.emotion.accessibilityLabel))
     }
     .chartForegroundStyleScale(
-      domain: presentEmotions.map(\.accessibilityLabel),
-      range: presentEmotions.map(\.color)
+      domain: present.map(\.accessibilityLabel),
+      range: present.map(\.color)
     )
     .chartYAxis { AxisMarks(position: .leading) }
     .frame(height: 200)

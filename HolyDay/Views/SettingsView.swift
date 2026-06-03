@@ -30,11 +30,7 @@ struct SettingsView: View {
   @State private var resetFeedbackToken = false
 
   private var appVersion: String {
-    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
-  }
-
-  private var buildNumber: String {
-    Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "X.X.X"
   }
 
   private var currentYear: String {
@@ -51,8 +47,8 @@ struct SettingsView: View {
           appearanceCard
           notificationsCard
           communitySection
-          aboutCard
           legalCard
+          aboutCard
           dangerZoneSection
           VStack(spacing: 0) {
             thanksFooter
@@ -274,30 +270,6 @@ struct SettingsView: View {
       sectionLabel(String(localized: "settings.community.section"))
       settingsCard {
         VStack(spacing: 0) {
-          NavigationLink {
-            RoadmapView()
-          } label: {
-            HStack(spacing: 14) {
-              iconBadge(systemName: "chart.bar.xaxis.ascending", color: AppTheme.confessionBlue)
-              VStack(alignment: .leading, spacing: 2) {
-                Text("settings.roadmap.title")
-                  .font(.body)
-                  .foregroundStyle(AppTheme.textPrimary)
-                Text("settings.roadmap.subtitle")
-                  .font(.caption)
-                  .foregroundStyle(AppTheme.textSecondary)
-              }
-              Spacer()
-              Image(systemName: "chevron.right")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(AppTheme.textTertiary)
-            }
-            .padding(16)
-          }
-          .buttonStyle(.plain)
-
-          cardDivider
-
           ShareLink(item: AppLinks.appStore) {
             externalLinkRow(
               icon: "square.and.arrow.up",
@@ -360,9 +332,16 @@ struct SettingsView: View {
     }
   }
 
+  // Effacement complet et irréversible de toutes les données personnelles : prières, intentions,
+  // série, prénom et photo de profil.
   private func resetAllData() {
     try? modelContext.delete(model: PrayerEntry.self)
+    try? modelContext.delete(model: PrayerIntention.self)
     StreakService.shared.reset()
+    SupportPromptService.shared.reset()
+    AvatarService.shared.delete()
+    avatarImage = nil
+    userName = ""
     resetFeedbackToken.toggle()
   }
 
@@ -477,7 +456,7 @@ struct SettingsView: View {
         VStack(spacing: 0) {
           infoRow(
             label: String(localized: "settings.about.version"),
-            value: "\(appVersion) (\(buildNumber))")
+            value: "\(appVersion)")
           cardDivider
           infoRow(label: String(localized: "settings.about.developer"), value: "Matthias Cadet")
         }

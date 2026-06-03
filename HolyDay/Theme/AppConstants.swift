@@ -23,6 +23,9 @@ enum AppLinks {
 }
 
 enum RevenueCatConfig {
+  // Clé SDK *publique* RevenueCat (préfixe `appl_`) : conçue pour être embarquée dans le binaire
+  // et extractible de toute app publiée — ce n'est pas un secret. La garder en clair ici est
+  // conforme aux recommandations RevenueCat.
   static let apiKey = "appl_UlQUPWYbfJUrWXoDkEkNxuQHZkY"
   static let entitlementId = "ia_lifetime"
   static let aiEntitlementId = "ia_feature"
