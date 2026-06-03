@@ -8,7 +8,6 @@
 import Foundation
 import Observation
 import RevenueCat
-import UserNotifications
 
 @Observable
 final class TipService {
@@ -28,6 +27,11 @@ final class TipService {
 
   private(set) var tipsOffering: Offering?
 
+  // Palier dérivé du rang de prix dans l'offering (le moins cher = palier le plus bas).
+  // Robuste aux changements d'identifiants ou de prix des produits sur l'App Store, contrairement
+  // à une correspondance basée sur le nom du produit (« tip_small/medium/large »).
+  private var tierByProductId: [String: SupporterTier] = [:]
+
   var supporterTier: SupporterTier? {
     guard hasTipped else { return nil }
     return SupporterTier(rawValue: highestTipIndexStored - 1)
@@ -41,11 +45,33 @@ final class TipService {
     async let customerInfoTask: CustomerInfo? = try? Purchases.shared.customerInfo()
     async let offeringsTask: Offerings? = try? Purchases.shared.offerings()
 
+    // L'offering doit être appliqué AVANT les transactions : la correspondance produit → palier
+    // est dérivée du rang de prix de l'offering, donc la carte doit déjà être construite.
+    let offs = await offeringsTask
+    tipsOffering = offs?.offering(identifier: RevenueCatConfig.offeringId)
+    rebuildTierMap()
+
     if let info = await customerInfoTask {
       applyCustomerInfo(info)
     }
-    let offs = await offeringsTask
-    tipsOffering = offs?.offering(identifier: RevenueCatConfig.offeringId)
+  }
+
+  // Carte produit → palier construite par rang de prix croissant de l'offering.
+  private func rebuildTierMap() {
+    let ranked =
+      (tipsOffering?.availablePackages ?? [])
+      .sorted { $0.storeProduct.price < $1.storeProduct.price }
+    var map: [String: SupporterTier] = [:]
+    for (index, package) in ranked.enumerated() {
+      guard let tier = SupporterTier(rawValue: index) else { break }
+      map[package.storeProduct.productIdentifier] = tier
+    }
+    tierByProductId = map
+  }
+
+  // Repli sur la correspondance par nom tant que l'offering n'est pas chargé.
+  func tier(for productIdentifier: String) -> SupporterTier? {
+    tierByProductId[productIdentifier] ?? SupporterTier.tier(for: productIdentifier)
   }
 
   func applyCustomerInfo(_ info: CustomerInfo) {
@@ -53,33 +79,26 @@ final class TipService {
     let entitlementActive = info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true
     let hasTransactions = !info.nonSubscriptions.isEmpty
 
-    guard entitlementActive || hasTransactions else { return }
+    guard entitlementActive || hasTransactions else {
+      // Plus aucun achat actif (remboursement, historique effacé) : on efface le badge en cache
+      // pour rester aligné sur le store plutôt que de figer l'ancien palier.
+      if wasAlreadyTipped {
+        hasTipped = false
+        highestTipIndexStored = 0
+      }
+      return
+    }
     hasTipped = true
     updateHighestTier(from: info.nonSubscriptions)
-    if !wasAlreadyTipped { scheduleThankYouNotification() }
   }
 
   private func updateHighestTier(from transactions: [NonSubscriptionTransaction]) {
     for tx in transactions {
-      if let tier = SupporterTier.tier(for: tx.productIdentifier) {
+      if let tier = tier(for: tx.productIdentifier) {
         let stored = tier.rawValue + 1
         if stored > highestTipIndexStored { highestTipIndexStored = stored }
       }
     }
     if highestTipIndexStored == 0 { highestTipIndexStored = 1 }
-  }
-
-  private func scheduleThankYouNotification() {
-    let content = UNMutableNotificationContent()
-    content.title = String(localized: "notification.purchase.title")
-    content.body = String(localized: "notification.purchase.body")
-    content.sound = .default
-
-    let request = UNNotificationRequest(
-      identifier: "holyday.purchase-thanks",
-      content: content,
-      trigger: nil
-    )
-    UNUserNotificationCenter.current().add(request)
   }
 }

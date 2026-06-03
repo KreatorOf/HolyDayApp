@@ -12,6 +12,7 @@ enum SupporterTier: Int {
   case genereux = 1
   case bienfaiteur = 2
 
+  // Verbe d'action affiché sur le paywall (« Soutenir », « Encourager », « Bénir »).
   var title: String {
     switch self {
     case .ami: return String(localized: "tier.ami")
@@ -20,10 +21,19 @@ enum SupporterTier: Int {
     }
   }
 
+  // Nom honorifique du badge gagné : plus chaleureux et distinct du verbe d'action du paywall.
+  var badgeName: String {
+    switch self {
+    case .ami: return String(localized: "badge.name.ami")
+    case .genereux: return String(localized: "badge.name.genereux")
+    case .bienfaiteur: return String(localized: "badge.name.bienfaiteur")
+    }
+  }
+
   var emoji: String {
     switch self {
-    case .ami: return "☕"
-    case .genereux: return "🙏"
+    case .ami: return "❤️"
+    case .genereux: return "⭐️"
     case .bienfaiteur: return "✨"
     }
   }
@@ -48,7 +58,7 @@ enum SupporterTier: Int {
     switch self {
     case .ami: return "heart.fill"
     case .genereux: return "star.fill"
-    case .bienfaiteur: return "crown.fill"
+    case .bienfaiteur: return "sparkles"
     }
   }
 

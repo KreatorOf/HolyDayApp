@@ -1596,6 +1596,38 @@
         }
       }
     },
+    "donation.thankyou.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thank you, truly"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merci du fond du cœur"
+          }
+        }
+      }
+    },
+    "donation.thankyou.subtitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your gift helps HolyDay grow and carry prayer a little further. 🙏"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre don aide HolyDay à grandir et à porter la prière un peu plus loin. 🙏"
+          }
+        }
+      }
+    },
     "notification.purchase.body" : {
       "localizations" : {
         "en" : {
@@ -2273,13 +2305,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A coffee to support the project 🙏"
+            "value" : "A small gesture that helps HolyDay grow. Thank you for being here. "
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Un café pour soutenir le projet 🙏"
+            "value" : "Un petit geste qui aide HolyDay à grandir. Merci d'être là."
           }
         }
       }
@@ -2289,13 +2321,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your generosity shapes what comes next"
+            "value" : "You're sowing so that others can pray. Thank you, truly."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Votre générosité inspire la prochaine version"
+            "value" : "Vous semez pour que d'autres puissent prier. Merci infiniment."
           }
         }
       }
@@ -2305,13 +2337,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "You help HolyDay grow and improve"
+            "value" : "You believe in the project — and that makes all the difference."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vous aidez HolyDay à grandir et s'améliorer"
+            "value" : "Vous croyez au projet — et ça change tout pour avancer. "
           }
         }
       }
@@ -4363,18 +4395,66 @@
         }
       }
     },
-    "tier.ami" : {
+    "badge.name.ami" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Friend"
+            "value" : "Faithful Heart"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ami"
+            "value" : "Cœur fidèle"
+          }
+        }
+      }
+    },
+    "badge.name.bienfaiteur" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blessed Light"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lumière bénie"
+          }
+        }
+      }
+    },
+    "badge.name.genereux" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star of Hope"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étoile d'espérance"
+          }
+        }
+      }
+    },
+    "tier.ami" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soutenir"
           }
         }
       }
@@ -4384,13 +4464,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Benefactor"
+            "value" : "Bless"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bienfaiteur"
+            "value" : "Bénir"
           }
         }
       }
@@ -4400,13 +4480,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Generous"
+            "value" : "Encourage"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Généreux"
+            "value" : "Encourager"
           }
         }
       }

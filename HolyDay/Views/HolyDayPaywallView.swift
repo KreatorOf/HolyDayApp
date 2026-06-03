@@ -15,6 +15,7 @@ struct HolyDayPaywallView: View {
   @State private var tipService = TipService.shared
   @State private var isPurchasing = false
   @State private var showError = false
+  @State private var showThankYou = false
 
   var body: some View {
     NavigationStack {
@@ -35,6 +36,9 @@ struct HolyDayPaywallView: View {
         }
       }
       .toolbarBackground(.hidden, for: .navigationBar)
+    }
+    .fullScreenCover(isPresented: $showThankYou) {
+      DonationThankYouView(tier: tipService.supporterTier) { dismiss() }
     }
     .alert("paywall.error.title", isPresented: $showError) {
       Button("common.cancel", role: .cancel) {}
@@ -86,13 +90,15 @@ struct HolyDayPaywallView: View {
   // MARK: - Tips
 
   private var tipsSection: some View {
-    let sorted =
+    // Le palier suit le rang de prix (le moins cher = Soutenir) plutôt que le nom du produit :
+    // l'affichage reste cohérent même si les identifiants ou les prix changent sur l'App Store.
+    let ranked =
       (tipService.tipsOffering?.availablePackages ?? [])
       .sorted { $0.storeProduct.price < $1.storeProduct.price }
 
     return VStack(spacing: 10) {
-      ForEach(sorted, id: \.identifier) { pkg in
-        if let tier = SupporterTier.tier(for: pkg.storeProduct.productIdentifier) {
+      ForEach(Array(ranked.enumerated()), id: \.element.identifier) { index, pkg in
+        if let tier = SupporterTier(rawValue: index) {
           tipRow(package: pkg, tier: tier)
         }
       }
@@ -180,7 +186,9 @@ struct HolyDayPaywallView: View {
       guard !result.userCancelled else { return }
       tipService.applyCustomerInfo(result.customerInfo)
       await tipService.refreshCustomerInfo()
-      dismiss()
+      // Célébration plein écran à la place de l'ancienne notification ; elle se ferme seule
+      // au bout de 3 s et referme alors le paywall.
+      showThankYou = true
     } catch {
       showError = true
     }
