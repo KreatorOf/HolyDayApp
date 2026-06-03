@@ -21,11 +21,6 @@ struct LegalNoticeView: View {
       )
 
       legalSection(
-        title: String(localized: "legal.section.roadmap"),
-        content: String(localized: "legal.section.roadmap.content")
-      )
-
-      legalSection(
         title: String(localized: "legal.section.notifications"),
         content: String(localized: "legal.section.notifications.content")
       )
