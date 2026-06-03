@@ -17,8 +17,10 @@ final class StreakService {
   private(set) var bestStreak: Int = 0
   private(set) var streakStartDate: Date?
   private(set) var lastIncrementToken: UUID?
-  private(set) var lastIncrementValue: Int = 0
   private(set) var freezesAvailable: Int = 0
+  // Cumul de jours distincts où l'utilisateur a prié (≠ streak qui peut retomber à zéro).
+  // Sert de signal pour la sollicitation de don contextuelle.
+  private(set) var totalPrayedDays: Int = 0
 
   var isPrayedToday: Bool {
     guard let last = UserDefaults.standard.object(forKey: lastPrayerDateKey) as? Date else {
@@ -34,12 +36,17 @@ final class StreakService {
   private let bestStreakKey = "holyday.bestStreak"
   private let streakStartDateKey = "holyday.streakStartDate"
   private let freezesKey = "holyday.freezesAvailable"
+  private let totalPrayedDaysKey = "holyday.totalPrayedDays"
 
   private init() {
     recalculate()
   }
 
-  func recordPrayer() {
+  // Retourne `true` uniquement si un nouveau jour prié vient d'être enregistré (sinon l'appel
+  // est sans effet car déjà prié aujourd'hui) — sert à ne déclencher la sollicitation de don
+  // qu'à un vrai moment de fin de prière.
+  @discardableResult
+  func recordPrayer() -> Bool {
     let calendar = Calendar.current
     let today = calendar.startOfDay(for: Date())
     let defaults = UserDefaults.standard
@@ -47,7 +54,7 @@ final class StreakService {
     if let lastDate = defaults.object(forKey: lastPrayerDateKey) as? Date,
       calendar.startOfDay(for: lastDate) == today
     {
-      return
+      return false
     }
 
     if currentStreak == 0 {
@@ -59,6 +66,9 @@ final class StreakService {
     currentStreak += 1
     defaults.set(currentStreak, forKey: streakKey)
 
+    totalPrayedDays += 1
+    defaults.set(totalPrayedDays, forKey: totalPrayedDaysKey)
+
     if currentStreak > bestStreak {
       bestStreak = currentStreak
       defaults.set(bestStreak, forKey: bestStreakKey)
@@ -69,8 +79,8 @@ final class StreakService {
       defaults.set(freezesAvailable, forKey: freezesKey)
     }
 
-    lastIncrementValue = currentStreak
     lastIncrementToken = UUID()
+    return true
   }
 
   func refresh() {
@@ -84,21 +94,16 @@ final class StreakService {
     defaults.removeObject(forKey: bestStreakKey)
     defaults.removeObject(forKey: streakStartDateKey)
     defaults.removeObject(forKey: freezesKey)
+    defaults.removeObject(forKey: totalPrayedDaysKey)
     recalculate()
   }
-
-  #if DEBUG
-    func resetTodaysPrayer() {
-      UserDefaults.standard.removeObject(forKey: lastPrayerDateKey)
-      recalculate()
-    }
-  #endif
 
   private func recalculate() {
     let defaults = UserDefaults.standard
     bestStreak = defaults.integer(forKey: bestStreakKey)
     streakStartDate = defaults.object(forKey: streakStartDateKey) as? Date
     freezesAvailable = defaults.integer(forKey: freezesKey)
+    totalPrayedDays = defaults.integer(forKey: totalPrayedDaysKey)
 
     guard let lastDate = defaults.object(forKey: lastPrayerDateKey) as? Date else {
       currentStreak = 0

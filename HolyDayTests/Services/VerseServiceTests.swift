@@ -2,6 +2,7 @@ import XCTest
 
 @testable import HolyDay
 
+@MainActor
 final class VerseServiceTests: XCTestCase {
 
   func test_getVerseOfTheDay_returnsNonEmptyText() {

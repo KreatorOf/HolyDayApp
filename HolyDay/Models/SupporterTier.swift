@@ -38,14 +38,6 @@ enum SupporterTier: Int {
     }
   }
 
-  var tipLabel: LocalizedStringKey {
-    switch self {
-    case .ami: return "tip.tier.0.label"
-    case .genereux: return "tip.tier.1.label"
-    case .bienfaiteur: return "tip.tier.2.label"
-    }
-  }
-
   var phrase: LocalizedStringKey {
     switch self {
     case .ami: return "paywall.tip.ami.phrase"

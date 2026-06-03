@@ -20,6 +20,13 @@ struct ContentView: View {
   @State private var showStructuredPrayer = false
   @State private var showIntentions = false
 
+  @State private var showSupportPrompt = false
+  @State private var showPaywallFromPrompt = false
+  @State private var openPaywallAfterPrompt = false
+  // Jeton de streak avant l'ouverture de la prière structurée : permet de savoir, à sa fermeture,
+  // si une nouvelle prière a réellement été enregistrée pendant la session.
+  @State private var streakTokenBeforeStructured: UUID?
+
   @AppStorage("holyday.userName") private var userName = ""
 
   private let verseAnchorID = "verse"
@@ -43,11 +50,44 @@ struct ContentView: View {
         ToolbarItem(placement: .topBarTrailing) { structuredPrayerButton }
       }
     }
-    .fullScreenCover(isPresented: $showStructuredPrayer) {
+    .fullScreenCover(
+      isPresented: $showStructuredPrayer,
+      onDismiss: {
+        // Une prière structurée a-t-elle été enregistrée pendant la session ?
+        if streak.lastIncrementToken != streakTokenBeforeStructured {
+          presentSupportPromptIfEligible()
+        }
+      }
+    ) {
       StructuredPrayerSheet()
     }
     .sheet(isPresented: $showIntentions) {
       IntentionsView()
+    }
+    .sheet(
+      isPresented: $showSupportPrompt,
+      onDismiss: {
+        // Enchaîne sur le paywall seulement après la fermeture complète de la feuille.
+        if openPaywallAfterPrompt {
+          openPaywallAfterPrompt = false
+          showPaywallFromPrompt = true
+        }
+      }
+    ) {
+      SupportPromptView(
+        onSupport: {
+          openPaywallAfterPrompt = true
+          showSupportPrompt = false
+        },
+        onLater: { showSupportPrompt = false },
+        onDontAskAgain: {
+          SupportPromptService.shared.dontAskAgain()
+          showSupportPrompt = false
+        }
+      )
+    }
+    .sheet(isPresented: $showPaywallFromPrompt) {
+      HolyDayPaywallView()
     }
   }
 
@@ -142,17 +182,12 @@ struct ContentView: View {
         .font(.system(.title, design: .serif, weight: .thin))
         .foregroundStyle(AppTheme.textPrimary)
     }
-    #if DEBUG
-      .onTapGesture(count: 3) {
-        streak.resetTodaysPrayer()
-        UINotificationFeedbackGenerator().notificationOccurred(.warning)
-      }
-    #endif
   }
 
   // Filet discret pour qui ne sait pas quoi dire : lance la prière structurée.
   private var structuredPrayerButton: some View {
     Button {
+      streakTokenBeforeStructured = streak.lastIncrementToken
       showStructuredPrayer = true
     } label: {
       Image(systemName: "hands.sparkles")
@@ -197,8 +232,18 @@ struct ContentView: View {
       verseReference: emotionVerse?.reference
     )
     modelContext.insert(entry)
-    StreakService.shared.recordPrayer()
+    let didRecordNewDay = StreakService.shared.recordPrayer()
     resetComposer()
+    if didRecordNewDay {
+      presentSupportPromptIfEligible()
+    }
+  }
+
+  // Présente la sollicitation de don si l'état le permet, et démarre alors son délai de repos.
+  private func presentSupportPromptIfEligible() {
+    guard SupportPromptService.shared.shouldPrompt else { return }
+    SupportPromptService.shared.markShown()
+    showSupportPrompt = true
   }
 
   private func resetComposer() {

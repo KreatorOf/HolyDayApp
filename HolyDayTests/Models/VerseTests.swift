@@ -2,6 +2,7 @@ import XCTest
 
 @testable import HolyDay
 
+@MainActor
 final class VerseTests: XCTestCase {
 
   func test_init_storesAllFields() {

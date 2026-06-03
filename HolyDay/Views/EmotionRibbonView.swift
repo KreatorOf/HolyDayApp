@@ -13,8 +13,12 @@ struct EmotionRibbonView: View {
   var onSelect: (Emotion) -> Void
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  @Environment(\.scenePhase) private var scenePhase
   @State private var contentWidth: CGFloat = 0
   @State private var startDate = Date()
+  // Le marquee ne redessine que lorsqu'il est réellement à l'écran et l'app active : inutile de
+  // brûler des frames quand il est masqué par le clavier, sur un autre onglet ou en arrière-plan.
+  @State private var onScreen = true
   // Position de reprise du défilement automatique : capturée au début d'un glissement puis
   // décalée par la translation du doigt, pour repartir sans saut au relâchement.
   @State private var pausedOffset: CGFloat = 0
@@ -47,7 +51,13 @@ struct EmotionRibbonView: View {
     .frame(height: rowHeight)
     .mask(alignment: .center) { edgeFadeMask }
     .padding(.horizontal, horizontalInset)
+    .onScrollVisibilityChange(threshold: 0.05) { onScreen = $0 }
+    .onAppear { onScreen = true }
+    .onDisappear { onScreen = false }
   }
+
+  // Anime seulement si l'app est au premier plan ET le ruban visible.
+  private var isAnimating: Bool { scenePhase == .active && onScreen }
 
   // MARK: - Edge fade
 
@@ -93,7 +103,9 @@ struct EmotionRibbonView: View {
     Color.clear
       .frame(maxWidth: .infinity)
       .overlay(alignment: .leading) {
-        TimelineView(.animation) { context in
+        // `paused` coupe le défilement hors écran/inactif ; `minimumInterval` plafonne à ~60 fps
+        // (inutile de redessiner à 120 Hz pour un défilement à 28 pt/s) → moins d'énergie.
+        TimelineView(.animation(minimumInterval: 1.0 / 60.0, paused: !isAnimating)) { context in
           HStack(spacing: spacing) {
             row
               .onGeometryChange(for: CGFloat.self) {
