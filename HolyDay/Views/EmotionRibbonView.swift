@@ -15,6 +15,14 @@ struct EmotionRibbonView: View {
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var contentWidth: CGFloat = 0
   @State private var startDate = Date()
+  // Position de reprise du défilement automatique : capturée au début d'un glissement puis
+  // décalée par la translation du doigt, pour repartir sans saut au relâchement.
+  @State private var pausedOffset: CGFloat = 0
+  @State private var dragOffset: CGFloat = 0
+  @State private var isDragging = false
+  // Distingue un glissement d'un vrai tap : tant qu'il est vrai, le tap d'une bulle est ignoré
+  // pour ne pas afficher le verset à la fin d'un glissement.
+  @State private var didDrag = false
 
   private let emotions = Emotion.allCases
   private let spacing: CGFloat = 12
@@ -97,10 +105,38 @@ struct EmotionRibbonView: View {
             row
           }
           .fixedSize()
-          .offset(x: offset(at: context.date))
+          .offset(x: displayedOffset(at: context.date))
         }
       }
       .clipped()
+      .contentShape(Rectangle())
+      .simultaneousGesture(dragGesture)
+  }
+
+  // `simultaneousGesture` est indispensable : les bulles sont des Button qui couvrent tout le
+  // ruban et captureraient le toucher avant un `.gesture` classique (priorité inférieure).
+  // À priorité égale, un tap bref sélectionne l'émotion tandis qu'un déplacement du doigt fait
+  // glisser le ruban. `minimumDistance` distingue tap et glissement (HIG).
+  private var dragGesture: some Gesture {
+    DragGesture(minimumDistance: 10)
+      .onChanged { value in
+        if !isDragging {
+          // Fige à la position courante du défilement automatique pour éviter un saut.
+          pausedOffset = autoOffset(at: Date())
+          isDragging = true
+        }
+        didDrag = true
+        dragOffset = value.translation.width
+      }
+      .onEnded { _ in
+        pausedOffset = wrap(pausedOffset + dragOffset)
+        dragOffset = 0
+        startDate = Date()
+        isDragging = false
+        // Réinitialisé au cycle suivant : l'action du bouton, déclenchée au lever du doigt
+        // dans le cycle courant, voit encore `didDrag == true` et n'affiche pas le verset.
+        DispatchQueue.main.async { didDrag = false }
+      }
   }
 
   private var row: some View {
@@ -111,17 +147,36 @@ struct EmotionRibbonView: View {
 
   // Une période translate d'une copie + l'espacement inter-copies : la 2ᵉ rangée vient alors
   // se superposer exactement à la position de départ de la 1ʳᵉ → boucle sans couture.
-  private func offset(at date: Date) -> CGFloat {
-    let distance = contentWidth + spacing
-    guard distance > 0 else { return 0 }
+  private var period: CGFloat { contentWidth + spacing }
+
+  // Position affichée : suit le doigt pendant un glissement, sinon poursuit le défilement
+  // automatique depuis la dernière position de reprise.
+  private func displayedOffset(at date: Date) -> CGFloat {
+    guard period > 0 else { return 0 }
+    return isDragging ? wrap(pausedOffset + dragOffset) : autoOffset(at: date)
+  }
+
+  // Défilement automatique de droite à gauche depuis `pausedOffset`.
+  private func autoOffset(at date: Date) -> CGFloat {
+    guard period > 0 else { return 0 }
     let traveled = CGFloat(date.timeIntervalSince(startDate)) * pointsPerSecond
-    return -traveled.truncatingRemainder(dividingBy: distance)
+    return wrap(pausedOffset - traveled)
+  }
+
+  // Normalise dans (-période, 0] : le ruban reste couvert par les deux rangées dans les deux
+  // sens de glissement, donc la boucle est sans couture même après un glissement vers la droite.
+  private func wrap(_ value: CGFloat) -> CGFloat {
+    guard period > 0 else { return 0 }
+    let remainder = value.truncatingRemainder(dividingBy: period)
+    return remainder > 0 ? remainder - period : remainder
   }
 
   // MARK: - Bubble
 
   private func bubble(_ emotion: Emotion) -> some View {
     Button {
+      // Un glissement ne doit jamais déclencher la sélection (affichage du verset).
+      guard !didDrag else { return }
       onSelect(emotion)
     } label: {
       HStack(spacing: 7) {
