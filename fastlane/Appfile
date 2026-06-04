@@ -1,0 +1,8 @@
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile
+
+# fastlane/Appfile
+app_identifier("com.matthiascadet.HolyDay")
+apple_id("matthias.cadet25@gmail.com")
+team_id("8G5S826A9S") # ton Team ID, visible sur developer.apple.com/account
