@@ -34,3 +34,10 @@ jobs:
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_FILEPATH: /tmp/AuthKey.p8
         run: bundle exec fastlane beta
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: /Users/runner/Library/Logs/gym/
