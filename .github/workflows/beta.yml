@@ -21,10 +21,16 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.MATCH_SSH_KEY }}
 
+      - name: Write App Store Connect API key
+        env:
+          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+        run: |
+          echo "$ASC_KEY_CONTENT" | base64 --decode > /tmp/AuthKey.p8
+
       - name: Deploy to TestFlight
         env:
           MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-          ASC_KEY_CONTENT: ${{ secrets.ASC_KEY_CONTENT }}
+          ASC_KEY_FILEPATH: /tmp/AuthKey.p8
         run: bundle exec fastlane beta
