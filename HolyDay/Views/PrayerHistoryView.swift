@@ -5,9 +5,12 @@
 //  Created by Matthias Cadet on 14/05/2026.
 //
 
-import FoundationModels
 import SwiftData
 import SwiftUI
+
+#if canImport(FoundationModels)
+  import FoundationModels
+#endif
 
 struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]

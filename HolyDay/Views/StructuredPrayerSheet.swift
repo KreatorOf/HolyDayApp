@@ -5,9 +5,12 @@
 //  Created by Matthias Cadet on 31/05/2026.
 //
 
-import FoundationModels
 import SwiftData
 import SwiftUI
+
+#if canImport(FoundationModels)
+  import FoundationModels
+#endif
 
 struct StructuredPrayerSheet: View {
   @Environment(\.modelContext) private var modelContext
