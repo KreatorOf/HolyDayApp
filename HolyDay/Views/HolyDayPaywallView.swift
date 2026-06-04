@@ -16,6 +16,9 @@ struct HolyDayPaywallView: View {
   @State private var isPurchasing = false
   @State private var showError = false
   @State private var showThankYou = false
+  // Palier du don qui vient d'être effectué : la célébration doit refléter CE don, pas le palier
+  // le plus élevé jamais atteint (tipService.supporterTier), qui sert au badge persistant.
+  @State private var purchasedTier: SupporterTier?
 
   var body: some View {
     NavigationStack {
@@ -38,7 +41,7 @@ struct HolyDayPaywallView: View {
       .toolbarBackground(.hidden, for: .navigationBar)
     }
     .fullScreenCover(isPresented: $showThankYou) {
-      DonationThankYouView(tier: tipService.supporterTier) { dismiss() }
+      DonationThankYouView(tier: purchasedTier) { dismiss() }
     }
     .alert("paywall.error.title", isPresented: $showError) {
       Button("common.cancel", role: .cancel) {}
@@ -107,7 +110,7 @@ struct HolyDayPaywallView: View {
 
   private func tipRow(package: Package, tier: SupporterTier) -> some View {
     Button {
-      Task { await purchase(package) }
+      Task { await purchase(package, tier: tier) }
     } label: {
       HStack(spacing: 14) {
         ZStack {
@@ -178,7 +181,7 @@ struct HolyDayPaywallView: View {
 
   // MARK: - Actions
 
-  private func purchase(_ package: Package) async {
+  private func purchase(_ package: Package, tier: SupporterTier) async {
     isPurchasing = true
     defer { isPurchasing = false }
     do {
@@ -188,6 +191,7 @@ struct HolyDayPaywallView: View {
       await tipService.refreshCustomerInfo()
       // Célébration plein écran à la place de l'ancienne notification ; elle se ferme seule
       // au bout de 3 s et referme alors le paywall.
+      purchasedTier = tier
       showThankYou = true
     } catch {
       showError = true
