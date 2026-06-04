@@ -15,6 +15,23 @@ platform :ios do
       readonly: true
     )
 
+    # Désactive le signing automatique et applique les profils match
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      targets: ["HolyDay"],
+      bundle_identifier: "com.matthiascadet.HolyDay",
+      profile_name: "match AppStore com.matthiascadet.HolyDay",
+      code_sign_identity: "Apple Distribution"
+    )
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      targets: ["HolyDayWidgetExtension"],
+      bundle_identifier: "com.matthiascadet.HolyDay.HolyDayWidget",
+      profile_name: "match AppStore com.matthiascadet.HolyDay.HolyDayWidget",
+      code_sign_identity: "Apple Distribution"
+    )
+
     increment_build_number(
       build_number: latest_testflight_build_number(api_key: api_key) + 1
     )
