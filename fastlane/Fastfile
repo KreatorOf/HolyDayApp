@@ -11,6 +11,7 @@ platform :ios do
 
     match(
       type: "appstore",
+      app_identifier: ["com.matthiascadet.HolyDay", "com.matthiascadet.HolyDay.HolyDayWidget"],
       readonly: true
     )
 
