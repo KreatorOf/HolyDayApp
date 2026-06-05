@@ -217,13 +217,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Faithful Heart"
+            "value" : "Friend"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cœur fidèle"
+            "value" : "Ami"
           }
         }
       }
@@ -233,13 +233,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Blessed Light"
+            "value" : "Benefactor"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lumière bénie"
+            "value" : "Bienfaiteur"
           }
         }
       }
@@ -249,13 +249,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Star of Hope"
+            "value" : "Generous"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Étoile d'espérance"
+            "value" : "Généreux"
           }
         }
       }
