@@ -14,6 +14,9 @@ import SwiftUI
 struct HolyDayApp: App {
   let container: ModelContainer
   @AppStorage("holyday.hasCompletedOnboarding") private var hasCompletedOnboarding = false
+  // Vrai au lancement à froid (état du process) → affiche le splash. Non rejoué au retour
+  // d'arrière-plan, le process et donc cet état étant conservés.
+  @State private var showSplash = true
 
   init() {
     #if DEBUG
@@ -59,21 +62,37 @@ struct HolyDayApp: App {
 
   var body: some Scene {
     WindowGroup {
-      Group {
-        if hasCompletedOnboarding {
-          MainTabView()
-            .transition(.opacity)
-        } else {
-          OnboardingView {
-            withAnimation(.easeInOut(duration: 0.5)) {
-              hasCompletedOnboarding = true
+      ZStack {
+        Group {
+          if hasCompletedOnboarding {
+            MainTabView()
+              .transition(.opacity)
+          } else {
+            OnboardingView {
+              withAnimation(.easeInOut(duration: 0.5)) {
+                hasCompletedOnboarding = true
+              }
             }
+            .transition(.opacity)
           }
-          .transition(.opacity)
+        }
+        .modelContainer(container)
+        .background { AppBackground() }
+
+        if showSplash {
+          SplashView()
+            .transition(.opacity)
+            .zIndex(1)
         }
       }
-      .modelContainer(container)
-      .background { AppBackground() }
+      // Fondu fiable du splash vers le contenu (plutôt qu'un withAnimation au niveau scène,
+      // qui peut couper net) : l'animation est pilotée par le changement de `showSplash`.
+      .animation(.easeInOut(duration: 0.6), value: showSplash)
+      .task {
+        // Splash affiché au lancement, puis fondu vers le contenu.
+        try? await Task.sleep(for: .seconds(2.5))
+        showSplash = false
+      }
     }
   }
 }
