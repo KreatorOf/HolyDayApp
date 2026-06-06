@@ -18,9 +18,18 @@ final class AvatarService {
   }
 
   func save(_ image: UIImage) {
-    let size = CGSize(width: 256, height: 256)
+    let side: CGFloat = 256
+    let size = CGSize(width: side, height: side)
     let renderer = UIGraphicsImageRenderer(size: size)
-    let squared = renderer.image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+    let squared = renderer.image { _ in
+      // Aspect-fill : mise à l'échelle qui couvre le carré sans déformer (le plus petit côté
+      // remplit), centrée ; le débordement est rogné par les bornes du renderer. Évite
+      // l'étirement obtenu en dessinant directement dans un CGRect carré.
+      let scale = max(side / image.size.width, side / image.size.height)
+      let scaled = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+      let origin = CGPoint(x: (side - scaled.width) / 2, y: (side - scaled.height) / 2)
+      image.draw(in: CGRect(origin: origin, size: scaled))
+    }
     if let data = squared.jpegData(compressionQuality: 0.85) {
       try? data.write(to: avatarURL, options: .atomic)
     }
