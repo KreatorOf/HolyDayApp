@@ -2876,6 +2876,22 @@
         }
       }
     },
+    "settings.profile.praying.since" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've been praying on HolyDay since %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu pries sur HolyDay depuis le %@"
+          }
+        }
+      }
+    },
     "settings.support.subtitle" : {
       "localizations" : {
         "en" : {

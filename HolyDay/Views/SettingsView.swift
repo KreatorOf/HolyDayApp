@@ -28,6 +28,8 @@ struct SettingsView: View {
   @AppStorage("holyday.userName") private var userName = ""
   @State private var rateFeedbackToken = false
   @State private var resetFeedbackToken = false
+  // Date de la toute première prière (min PrayerEntry.date) ; nil tant qu'aucune prière n'existe.
+  @State private var firstPrayerDate: Date?
 
   private var appVersion: String {
     Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "X.X.X"
@@ -35,6 +37,13 @@ struct SettingsView: View {
 
   private var currentYear: String {
     String(Calendar.current.component(.year, from: Date()))
+  }
+
+  // Lecture O(1) de la 1ʳᵉ prière (tri ascendant, limite 1) plutôt qu'un @Query chargeant tout.
+  private func loadFirstPrayerDate() {
+    var descriptor = FetchDescriptor<PrayerEntry>(sortBy: [SortDescriptor(\.date, order: .forward)])
+    descriptor.fetchLimit = 1
+    firstPrayerDate = (try? modelContext.fetch(descriptor))?.first?.date
   }
 
   var body: some View {
@@ -79,6 +88,7 @@ struct SettingsView: View {
       }
       .onAppear { notifications.checkStatus() }
       .task { avatarImage = AvatarService.shared.load() }
+      .task { loadFirstPrayerDate() }
       .sheet(isPresented: $showTipView) {
         HolyDayPaywallView()
       }
@@ -114,22 +124,39 @@ struct SettingsView: View {
         avatarCircle
 
         VStack(alignment: .leading, spacing: 5) {
-          if isEditingName {
-            TextField("settings.profile.name.placeholder", text: $pendingName)
+          HStack(spacing: 8) {
+            if isEditingName {
+              TextField("settings.profile.name.placeholder", text: $pendingName)
+                .font(.headline)
+                .foregroundStyle(AppTheme.textPrimary)
+                .onSubmit { commitName() }
+                .submitLabel(.done)
+            } else {
+              Text(
+                userName.isEmpty
+                  ? String(localized: "settings.profile.name.placeholder") : userName
+              )
               .font(.headline)
-              .foregroundStyle(AppTheme.textPrimary)
-              .onSubmit { commitName() }
-              .submitLabel(.done)
-          } else {
-            Text(
-              userName.isEmpty ? String(localized: "settings.profile.name.placeholder") : userName
-            )
-            .font(.headline)
-            .foregroundStyle(userName.isEmpty ? AppTheme.textTertiary : AppTheme.textPrimary)
+              .foregroundStyle(userName.isEmpty ? AppTheme.textTertiary : AppTheme.textPrimary)
+
+              if let tier = tipService.supporterTier {
+                SupporterBadge(tier: tier)
+              }
+            }
           }
 
-          if let tier = tipService.supporterTier {
-            SupporterBadge(tier: tier)
+          if let firstPrayerDate {
+            Label {
+              Text(
+                String(
+                  format: String(localized: "settings.profile.praying.since"),
+                  firstPrayerDate.formatted(date: .long, time: .omitted))
+              )
+            } icon: {
+              Image(systemName: "sparkles")
+            }
+            .font(.caption)
+            .foregroundStyle(AppTheme.textTertiary)
           } else {
             Text("settings.profile.edit.hint")
               .font(.caption)
