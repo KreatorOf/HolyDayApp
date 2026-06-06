@@ -46,8 +46,12 @@ struct ContentView: View {
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
-        ToolbarItem(placement: .topBarTrailing) { intentionsButton }
-        ToolbarItem(placement: .topBarTrailing) { structuredPrayerButton }
+        ToolbarItem(placement: .topBarTrailing) {
+          HStack(spacing: 4) {
+            intentionsButton
+            structuredPrayerButton
+          }
+        }
       }
     }
     .fullScreenCover(
@@ -191,8 +195,9 @@ struct ContentView: View {
       showStructuredPrayer = true
     } label: {
       Image(systemName: "hands.sparkles")
-        .font(.body.weight(.semibold))
-        .foregroundStyle(AppTheme.textPrimary)
+        .foregroundStyle(AppTheme.textSecondary)
+        .padding(8)
+        .contentShape(Rectangle())
     }
     .accessibilityLabel(String(localized: "home.guided.cta"))
   }
@@ -202,8 +207,9 @@ struct ContentView: View {
       showIntentions = true
     } label: {
       Image(systemName: "heart.text.square")
-        .font(.body.weight(.semibold))
-        .foregroundStyle(AppTheme.textPrimary)
+        .foregroundStyle(AppTheme.textSecondary)
+        .padding(8)
+        .contentShape(Rectangle())
     }
     .accessibilityLabel(String(localized: "intentions.nav.title"))
   }

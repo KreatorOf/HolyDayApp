@@ -75,12 +75,14 @@ struct PrayerHistoryView: View {
             .opacity(showNavTitle ? 1 : 0)
         }
         ToolbarItem(placement: .topBarTrailing) {
-          HStack(spacing: 14) {
+          HStack(spacing: 4) {
             Button {
               showInsight = true
             } label: {
               Image(systemName: "chart.bar")
                 .foregroundStyle(AppTheme.textSecondary)
+                .padding(8)
+                .contentShape(Rectangle())
             }
             .sensoryFeedback(.selection, trigger: showInsight)
             .accessibilityLabel(String(localized: "accessibility.stats.button"))
@@ -92,6 +94,8 @@ struct PrayerHistoryView: View {
             } label: {
               Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
                 .foregroundStyle(AppTheme.textSecondary)
+                .padding(8)
+                .contentShape(Rectangle())
             }
             .accessibilityLabel(
               isSearching
