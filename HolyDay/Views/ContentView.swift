@@ -47,7 +47,7 @@ struct ContentView: View {
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
         ToolbarItem(placement: .topBarTrailing) {
-          HStack(spacing: 14) {
+          HStack(spacing: 4) {
             intentionsButton
             structuredPrayerButton
           }
@@ -196,6 +196,8 @@ struct ContentView: View {
     } label: {
       Image(systemName: "hands.sparkles")
         .foregroundStyle(AppTheme.textSecondary)
+        .padding(8)
+        .contentShape(Rectangle())
     }
     .accessibilityLabel(String(localized: "home.guided.cta"))
   }
@@ -206,6 +208,8 @@ struct ContentView: View {
     } label: {
       Image(systemName: "heart.text.square")
         .foregroundStyle(AppTheme.textSecondary)
+        .padding(8)
+        .contentShape(Rectangle())
     }
     .accessibilityLabel(String(localized: "intentions.nav.title"))
   }
