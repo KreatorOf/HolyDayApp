@@ -76,8 +76,8 @@ struct IntentionsView: View {
   // MARK: - Segmented control
 
   private var segmentedControl: some View {
-    GlassEffectContainer(spacing: 12) {
-      HStack(spacing: 12) {
+    GlassEffectContainer(spacing: 20) {
+      HStack(spacing: 20) {
         segmentButton(.active, label: "intentions.segment.active", count: active.count)
         segmentButton(.answered, label: "intentions.section.answered", count: answered.count)
       }
