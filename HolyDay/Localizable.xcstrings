@@ -668,6 +668,38 @@
         }
       }
     },
+    "intentions.action.glory" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answered"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exaucé"
+          }
+        }
+      }
+    },
+    "intentions.action.restore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move back to active"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remettre en cours"
+          }
+        }
+      }
+    },
     "intentions.add.placeholder" : {
       "localizations" : {
         "en" : {
