@@ -28,6 +28,9 @@ struct ContentView: View {
   @State private var streakTokenBeforeStructured: UUID?
 
   @AppStorage("holyday.userName") private var userName = ""
+  // Tour guidé post-onboarding, joué une seule fois. `tourStep` = étape courante (nil = inactif).
+  @AppStorage("holyday.hasSeenTour") private var hasSeenTour = false
+  @State private var tourStep: Int?
 
   private let verseAnchorID = "verse"
 
@@ -48,8 +51,8 @@ struct ContentView: View {
         ToolbarItem(placement: .principal) { brandingTitle }
         ToolbarItem(placement: .topBarTrailing) {
           HStack(spacing: 4) {
-            intentionsButton
-            structuredPrayerButton
+            intentionsButton.tourAnchor(.intentions)
+            structuredPrayerButton.tourAnchor(.guidedPrayer)
           }
         }
       }
@@ -93,6 +96,16 @@ struct ContentView: View {
     .sheet(isPresented: $showPaywallFromPrompt) {
       HolyDayPaywallView()
     }
+    .overlayPreferenceValue(TourAnchorKey.self) { anchors in
+      GeometryReader { proxy in
+        tourOverlay(anchors: anchors, proxy: proxy)
+      }
+    }
+    .onAppear {
+      // Tour guidé joué une seule fois, après l'onboarding. Déclenchement synchrone (un .task
+      // asynchrone pouvait être annulé pendant le lancement et ne jamais démarrer le tour).
+      if !hasSeenTour, tourStep == nil { tourStep = 0 }
+    }
   }
 
   // MARK: - Composer layer
@@ -114,6 +127,7 @@ struct ContentView: View {
               .padding(.horizontal, 32)
 
             EmotionRibbonView { select($0) }
+              .tourAnchor(.emotions)
 
             if let emotionVerse {
               EmotionVerseView(
@@ -125,6 +139,7 @@ struct ContentView: View {
             }
 
             composer
+              .tourAnchor(.composer)
 
             Spacer(minLength: 0)
             Spacer(minLength: 0)
@@ -222,6 +237,49 @@ struct ContentView: View {
       selectedEmotion = emotion
       emotionVerse = VerseService.shared.verse(for: emotion)
     }
+  }
+
+  // MARK: - Tour guidé
+
+  @ViewBuilder
+  private func tourOverlay(anchors: [Int: Anchor<CGRect>], proxy: GeometryProxy) -> some View {
+    if let raw = tourStep, let step = TourStep(rawValue: raw) {
+      TourOverlayView(
+        step: step,
+        targetRect: tourRect(step: step, raw: raw, anchors: anchors, proxy: proxy),
+        screen: proxy.size,
+        index: raw,
+        total: TourStep.allCases.count,
+        onNext: advanceTour,
+        onSkip: endTour
+      )
+    }
+  }
+
+  private func tourRect(
+    step: TourStep, raw: Int, anchors: [Int: Anchor<CGRect>], proxy: GeometryProxy
+  ) -> CGRect? {
+    if let anchor = anchors[raw] { return proxy[anchor] }
+    // Repli si l'ancre d'un bouton de la barre de navigation n'est pas propagée : coin haut-droit.
+    switch step {
+    case .intentions: return CGRect(x: proxy.size.width - 96, y: 2, width: 40, height: 40)
+    case .guidedPrayer: return CGRect(x: proxy.size.width - 50, y: 2, width: 40, height: 40)
+    default: return nil
+    }
+  }
+
+  private func advanceTour() {
+    guard let raw = tourStep else { return }
+    if raw + 1 < TourStep.allCases.count {
+      withAnimation(.easeInOut(duration: 0.25)) { tourStep = raw + 1 }
+    } else {
+      endTour()
+    }
+  }
+
+  private func endTour() {
+    withAnimation(.easeInOut(duration: 0.3)) { tourStep = nil }
+    hasSeenTour = true
   }
 
   private func save() {
