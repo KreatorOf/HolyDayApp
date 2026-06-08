@@ -189,9 +189,14 @@ struct ContentView: View {
         .font(.headline)
         .foregroundStyle(AppTheme.textPrimary)
         .padding(.horizontal, 26)
-        .padding(.vertical, 14)
+        .padding(.vertical, 6)
     }
-    .glassEffect(.regular.interactive(), in: .capsule)
+    // Style natif iOS 26 pour un bouton « menu » en Liquid Glass : `.menuStyle(.button)` fait rendre
+    // le Menu comme un bouton, et `.buttonStyle(.glass)` applique le morph de verre interactif géré
+    // par le système. Indispensable car le style de Menu par défaut peint sa propre teinte d'état
+    // pressé PAR-DESSUS un `.glassEffect` manuel — le bouton « tintait » au tap comme à l'appui long.
+    .menuStyle(.button)
+    .buttonStyle(.glass)
     .accessibilityLabel(String(localized: "home.pray.cta"))
   }
 
