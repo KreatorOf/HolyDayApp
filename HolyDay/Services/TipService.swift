@@ -19,10 +19,10 @@ final class TipService {
   }
 
   // Stored as index+1 so 0 means "never purchased" (UserDefaults returns 0 for missing keys)
-  private var highestTipIndexStored: Int = UserDefaults.standard.integer(
+  private var tipTierIndexStored: Int = UserDefaults.standard.integer(
     forKey: "holyday.highestTipIndex")
   {
-    didSet { UserDefaults.standard.set(highestTipIndexStored, forKey: "holyday.highestTipIndex") }
+    didSet { UserDefaults.standard.set(tipTierIndexStored, forKey: "holyday.highestTipIndex") }
   }
 
   private(set) var tipsOffering: Offering?
@@ -34,7 +34,7 @@ final class TipService {
 
   var supporterTier: SupporterTier? {
     guard hasTipped else { return nil }
-    return SupporterTier(rawValue: highestTipIndexStored - 1)
+    return SupporterTier(rawValue: tipTierIndexStored - 1)
   }
 
   private init() {
@@ -74,31 +74,41 @@ final class TipService {
     tierByProductId[productIdentifier] ?? SupporterTier.tier(for: productIdentifier)
   }
 
+  // Enregistre directement le palier acheté. Les dons sont des produits CONSOMMABLES et, en mode
+  // utilisateur anonyme, n'apparaissent plus dans CustomerInfo après l'achat (ils ne sont pas
+  // conservés sur le reçu du store — cf. doc RevenueCat). Le badge est donc persisté localement
+  // depuis le palier connu au moment de l'achat, sans dépendre d'un aller-retour CustomerInfo.
+  func recordPurchase(tier: SupporterTier) {
+    hasTipped = true
+    tipTierIndexStored = tier.rawValue + 1
+  }
+
   func applyCustomerInfo(_ info: CustomerInfo) {
-    let wasAlreadyTipped = hasTipped
     let entitlementActive = info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true
     let hasTransactions = !info.nonSubscriptions.isEmpty
 
-    guard entitlementActive || hasTransactions else {
-      // Plus aucun achat actif (remboursement, historique effacé) : on efface le badge en cache
-      // pour rester aligné sur le store plutôt que de figer l'ancien palier.
-      if wasAlreadyTipped {
-        hasTipped = false
-        highestTipIndexStored = 0
-      }
-      return
-    }
+    // Purement ADDITIF : CustomerInfo ne sert qu'à (ré)confirmer le badge, jamais à l'effacer.
+    // Pour des consommables anonymes, un CustomerInfo vide est l'état normal (et non un
+    // remboursement) — l'effacer figerait le badge à « jamais visible » dès le 1er refresh/lancement.
+    guard entitlementActive || hasTransactions else { return }
     hasTipped = true
-    updateHighestTier(from: info.nonSubscriptions)
+    if hasTransactions {
+      updateTier(from: info.nonSubscriptions)
+    } else if tipTierIndexStored == 0 {
+      // Droit actif sans transaction connue (ex. restauration) : au moins le palier minimal.
+      tipTierIndexStored = 1
+    }
   }
 
-  private func updateHighestTier(from transactions: [NonSubscriptionTransaction]) {
-    for tx in transactions {
-      if let tier = tier(for: tx.productIdentifier) {
-        let stored = tier.rawValue + 1
-        if stored > highestTipIndexStored { highestTipIndexStored = stored }
-      }
-    }
-    if highestTipIndexStored == 0 { highestTipIndexStored = 1 }
+  // Le badge reflète le don le PLUS RÉCENT (et non le palier le plus élevé jamais atteint) : on
+  // réaffecte sans `max` pour qu'il puisse aussi redescendre si le dernier don est d'un palier
+  // inférieur. Sinon, un don élevé ponctuel figerait le badge sur ce palier indéfiniment.
+  private func updateTier(from transactions: [NonSubscriptionTransaction]) {
+    let latestTier =
+      transactions
+      .max { $0.purchaseDate < $1.purchaseDate }
+      .flatMap { tier(for: $0.productIdentifier) }
+    // Repli : un achat est actif mais le palier reste introuvable → palier minimal.
+    tipTierIndexStored = (latestTier?.rawValue ?? 0) + 1
   }
 }

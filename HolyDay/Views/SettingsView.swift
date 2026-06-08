@@ -140,7 +140,7 @@ struct SettingsView: View {
               .foregroundStyle(userName.isEmpty ? AppTheme.textTertiary : AppTheme.textPrimary)
 
               if let tier = tipService.supporterTier {
-                SupporterBadge(tier: tier)
+                SupporterBadge(tier: tier, style: .iconOnly)
               }
             }
           }
