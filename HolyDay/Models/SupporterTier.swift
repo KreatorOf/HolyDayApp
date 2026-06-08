@@ -50,7 +50,7 @@ enum SupporterTier: Int {
     switch self {
     case .ami: return "heart.fill"
     case .genereux: return "star.fill"
-    case .bienfaiteur: return "dove.fill"
+    case .bienfaiteur: return "sparkles"
     }
   }
 

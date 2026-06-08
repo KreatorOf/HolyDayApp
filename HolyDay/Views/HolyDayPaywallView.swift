@@ -16,8 +16,8 @@ struct HolyDayPaywallView: View {
   @State private var isPurchasing = false
   @State private var showError = false
   @State private var showThankYou = false
-  // Palier du don qui vient d'être effectué : la célébration doit refléter CE don, pas le palier
-  // le plus élevé jamais atteint (tipService.supporterTier), qui sert au badge persistant.
+  // Palier du don qui vient d'être effectué : la célébration reflète CE don précis (indépendamment
+  // de l'état du badge persistant exposé par tipService.supporterTier).
   @State private var purchasedTier: SupporterTier?
 
   var body: some View {
@@ -187,7 +187,9 @@ struct HolyDayPaywallView: View {
     do {
       let result = try await Purchases.shared.purchase(package: package)
       guard !result.userCancelled else { return }
-      tipService.applyCustomerInfo(result.customerInfo)
+      // Palier connu directement : les dons sont consommables et ne persistent pas dans CustomerInfo
+      // (utilisateur anonyme), donc on enregistre le badge localement au lieu d'un aller-retour store.
+      tipService.recordPurchase(tier: tier)
       await tipService.refreshCustomerInfo()
       // Célébration plein écran à la place de l'ancienne notification ; elle se ferme seule
       // au bout de 3 s et referme alors le paywall.
