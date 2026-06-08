@@ -5,8 +5,8 @@
 //  Created by Matthias Cadet on 14/05/2026.
 //
 
-import Foundation
 import SwiftData
+import SwiftUI
 
 @Model
 final class PrayerEntry {
@@ -30,6 +30,14 @@ final class PrayerEntry {
 
   // Référence du verset présenté pour l'émotion (ex. « Ésaïe 41:10 »). Optionnel.
   var verseReference: String?
+
+  /// Couleur d'accent dans le journal : la pastel de l'émotion déclarée si présente (prière libre),
+  /// sinon la couleur ACTS de l'étape (prière guidée). Dérivée à l'affichage — pas de migration : les
+  /// entrées existantes reprennent automatiquement la teinte correspondant à leur émotion.
+  /// `@MainActor` : s'appuie sur des couleurs isolées au main actor, et n'est lue que depuis les vues.
+  @MainActor var accentColor: Color {
+    emotion?.pastel ?? AppTheme.color(for: stepColorName)
+  }
 
   init(
     stepTitle: String,

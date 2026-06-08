@@ -80,7 +80,7 @@ struct PrayerHistoryView: View {
               showInsight = true
             } label: {
               Image(systemName: "chart.bar")
-                .foregroundStyle(AppTheme.textSecondary)
+                .foregroundStyle(AppTheme.textPrimary)
                 .padding(8)
                 .contentShape(Rectangle())
             }
@@ -93,7 +93,7 @@ struct PrayerHistoryView: View {
               }
             } label: {
               Image(systemName: isSearching ? "xmark.circle.fill" : "magnifyingglass")
-                .foregroundStyle(AppTheme.textSecondary)
+                .foregroundStyle(AppTheme.textPrimary)
                 .padding(8)
                 .contentShape(Rectangle())
             }
@@ -709,7 +709,7 @@ struct PrayerHistoryView: View {
 
 struct JournalEntryRow: View {
   let entry: PrayerEntry
-  private var stepColor: Color { AppTheme.color(for: entry.stepColorName) }
+  private var accent: Color { entry.accentColor }
 
   var body: some View {
     ZStack(alignment: .leading) {
@@ -721,15 +721,15 @@ struct JournalEntryRow: View {
         }
 
       Rectangle()
-        .fill(stepColor)
+        .fill(accent)
         .frame(width: 3)
 
       HStack(spacing: 12) {
         Image(systemName: entry.stepIcon)
           .font(.callout)
-          .foregroundStyle(stepColor)
+          .foregroundStyle(accent)
           .frame(width: 36, height: 36)
-          .background(stepColor.opacity(0.15))
+          .background(accent.opacity(0.15))
           .clipShape(Circle())
 
         VStack(alignment: .leading, spacing: 4) {
@@ -783,7 +783,7 @@ struct JournalEntryRow: View {
           Image(systemName: emotion.icon)
         }
         .font(.caption2.weight(.medium))
-        .foregroundStyle(emotion.color)
+        .foregroundStyle(emotion.pastel)
       }
       if let reference = entry.verseReference {
         Label {

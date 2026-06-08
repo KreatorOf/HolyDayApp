@@ -11,23 +11,21 @@ import SwiftUI
 
 /// Tour guidé contextuel joué une fois après l'onboarding : présente les actions clés de l'accueil.
 enum TourStep: Int, CaseIterable {
-  case emotions, composer, intentions, guidedPrayer
+  case emotions, pray, intentions
 
   var title: LocalizedStringKey {
     switch self {
     case .emotions: return "tour.emotions.title"
-    case .composer: return "tour.composer.title"
+    case .pray: return "tour.pray.title"
     case .intentions: return "tour.intentions.title"
-    case .guidedPrayer: return "tour.guided.title"
     }
   }
 
   var message: LocalizedStringKey {
     switch self {
     case .emotions: return "tour.emotions.message"
-    case .composer: return "tour.composer.message"
+    case .pray: return "tour.pray.message"
     case .intentions: return "tour.intentions.message"
-    case .guidedPrayer: return "tour.guided.message"
     }
   }
 }

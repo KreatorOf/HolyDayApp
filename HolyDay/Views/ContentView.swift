@@ -14,9 +14,8 @@ struct ContentView: View {
 
   @State private var selectedEmotion: Emotion?
   @State private var emotionVerse: Verse?
-  @State private var prayerText = ""
-  @FocusState private var isComposerFocused: Bool
 
+  @State private var showFreePrayer = false
   @State private var showStructuredPrayer = false
   @State private var showIntentions = false
 
@@ -26,34 +25,29 @@ struct ContentView: View {
   // Jeton de streak avant l'ouverture de la prière structurée : permet de savoir, à sa fermeture,
   // si une nouvelle prière a réellement été enregistrée pendant la session.
   @State private var streakTokenBeforeStructured: UUID?
+  // Pendant équivalent pour la prière libre (présentée en feuille depuis le menu « Prier »).
+  @State private var streakTokenBeforeFree: UUID?
 
   @AppStorage("holyday.userName") private var userName = ""
   // Tour guidé post-onboarding, joué une seule fois. `tourStep` = étape courante (nil = inactif).
   @AppStorage("holyday.hasSeenTour") private var hasSeenTour = false
   @State private var tourStep: Int?
 
-  private let verseAnchorID = "verse"
-
-  private var canSave: Bool {
-    !prayerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-  }
+  // Hauteur réservée à la zone du verset : dimensionnée pour les versets courts (la majorité), afin
+  // qu'apparition et révélation mot à mot ne déplacent jamais les éléments voisins.
+  private let verseSlotHeight: CGFloat = 168
 
   var body: some View {
     NavigationStack {
       ZStack {
         composerLayer
       }
-      .contentShape(Rectangle())
-      .onTapGesture { isComposerFocused = false }
       .background { AppBackground() }
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
         ToolbarItem(placement: .topBarTrailing) {
-          HStack(spacing: 4) {
-            intentionsButton.tourAnchor(.intentions)
-            structuredPrayerButton.tourAnchor(.guidedPrayer)
-          }
+          intentionsButton.tourAnchor(.intentions)
         }
       }
     }
@@ -66,7 +60,25 @@ struct ContentView: View {
         }
       }
     ) {
-      StructuredPrayerSheet()
+      StructuredPrayerSheet(
+        verse: emotionVerse,
+        accent: selectedEmotion?.color ?? AppTheme.adorationPurple
+      )
+    }
+    .sheet(
+      isPresented: $showFreePrayer,
+      onDismiss: {
+        // Même logique que la prière structurée : une nouvelle prière a-t-elle été enregistrée ?
+        if streak.lastIncrementToken != streakTokenBeforeFree {
+          presentSupportPromptIfEligible()
+        }
+      }
+    ) {
+      FreePrayerSheet(
+        verse: emotionVerse,
+        accent: selectedEmotion?.color ?? AppTheme.adorationPurple,
+        onSave: saveFreePrayer
+      )
     }
     .sheet(isPresented: $showIntentions) {
       IntentionsView()
@@ -111,83 +123,76 @@ struct ContentView: View {
   // MARK: - Composer layer
 
   private var composerLayer: some View {
-    // ScrollView + minHeight = hauteur du viewport : le contenu reste centré au repos, et devient
-    // défilable quand le clavier réduit l'espace. On défile alors vers le verset pour qu'il reste
-    // entièrement visible au-dessus du champ de saisie.
+    // ScrollView + minHeight = hauteur du viewport : le contenu reste centré au repos et reste
+    // accessible sur petits écrans ou en grandes tailles Dynamic Type. Le bouton « Prier » est
+    // ancré en bas (safeAreaInset) : il ne se déplace pas quand le verset apparaît au-dessus.
     GeometryReader { geo in
-      ScrollViewReader { proxy in
-        ScrollView {
-          VStack(spacing: 28) {
-            Spacer(minLength: 0)
+      ScrollView {
+        VStack(spacing: 28) {
+          Spacer(minLength: 0)
 
-            Text(feelingQuestion)
-              .font(.system(.title2, design: .serif).weight(.semibold))
-              .foregroundStyle(AppTheme.textPrimary)
-              .multilineTextAlignment(.center)
-              .padding(.horizontal, 32)
+          Text(feelingQuestion)
+            .font(.system(.title2, design: .serif).weight(.semibold))
+            .foregroundStyle(AppTheme.textPrimary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 32)
 
-            EmotionRibbonView { select($0) }
-              .tourAnchor(.emotions)
+          EmotionRibbonView { select($0) }
+            .tourAnchor(.emotions)
 
+          // Emplacement réservé : hauteur fixe et verset ancré en haut, pour que la révélation mot
+          // à mot s'écrive « vers le bas » sans décaler le ruban au-dessus ni le reste en dessous.
+          ZStack(alignment: .top) {
             if let emotionVerse {
               EmotionVerseView(
                 verse: emotionVerse,
                 accent: selectedEmotion?.color ?? AppTheme.adorationPurple
               )
-              .id(verseAnchorID)
               .transition(.opacity)
             }
-
-            composer
-              .tourAnchor(.composer)
-
-            Spacer(minLength: 0)
-            Spacer(minLength: 0)
           }
-          .frame(minHeight: geo.size.height)
-          .animation(.spring(response: 0.45, dampingFraction: 0.85), value: emotionVerse?.id)
+          .frame(maxWidth: .infinity, minHeight: verseSlotHeight, alignment: .top)
+
+          Spacer(minLength: 0)
         }
-        .scrollIndicators(.hidden)
-        .scrollDismissesKeyboard(.interactively)
-        .onChange(of: isComposerFocused) { _, focused in
-          guard focused, emotionVerse != nil else { return }
-          withAnimation(.easeOut(duration: 0.3)) {
-            proxy.scrollTo(verseAnchorID, anchor: .top)
-          }
-        }
+        .frame(minHeight: geo.size.height)
+        .frame(maxWidth: .infinity)
+        .animation(.spring(response: 0.45, dampingFraction: 0.85), value: emotionVerse?.id)
       }
+      .scrollIndicators(.hidden)
+    }
+    .safeAreaInset(edge: .bottom) {
+      prayButton
+        .tourAnchor(.pray)
+        .padding(.bottom, 28)
     }
   }
 
-  private var composer: some View {
-    HStack(alignment: .bottom, spacing: 8) {
-      TextField("prayer.free.placeholder", text: $prayerText, axis: .vertical)
-        .font(.body)
-        .foregroundStyle(AppTheme.textPrimary)
-        .focused($isComposerFocused)
-        .lineLimit(1...6)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .glassEffect(
-          .regular.interactive(),
-          in: RoundedRectangle(cornerRadius: 24, style: .continuous)
-        )
-
+  // CTA principal : ouvre un menu natif (HIG) proposant la prière libre ou la prière guidée.
+  // Toujours visible — les deux modes restent accessibles même sans émotion sélectionnée.
+  private var prayButton: some View {
+    Menu {
       Button {
-        save()
+        streakTokenBeforeFree = streak.lastIncrementToken
+        showFreePrayer = true
       } label: {
-        Image(systemName: "arrow.up.circle.fill")
-          .font(.system(size: 34))
-          .foregroundStyle(canSave ? AppTheme.adorationPurple : AppTheme.textTertiary.opacity(0.4))
-          .frame(width: 44, height: 44)
-          .contentShape(Circle())
+        Label("prayer.free.title", systemImage: "square.and.pencil")
       }
-      .buttonStyle(.plain)
-      .disabled(!canSave)
-      .animation(.easeInOut(duration: 0.2), value: canSave)
-      .accessibilityLabel(String(localized: "prayer.free.amen"))
+      Button {
+        streakTokenBeforeStructured = streak.lastIncrementToken
+        showStructuredPrayer = true
+      } label: {
+        Label("prayer.guided.title", systemImage: "hands.sparkles")
+      }
+    } label: {
+      Label("home.pray.cta", systemImage: "hands.sparkles")
+        .font(.headline)
+        .foregroundStyle(AppTheme.textPrimary)
+        .padding(.horizontal, 26)
+        .padding(.vertical, 14)
     }
-    .padding(.horizontal, 20)
+    .glassEffect(.regular.interactive(), in: .capsule)
+    .accessibilityLabel(String(localized: "home.pray.cta"))
   }
 
   // MARK: - Toolbar
@@ -203,26 +208,12 @@ struct ContentView: View {
     }
   }
 
-  // Filet discret pour qui ne sait pas quoi dire : lance la prière structurée.
-  private var structuredPrayerButton: some View {
-    Button {
-      streakTokenBeforeStructured = streak.lastIncrementToken
-      showStructuredPrayer = true
-    } label: {
-      Image(systemName: "hands.sparkles")
-        .foregroundStyle(AppTheme.textSecondary)
-        .padding(8)
-        .contentShape(Rectangle())
-    }
-    .accessibilityLabel(String(localized: "home.guided.cta"))
-  }
-
   private var intentionsButton: some View {
     Button {
       showIntentions = true
     } label: {
-      Image(systemName: "heart.text.square")
-        .foregroundStyle(AppTheme.textSecondary)
+      Image(systemName: "list.bullet")
+        .foregroundStyle(AppTheme.textPrimary)
         .padding(8)
         .contentShape(Rectangle())
     }
@@ -262,8 +253,7 @@ struct ContentView: View {
     if let anchor = anchors[raw] { return proxy[anchor] }
     // Repli si l'ancre d'un bouton de la barre de navigation n'est pas propagée : coin haut-droit.
     switch step {
-    case .intentions: return CGRect(x: proxy.size.width - 96, y: 2, width: 40, height: 40)
-    case .guidedPrayer: return CGRect(x: proxy.size.width - 50, y: 2, width: 40, height: 40)
+    case .intentions: return CGRect(x: proxy.size.width - 50, y: 2, width: 40, height: 40)
     default: return nil
     }
   }
@@ -282,10 +272,11 @@ struct ContentView: View {
     hasSeenTour = true
   }
 
-  private func save() {
-    let trimmed = prayerText.trimmingCharacters(in: .whitespacesAndNewlines)
+  // Enregistre la prière libre saisie dans `FreePrayerSheet`. La sollicitation de don éventuelle est
+  // déclenchée à la fermeture de la feuille (cf. `onDismiss`), pour ne pas empiler deux feuilles.
+  private func saveFreePrayer(_ text: String) {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else { return }
-    isComposerFocused = false
 
     let entry = PrayerEntry(
       stepTitle: String(localized: "prayer.free.title"),
@@ -296,11 +287,8 @@ struct ContentView: View {
       verseReference: emotionVerse?.reference
     )
     modelContext.insert(entry)
-    let didRecordNewDay = StreakService.shared.recordPrayer()
-    resetComposer()
-    if didRecordNewDay {
-      presentSupportPromptIfEligible()
-    }
+    StreakService.shared.recordPrayer()
+    resetSelection()
   }
 
   // Présente la sollicitation de don si l'état le permet, et démarre alors son délai de repos.
@@ -310,9 +298,8 @@ struct ContentView: View {
     showSupportPrompt = true
   }
 
-  private func resetComposer() {
+  private func resetSelection() {
     withAnimation(.easeInOut(duration: 0.3)) {
-      prayerText = ""
       selectedEmotion = nil
       emotionVerse = nil
     }

@@ -64,9 +64,9 @@ struct PrayerEntryDetailView: View {
       Image(systemName: entry.stepIcon)
         .font(.title3)
         .fontWeight(.semibold)
-        .foregroundStyle(AppTheme.color(for: entry.stepColorName))
+        .foregroundStyle(entry.accentColor)
         .frame(width: 50, height: 50)
-        .background(AppTheme.color(for: entry.stepColorName).opacity(0.15))
+        .background(entry.accentColor.opacity(0.15))
         .clipShape(Circle())
 
       VStack(alignment: .leading, spacing: 4) {
