@@ -74,15 +74,11 @@
 		};
 		C96621D42FC33FE000BF73B8 /* HolyDayTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = HolyDayTests;
 			sourceTree = "<group>";
 		};
 		C99CE6BD2FB5267700B06836 /* HolyDay */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = HolyDay;
 			sourceTree = "<group>";
 		};

@@ -72,4 +72,20 @@ enum Emotion: String, CaseIterable, Codable, Identifiable {
   }
 
   var color: Color { AppTheme.color(for: colorName) }
+
+  /// Teinte pastel propre à chaque émotion, utilisée pour colorer sa bulle dans le ruban défilant.
+  /// Une couleur distincte par émotion pour les différencier d'un coup d'œil. Rôle décoratif : le
+  /// libellé reste en couleur de texte standard, donc la lisibilité ne dépend pas de cette teinte.
+  var pastel: Color {
+    switch self {
+    case .joy: Color(red: 0.95, green: 0.68, blue: 0.22)
+    case .peace: Color(red: 0.40, green: 0.80, blue: 0.58)
+    case .gratitude: Color(red: 0.99, green: 0.58, blue: 0.42)
+    case .sadness: Color(red: 0.40, green: 0.64, blue: 0.93)
+    case .fear: Color(red: 0.70, green: 0.56, blue: 0.96)
+    case .fatigue: Color(red: 0.46, green: 0.52, blue: 0.82)
+    case .anger: Color(red: 0.93, green: 0.42, blue: 0.40)
+    case .hope: Color(red: 0.26, green: 0.76, blue: 0.73)
+    }
+  }
 }

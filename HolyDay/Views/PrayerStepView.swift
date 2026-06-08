@@ -302,9 +302,9 @@ struct PrayerStepView: View {
       onPray()
     } label: {
       HStack(spacing: 10) {
-        Image(systemName: "checkmark.circle")
+        Image(systemName: "hands.sparkles")
           .font(.system(size: 18, weight: .semibold))
-        Text("step.prayed")
+        Text("prayer.free.amen")
           .font(.subheadline)
           .fontWeight(.bold)
           .tracking(0.3)

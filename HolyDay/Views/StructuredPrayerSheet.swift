@@ -13,6 +13,10 @@ import SwiftUI
 #endif
 
 struct StructuredPrayerSheet: View {
+  // Verset en cours, rappelé en tête comme dans la prière libre (nil = lancement sans émotion).
+  var verse: Verse?
+  var accent: Color = AppTheme.adorationPurple
+
   @Environment(\.modelContext) private var modelContext
   @Environment(\.dismiss) private var dismiss
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
@@ -28,6 +32,12 @@ struct StructuredPrayerSheet: View {
       ScrollViewReader { proxy in
         ScrollView {
           VStack(spacing: 16) {
+            if let verse {
+              VerseRecallView(verse: verse, accent: accent)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 4)
+            }
+
             stepsSection(proxy: proxy)
               .padding(.horizontal, 16)
 
