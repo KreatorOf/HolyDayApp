@@ -1,0 +1,8 @@
+# Periphery — détection de code Swift inutilisé.
+# Local : `periphery scan` (rapport only). CI : ajoute `--strict` pour bloquer (voir ios-ci.yml).
+project: HolyDay.xcodeproj
+schemes:
+  - HolyDay Dev
+targets:
+  - HolyDay
+  - HolyDayWidgetExtension
