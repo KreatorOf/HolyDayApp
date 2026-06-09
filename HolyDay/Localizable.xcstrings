@@ -749,6 +749,38 @@
         }
       }
     },
+    "intentions.detail.added" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutée le %@"
+          }
+        }
+      }
+    },
+    "intentions.detail.answered" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answered %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exaucée le %@"
+          }
+        }
+      }
+    },
     "intentions.duration.days" : {
       "localizations" : {
         "en" : {
@@ -905,6 +937,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mes sujets de prière"
+          }
+        }
+      }
+    },
+    "intentions.section.active" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In prayer"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En cours"
           }
         }
       }
