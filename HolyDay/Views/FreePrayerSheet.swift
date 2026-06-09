@@ -18,6 +18,7 @@ struct FreePrayerSheet: View {
 
   @Environment(\.dismiss) private var dismiss
   @State private var prayerText = ""
+  @State private var savedHaptic = 0
   @FocusState private var isFocused: Bool
 
   private var canSave: Bool {
@@ -49,6 +50,9 @@ struct FreePrayerSheet: View {
         }
       }
       .onAppear { isFocused = true }
+      // Prière libre enregistrée : retour d'accomplissement, cohérent avec le « Prier » de la
+      // prière guidée (PrayerStepView).
+      .sensoryFeedback(.success, trigger: savedHaptic)
     }
   }
 
@@ -71,6 +75,7 @@ struct FreePrayerSheet: View {
   // Compact, juste sous la zone de saisie : l'action de validation suit naturellement la prière.
   private var amenButton: some View {
     Button {
+      savedHaptic += 1
       onSave(prayerText)
       dismiss()
     } label: {

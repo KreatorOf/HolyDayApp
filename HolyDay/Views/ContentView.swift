@@ -43,6 +43,9 @@ struct ContentView: View {
         composerLayer
       }
       .background { AppBackground() }
+      // Sélection d'une émotion : retour haptique léger (API SwiftUI moderne, cohérente avec le
+      // reste de l'app, plutôt qu'un UISelectionFeedbackGenerator impératif).
+      .sensoryFeedback(.selection, trigger: selectedEmotion)
       .toolbarBackground(.hidden, for: .navigationBar)
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
@@ -228,7 +231,6 @@ struct ContentView: View {
   // MARK: - Actions
 
   private func select(_ emotion: Emotion) {
-    UISelectionFeedbackGenerator().selectionChanged()
     withAnimation(.spring(response: 0.45, dampingFraction: 0.85)) {
       selectedEmotion = emotion
       emotionVerse = VerseService.shared.verse(for: emotion)
