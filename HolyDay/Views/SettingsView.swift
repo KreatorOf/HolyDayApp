@@ -210,7 +210,7 @@ struct SettingsView: View {
         } else {
           ZStack {
             Circle()
-              .fill(.ultraThinMaterial)
+              .fill(AppTheme.cardSurface)
               .overlay { Circle().strokeBorder(AppTheme.cardStroke, lineWidth: 1) }
             Text(initials)
               .font(.system(size: 20, weight: .bold, design: .rounded))
@@ -550,7 +550,7 @@ struct SettingsView: View {
     VStack(spacing: 0) { content() }
       .background {
         RoundedRectangle(cornerRadius: 20, style: .continuous)
-          .fill(.ultraThinMaterial)
+          .fill(AppTheme.cardSurface)
           .overlay {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
               .strokeBorder(AppTheme.cardStroke, lineWidth: 1)

@@ -29,11 +29,9 @@ struct AppTheme {
   static let adaptiveOrange = Color("adaptiveOrange")
 
   // MARK: - Backgrounds
-  // Light = blanc neutre, dark = violet profond (variantes définies dans Assets.xcassets).
+  // Light = gris perle (recule), dark = violet profond (variantes définies dans Assets.xcassets).
 
   static let backgroundPrimary = Color("backgroundPrimary")
-  static let backgroundSecondary = Color(uiColor: .secondarySystemBackground)
-  static let backgroundTertiary = Color(uiColor: .tertiarySystemBackground)
 
   // MARK: - Text
   // Couleurs système : contraste et « Augmenter le contraste » gérés automatiquement (HIG Apple).
@@ -48,6 +46,10 @@ struct AppTheme {
 
   // MARK: - Adaptive surfaces
   // Translucides : se superposent proprement sur le blanc comme sur le violet profond.
+
+  // Surface « élevée » opaque (HIG) : blanc pur en clair, violet élevé en sombre.
+  // Le fond (backgroundPrimary) recule, cette surface avance → séparation carte/fond nette.
+  static let cardSurface = Color("cardSurface")
 
   static let cardStroke = Color("cardStroke")
   static let cardFill = Color("cardFill")

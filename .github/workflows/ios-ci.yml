@@ -37,6 +37,65 @@ jobs:
       - name: Run SwiftLint
         run: swiftlint lint --reporter github-actions-logging
 
+  periphery:
+    name: Periphery (dead code)
+    runs-on: macos-latest
+    needs: lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: DerivedData
+          key: ${{ runner.os }}-periphery-deriveddata-${{ hashFiles('**/*.xcodeproj/project.pbxproj') }}
+          restore-keys: |
+            ${{ runner.os }}-periphery-deriveddata-
+
+      - name: Cache SPM packages
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages/checkouts
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+
+      - name: Install Periphery
+        run: brew install peripheryapp/periphery/periphery
+
+      - name: Resolve Swift Packages
+        run: |
+          xcodebuild \
+            -resolvePackageDependencies \
+            -project HolyDay.xcodeproj \
+            -scheme "HolyDay Dev"
+
+      - name: Build for indexing
+        run: |
+          xcodebuild build \
+            -project HolyDay.xcodeproj \
+            -scheme "HolyDay Dev" \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -derivedDataPath DerivedData \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Scan for unused code
+        run: |
+          periphery scan \
+            --skip-build \
+            --index-store-path DerivedData/Index.noindex/DataStore \
+            --strict \
+            --disable-update-check \
+            --relative-results \
+            --format github-actions
+
   build-and-test:
     name: Build & Test
     runs-on: macos-latest
