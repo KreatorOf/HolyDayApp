@@ -187,7 +187,7 @@ struct PrayerHistoryView: View {
         .padding(.vertical, 10)
         .background {
           RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(AppTheme.cardFill)
+            .fill(AppTheme.cardSurface)
             .overlay {
               RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
@@ -212,7 +212,7 @@ struct PrayerHistoryView: View {
     }
     .background {
       RoundedRectangle(cornerRadius: 20, style: .continuous)
-        .fill(.ultraThinMaterial)
+        .fill(AppTheme.cardSurface)
         .overlay {
           RoundedRectangle(cornerRadius: 20, style: .continuous)
             .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
@@ -471,7 +471,7 @@ struct PrayerHistoryView: View {
         .padding(16)
         .background {
           RoundedRectangle(cornerRadius: 14, style: .continuous)
-            .fill(AppTheme.cardFill)
+            .fill(AppTheme.cardSurface)
             .overlay {
               RoundedRectangle(cornerRadius: 14, style: .continuous)
                 .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
@@ -582,7 +582,7 @@ struct PrayerHistoryView: View {
     .padding(16)
     .background {
       RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(AppTheme.cardFill)
+        .fill(AppTheme.cardSurface)
         .overlay {
           RoundedRectangle(cornerRadius: 14, style: .continuous)
             .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
@@ -626,7 +626,7 @@ struct PrayerHistoryView: View {
     .padding(16)
     .background {
       RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(AppTheme.cardFill)
+        .fill(AppTheme.cardSurface)
         .overlay {
           RoundedRectangle(cornerRadius: 14, style: .continuous)
             .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
@@ -714,7 +714,7 @@ struct JournalEntryRow: View {
   var body: some View {
     ZStack(alignment: .leading) {
       RoundedRectangle(cornerRadius: 14, style: .continuous)
-        .fill(AppTheme.cardFill)
+        .fill(AppTheme.cardSurface)
         .overlay {
           RoundedRectangle(cornerRadius: 14, style: .continuous)
             .strokeBorder(AppTheme.cardStroke, lineWidth: 1)

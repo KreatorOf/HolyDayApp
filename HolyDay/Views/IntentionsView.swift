@@ -181,7 +181,7 @@ struct IntentionsView: View {
       .padding(.vertical, 16)
       .background {
         RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .fill(.ultraThinMaterial)
+          .fill(AppTheme.cardSurface)
           .overlay {
             RoundedRectangle(cornerRadius: 24, style: .continuous)
               .strokeBorder(AppTheme.cardStroke, lineWidth: 1)

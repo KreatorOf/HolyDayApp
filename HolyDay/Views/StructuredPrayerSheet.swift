@@ -137,7 +137,7 @@ struct StructuredPrayerSheet: View {
     .padding(20)
     .background {
       RoundedRectangle(cornerRadius: 20, style: .continuous)
-        .fill(.ultraThinMaterial)
+        .fill(AppTheme.cardSurface)
         .overlay {
           RoundedRectangle(cornerRadius: 20, style: .continuous)
             .strokeBorder(AppTheme.cardStroke, lineWidth: 1)

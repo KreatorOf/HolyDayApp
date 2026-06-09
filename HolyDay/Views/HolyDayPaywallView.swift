@@ -136,7 +136,7 @@ struct HolyDayPaywallView: View {
       .padding(14)
       .background {
         RoundedRectangle(cornerRadius: 16, style: .continuous)
-          .fill(AppTheme.cardFill)
+          .fill(AppTheme.cardSurface)
           .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
               .strokeBorder(tier.color.opacity(0.2), lineWidth: 1)

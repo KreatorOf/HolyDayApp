@@ -97,7 +97,7 @@ struct IntentionDetailView: View {
         .padding(16)
         .background {
           RoundedRectangle(cornerRadius: 18, style: .continuous)
-            .fill(.ultraThinMaterial)
+            .fill(AppTheme.cardSurface)
             .overlay {
               RoundedRectangle(cornerRadius: 18, style: .continuous)
                 .strokeBorder(AppTheme.cardStroke, lineWidth: 1)

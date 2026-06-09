@@ -354,14 +354,18 @@ struct PrayerStepView: View {
 
   private var cardBackground: some View {
     ZStack {
-      if isExpanded {
-        LinearGradient(
-          colors: [step.color.opacity(0.08), step.color.opacity(0.04)],
-          startPoint: .topLeading, endPoint: .bottomTrailing
-        )
-      }
       RoundedRectangle(cornerRadius: 20, style: .continuous)
-        .fill(.ultraThinMaterial)
+        .fill(AppTheme.cardSurface)
+      if isExpanded {
+        // Teinte de l'étape posée sur la surface opaque (et non dessous, sinon masquée).
+        RoundedRectangle(cornerRadius: 20, style: .continuous)
+          .fill(
+            LinearGradient(
+              colors: [step.color.opacity(0.08), step.color.opacity(0.04)],
+              startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+          )
+      }
       RoundedRectangle(cornerRadius: 20, style: .continuous)
         .strokeBorder(
           LinearGradient(

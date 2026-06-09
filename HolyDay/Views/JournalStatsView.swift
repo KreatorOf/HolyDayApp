@@ -117,7 +117,7 @@ struct JournalStatsView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .background {
       RoundedRectangle(cornerRadius: 16, style: .continuous)
-        .fill(AppTheme.cardFill)
+        .fill(AppTheme.cardSurface)
         .overlay {
           RoundedRectangle(cornerRadius: 16, style: .continuous)
             .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
