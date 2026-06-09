@@ -23,9 +23,11 @@ struct IntentionsView: View {
   // Phase suivante : le 🙏, resté en place ~1 s, glisse à son tour vers la droite.
   @State private var handsLeavingID: PersistentIdentifier?
   @State private var answeredHaptic = 0
-  // Intention ciblée par l'appui long → affiche la boîte de décision centrée.
-  @State private var actionTarget: PrayerIntention?
-  @State private var pressHaptic = 0
+  @State private var addedHaptic = 0
+  @State private var removedHaptic = 0
+  @State private var restoredHaptic = 0
+  // Intention dont la fiche détail est présentée (appui simple sur une ligne).
+  @State private var detailTarget: PrayerIntention?
   @FocusState private var isFocused: Bool
 
   private enum Segment { case active, answered }
@@ -46,13 +48,12 @@ struct IntentionsView: View {
           content
           if segment == .active { inputBar }
         }
-
-        if let target = actionTarget {
-          decisionOverlay(for: target)
-        }
       }
       .sensoryFeedback(.success, trigger: answeredHaptic)
-      .sensoryFeedback(.impact, trigger: pressHaptic)
+      .sensoryFeedback(.selection, trigger: segment)
+      .sensoryFeedback(.selection, trigger: restoredHaptic)
+      .sensoryFeedback(.impact(weight: .light), trigger: addedHaptic)
+      .sensoryFeedback(.impact(weight: .medium), trigger: removedHaptic)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .topBarLeading) {
@@ -69,6 +70,9 @@ struct IntentionsView: View {
         TextField("intentions.add.placeholder", text: $editText)
         Button("intentions.edit.save") { commitEdit() }
         Button("common.cancel", role: .cancel) {}
+      }
+      .sheet(item: $detailTarget) { intention in
+        IntentionDetailView(intention: intention)
       }
     }
   }
@@ -164,12 +168,12 @@ struct IntentionsView: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(intention.text)
-          .font(.subheadline)
+          .font(.body)
           .foregroundStyle(answered ? AppTheme.textSecondary : AppTheme.textPrimary)
           .strikethrough(answered, color: AppTheme.textTertiary)
 
         Text(subtitle(for: intention))
-          .font(.caption2)
+          .font(.caption)
           .foregroundStyle(answered ? AppTheme.supplicationGreen : AppTheme.textTertiary)
       }
       .frame(maxWidth: .infinity, alignment: .leading)
@@ -189,100 +193,48 @@ struct IntentionsView: View {
       .accessibilityValue(
         String(
           localized: intention.isAnswered
-            ? "intentions.section.answered" : "intentions.section.active"))
+            ? "intentions.section.answered" : "intentions.section.active")
+      )
     }
+    .contentShape(.rect)
+    .onTapGesture { detailTarget = intention }
     .listRowBackground(Color.clear)
     .listRowSeparator(.hidden)
     .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
-    .onLongPressGesture {
-      pressHaptic += 1
-      withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) { actionTarget = intention }
-    }
+    // Toutes les actions (exaucer, modifier, supprimer…) passent par la fiche détail ouverte au tap.
+    // Exposées aussi en actions d'accessibilité pour VoiceOver.
+    .accessibilityActions { intentionMenu(for: intention) }
   }
 
-  // MARK: - Boîte de décision (appui long)
+  // MARK: - Menu contextuel (appui long)
 
   @ViewBuilder
-  private func decisionOverlay(for intention: PrayerIntention) -> some View {
-    ZStack {
-      Color.black.opacity(0.4)
-        .ignoresSafeArea()
-        .contentShape(Rectangle())
-        .onTapGesture { closeDecision() }
-
-      VStack(spacing: 0) {
-        Text(intention.text)
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(AppTheme.textPrimary)
-          .multilineTextAlignment(.center)
-          .lineLimit(3)
-          .padding(.horizontal, 20)
-          .padding(.vertical, 16)
-
-        Divider().overlay(AppTheme.cardStroke)
-
-        if intention.isAnswered {
-          decisionButton(
-            "intentions.action.restore", icon: "arrow.uturn.backward",
-            tint: AppTheme.adorationPurple
-          ) { toggle(intention) }
-        } else {
-          decisionButton(
-            "intentions.action.glory", icon: "hands.sparkles.fill",
-            tint: AppTheme.supplicationGreen
-          ) { answer(intention) }
-        }
-
-        Divider().overlay(AppTheme.cardStroke)
-        decisionButton("intentions.action.edit", icon: "pencil", tint: AppTheme.textPrimary) {
-          startEdit(intention)
-        }
-
-        Divider().overlay(AppTheme.cardStroke)
-        decisionButton("common.delete", icon: "trash", tint: .red, role: .destructive) {
-          modelContext.delete(intention)
-        }
+  private func intentionMenu(for intention: PrayerIntention) -> some View {
+    if intention.isAnswered {
+      Button {
+        toggle(intention)
+      } label: {
+        Label("intentions.action.restore", systemImage: "arrow.uturn.backward")
       }
-      .frame(maxWidth: 300)
-      .background {
-        RoundedRectangle(cornerRadius: 24, style: .continuous)
-          .fill(.regularMaterial)
-          .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
-          }
+    } else {
+      Button {
+        answer(intention)
+      } label: {
+        Label("intentions.action.glory", systemImage: "hands.sparkles.fill")
       }
-      .padding(40)
     }
-    .transition(reduceMotion ? .opacity : .opacity.combined(with: .scale(scale: 0.92)))
-    .zIndex(1)
-  }
 
-  private func decisionButton(
-    _ titleKey: LocalizedStringKey, icon: String, tint: Color, role: ButtonRole? = nil,
-    action: @escaping () -> Void
-  ) -> some View {
-    Button(role: role) {
-      closeDecision()
-      action()
+    Button {
+      startEdit(intention)
     } label: {
-      HStack(spacing: 12) {
-        Image(systemName: icon)
-          .frame(width: 24)
-        Text(titleKey)
-        Spacer(minLength: 0)
-      }
-      .font(.subheadline.weight(.medium))
-      .foregroundStyle(tint)
-      .padding(.horizontal, 20)
-      .padding(.vertical, 14)
-      .contentShape(Rectangle())
+      Label("intentions.action.edit", systemImage: "pencil")
     }
-    .buttonStyle(.plain)
-  }
 
-  private func closeDecision() {
-    withAnimation(.easeOut(duration: 0.2)) { actionTarget = nil }
+    Button(role: .destructive) {
+      delete(intention)
+    } label: {
+      Label("common.delete", systemImage: "trash")
+    }
   }
 
   // MARK: - Input
@@ -296,13 +248,9 @@ struct IntentionsView: View {
         .lineLimit(1...5)
         .submitLabel(.send)
         .onSubmit(add)
-        .padding(.horizontal, 14)
-        .padding(.vertical, 9)
-        .background {
-          Capsule()
-            .fill(.ultraThinMaterial)
-            .overlay { Capsule().strokeBorder(AppTheme.cardStroke, lineWidth: 1) }
-        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .glassEffect(.regular, in: .capsule)
 
       Button {
         add()
@@ -360,6 +308,12 @@ struct IntentionsView: View {
     guard !trimmed.isEmpty else { return }
     modelContext.insert(PrayerIntention(text: trimmed))
     newText = ""
+    addedHaptic += 1
+  }
+
+  private func delete(_ intention: PrayerIntention) {
+    removedHaptic += 1
+    modelContext.delete(intention)
   }
 
   private func toggle(_ intention: PrayerIntention) {
@@ -367,6 +321,7 @@ struct IntentionsView: View {
       // Annulation : retour direct dans les actives, sans effet.
       intention.isAnswered = false
       intention.answeredAt = nil
+      restoredHaptic += 1
     } else {
       answer(intention)
     }
