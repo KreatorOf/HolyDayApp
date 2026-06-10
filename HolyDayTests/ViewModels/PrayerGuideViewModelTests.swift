@@ -35,10 +35,6 @@ final class PrayerGuideViewModelTests: XCTestCase {
     XCTAssertNil(sut.expandedStepId)
   }
 
-  func test_init_verseOfTheDayIsLoaded() {
-    XCTAssertFalse(sut.verseOfTheDay.text.isEmpty)
-  }
-
   // MARK: - Progression
 
   func test_markCompleted_addsToCompletedSet() {

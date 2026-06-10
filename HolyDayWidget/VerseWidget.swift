@@ -6,337 +6,267 @@
 import SwiftUI
 import WidgetKit
 
-// MARK: - Local verse model
-
-struct WidgetVerse: Sendable {
-  let text: String
-  let reference: String
-  let book: String
-
-  var accentColor: Color {
-    switch book {
-    case "Jean", "Matthieu", "Marc", "Luc",
-      "John", "Matthew", "Mark", "Luke":
-      return Color(red: 0.3, green: 0.6, blue: 0.95)
-    case "Psaumes", "Proverbes",
-      "Psalms", "Proverbs":
-      return Color(red: 0.95, green: 0.7, blue: 0.3)
-    case "Philippiens", "Jacques", "1 Pierre",
-      "Philippians", "James", "1 Peter":
-      return Color(red: 0.3, green: 0.8, blue: 0.6)
-    default:
-      return Color(red: 0.55, green: 0.35, blue: 0.85)
-    }
-  }
-}
-
-// MARK: - Verse data (mirrors VerseService)
-
-private let frenchVerses: [WidgetVerse] = [
-  WidgetVerse(
-    text:
-      "Car Dieu a tant aimé le monde qu'il a donné son Fils unique, afin que quiconque croit en lui ne périsse point, mais qu'il ait la vie éternelle.",
-    reference: "Jean 3:16", book: "Jean"),
-  WidgetVerse(
-    text: "Je puis tout par celui qui me fortifie.", reference: "Philippiens 4:13",
-    book: "Philippiens"),
-  WidgetVerse(
-    text: "L'Éternel est mon berger : je ne manquerai de rien.", reference: "Psaume 23:1",
-    book: "Psaumes"),
-  WidgetVerse(
-    text: "Confie-toi en l'Éternel de tout ton cœur, et ne t'appuie pas sur ta sagesse.",
-    reference: "Proverbes 3:5", book: "Proverbes"),
-  WidgetVerse(
-    text:
-      "Ne crains rien, car je suis avec toi ; ne promène pas des regards inquiets, car je suis ton Dieu.",
-    reference: "Ésaïe 41:10", book: "Ésaïe"),
-  WidgetVerse(
-    text:
-      "Cherchez premièrement le royaume et la justice de Dieu ; et toutes ces choses vous seront données par-dessus.",
-    reference: "Matthieu 6:33", book: "Matthieu"),
-  WidgetVerse(
-    text: "Voici, je suis avec vous tous les jours, jusqu'à la fin du monde.",
-    reference: "Matthieu 28:20", book: "Matthieu"),
-  WidgetVerse(
-    text:
-      "Car mes pensées ne sont pas vos pensées, et vos voies ne sont pas mes voies, dit l'Éternel.",
-    reference: "Ésaïe 55:8", book: "Ésaïe"),
-  WidgetVerse(
-    text: "Que ton cœur ne se trouble point. Croyez en Dieu, et croyez en moi.",
-    reference: "Jean 14:1", book: "Jean"),
-  WidgetVerse(
-    text: "Approchez-vous de Dieu, et il s'approchera de vous.", reference: "Jacques 4:8",
-    book: "Jacques"),
-  WidgetVerse(
-    text: "L'Éternel combattra pour vous ; et vous, gardez le silence.", reference: "Exode 14:14",
-    book: "Exode"),
-  WidgetVerse(
-    text:
-      "Demandez, et l'on vous donnera ; cherchez, et vous trouverez ; frappez, et l'on vous ouvrira.",
-    reference: "Matthieu 7:7", book: "Matthieu"),
-  WidgetVerse(
-    text: "Mais ceux qui se confient en l'Éternel renouvellent leur force.",
-    reference: "Ésaïe 40:31", book: "Ésaïe"),
-  WidgetVerse(
-    text: "Rejetez sur lui tous vos soucis, car lui-même prend soin de vous.",
-    reference: "1 Pierre 5:7", book: "1 Pierre"),
-  WidgetVerse(
-    text:
-      "La paix de Dieu, qui surpasse toute intelligence, gardera vos cœurs et vos pensées en Jésus Christ.",
-    reference: "Philippiens 4:7", book: "Philippiens"),
-]
-
-private let englishVerses: [WidgetVerse] = [
-  WidgetVerse(
-    text:
-      "For God so loved the world that he gave his one and only Son, that whoever believes in him shall not perish but have eternal life.",
-    reference: "John 3:16", book: "John"),
-  WidgetVerse(
-    text: "I can do all this through him who gives me strength.", reference: "Philippians 4:13",
-    book: "Philippians"),
-  WidgetVerse(
-    text: "The Lord is my shepherd, I lack nothing.", reference: "Psalm 23:1", book: "Psalms"),
-  WidgetVerse(
-    text: "Trust in the Lord with all your heart and lean not on your own understanding.",
-    reference: "Proverbs 3:5", book: "Proverbs"),
-  WidgetVerse(
-    text: "So do not fear, for I am with you; do not be dismayed, for I am your God.",
-    reference: "Isaiah 41:10", book: "Isaiah"),
-  WidgetVerse(
-    text:
-      "But seek first his kingdom and his righteousness, and all these things will be given to you as well.",
-    reference: "Matthew 6:33", book: "Matthew"),
-  WidgetVerse(
-    text: "And surely I am with you always, to the very end of the age.",
-    reference: "Matthew 28:20", book: "Matthew"),
-  WidgetVerse(
-    text:
-      "For my thoughts are not your thoughts, neither are your ways my ways, declares the Lord.",
-    reference: "Isaiah 55:8", book: "Isaiah"),
-  WidgetVerse(
-    text: "Do not let your hearts be troubled. You believe in God; believe also in me.",
-    reference: "John 14:1", book: "John"),
-  WidgetVerse(
-    text: "Come near to God and he will come near to you.", reference: "James 4:8", book: "James"),
-  WidgetVerse(
-    text: "The Lord will fight for you; you need only to be still.", reference: "Exodus 14:14",
-    book: "Exodus"),
-  WidgetVerse(
-    text:
-      "Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.",
-    reference: "Matthew 7:7", book: "Matthew"),
-  WidgetVerse(
-    text: "But those who hope in the Lord will renew their strength.", reference: "Isaiah 40:31",
-    book: "Isaiah"),
-  WidgetVerse(
-    text: "Cast all your anxiety on him because he cares for you.", reference: "1 Peter 5:7",
-    book: "1 Peter"),
-  WidgetVerse(
-    text:
-      "And the peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",
-    reference: "Philippians 4:7", book: "Philippians"),
-]
-
-private func verseOfTheDay() -> WidgetVerse {
-  let lang = Locale.current.language.languageCode?.identifier ?? "fr"
-  let verses = lang.hasPrefix("en") ? englishVerses : frenchVerses
-  let dayOfYear = Calendar.current.ordinality(of: .day, in: .year, for: Date()) ?? 1
-  return verses[(dayOfYear - 1) % verses.count]
-}
-
 // MARK: - Timeline
 
+/// « Mon verset » : le dernier verset reçu via le ruban d'émotions (cf. `SharedStore.lastVerse`).
+/// Le `kind` reste "VerseWidget" (ex-verset du jour) pour que les widgets déjà posés migrent en
+/// place au lieu de disparaître de l'écran d'accueil.
 struct VerseEntry: TimelineEntry, Sendable {
   let date: Date
-  let verse: WidgetVerse
+  let verse: SharedVerse?
+
+  var accentColor: Color {
+    WidgetTheme.accent(forEmotionTag: verse?.emotionTag ?? "")
+  }
+
+  var emotionIcon: String {
+    WidgetTheme.icon(forEmotionTag: verse?.emotionTag ?? "")
+  }
+
+  var accessibilityText: String {
+    guard let verse else { return String(localized: "widget.verse.empty") }
+    return "\(verse.text) — \(verse.reference)"
+  }
 }
 
 struct VerseTimelineProvider: TimelineProvider {
   func placeholder(in context: Context) -> VerseEntry {
-    VerseEntry(date: .now, verse: frenchVerses[0])
+    VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
   }
 
   func getSnapshot(in context: Context, completion: @escaping @Sendable (VerseEntry) -> Void) {
-    completion(VerseEntry(date: .now, verse: verseOfTheDay()))
+    // Galerie de widgets : montrer un verset d'exemple plutôt que l'état vide.
+    let verse =
+      SharedStore.lastVerse ?? (context.isPreview ? WidgetPreviewData.sampleVerse() : nil)
+    completion(VerseEntry(date: .now, verse: verse))
   }
 
   func getTimeline(
     in context: Context, completion: @escaping @Sendable (Timeline<VerseEntry>) -> Void
   ) {
-    let entry = VerseEntry(date: .now, verse: verseOfTheDay())
-    let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .distantFuture
-    let nextMidnight = Calendar.current.startOfDay(for: tomorrow)
-    completion(Timeline(entries: [entry], policy: .after(nextMidnight)))
+    // Pas d'échéance calendaire : le contenu ne change que lorsque l'app publie un nouveau
+    // verset, et elle recharge alors les timelines (WidgetSyncService.updateLastVerse).
+    let entry = VerseEntry(date: .now, verse: SharedStore.lastVerse)
+    completion(Timeline(entries: [entry], policy: .never))
+  }
+}
+
+// MARK: - Shared pieces
+
+private struct VerseHeader: View {
+  @Environment(\.widgetRenderingMode) private var renderingMode
+  let entry: VerseEntry
+  var kicker: LocalizedStringKey?
+
+  var body: some View {
+    let palette = WidgetTheme.Palette(renderingMode)
+    HStack(spacing: 5) {
+      Image(systemName: entry.emotionIcon)
+        .font(.caption2)
+        .foregroundStyle(entry.accentColor)
+        .widgetAccentable()
+      if let kicker {
+        Text(kicker)
+          .font(.caption2.weight(.semibold))
+          .foregroundStyle(palette.tertiary)
+          .textCase(.uppercase)
+          .tracking(1)
+      } else {
+        Text(verbatim: "HolyDay")
+          .font(.caption2.weight(.semibold))
+          .fontDesign(.serif)
+          .foregroundStyle(palette.tertiary)
+      }
+      Spacer(minLength: 0)
+    }
+  }
+}
+
+private struct VerseReferenceRow: View {
+  let reference: String
+  let accent: Color
+  var prominent = false
+
+  var body: some View {
+    HStack(spacing: 4) {
+      Circle()
+        .fill(accent)
+        .frame(width: prominent ? 5 : 4, height: prominent ? 5 : 4)
+      Text(reference)
+        .font((prominent ? Font.callout : .caption).weight(.bold))
+        .fontDesign(.serif)
+        .foregroundStyle(accent)
+    }
+    .widgetAccentable()
+  }
+}
+
+/// Invitation douce, jamais une injonction : cohérent avec la philosophie de l'app.
+private struct VerseEmptyView: View {
+  @Environment(\.widgetRenderingMode) private var renderingMode
+  var compact = false
+
+  var body: some View {
+    let palette = WidgetTheme.Palette(renderingMode)
+    VStack(alignment: .leading, spacing: 8) {
+      Image(systemName: "hands.sparkles.fill")
+        .font(compact ? .footnote : .body)
+        .foregroundStyle(WidgetTheme.violet)
+        .widgetAccentable()
+      Text("widget.verse.empty")
+        .font((compact ? Font.caption : .footnote).weight(.medium))
+        .fontDesign(.serif)
+        .foregroundStyle(palette.secondary)
+        .lineSpacing(3)
+    }
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
   }
 }
 
 // MARK: - Small view
 
 private struct VerseWidgetSmallView: View {
+  @Environment(\.widgetRenderingMode) private var renderingMode
   let entry: VerseEntry
 
   var body: some View {
+    let palette = WidgetTheme.Palette(renderingMode)
     VStack(alignment: .leading, spacing: 0) {
-      HStack(spacing: 4) {
-        Image(systemName: "book.closed.fill")
-          .font(.system(size: 9))
-          .foregroundStyle(entry.verse.accentColor)
-        Text("HolyDay")
-          .font(.system(size: 9, weight: .semibold, design: .serif))
-          .foregroundStyle(Color.white.opacity(0.55))
-      }
+      VerseHeader(entry: entry)
 
-      Spacer()
+      if let verse = entry.verse {
+        Spacer(minLength: 6)
 
-      Text(entry.verse.text)
-        .font(.system(size: 12, weight: .medium, design: .serif))
-        .foregroundStyle(.white)
-        .lineLimit(5)
-        .lineSpacing(3)
+        // Deux compositions plutôt qu'un minimumScaleFactor : les versets courts gardent une
+        // taille confortable, les longs passent en caption au lieu d'être tronqués.
+        ViewThatFits(in: .vertical) {
+          verseText(verse.text, font: .footnote, palette: palette)
+          verseText(verse.text, font: .caption, palette: palette)
+        }
+        .contentTransition(.opacity)
 
-      Spacer()
+        Spacer(minLength: 6)
 
-      HStack(spacing: 3) {
-        Circle()
-          .fill(entry.verse.accentColor)
-          .frame(width: 3, height: 3)
-        Text(entry.verse.reference)
-          .font(.system(size: 10, weight: .bold, design: .serif))
-          .foregroundStyle(entry.verse.accentColor)
+        VerseReferenceRow(reference: verse.reference, accent: entry.accentColor)
+      } else {
+        VerseEmptyView(compact: true)
+          .padding(.top, 8)
       }
     }
-    .padding(14)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(entry.accessibilityText)
     .containerBackground(for: .widget) {
-      ZStack {
-        Color(red: 0.05, green: 0.05, blue: 0.12)
-        LinearGradient(
-          colors: [entry.verse.accentColor.opacity(0.15), Color.clear],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      }
+      WidgetTheme.nightBackground(accent: entry.accentColor)
     }
-    .widgetURL(URL(string: "holyday://verse"))
+  }
+
+  private func verseText(_ text: String, font: Font, palette: WidgetTheme.Palette) -> some View {
+    Text(text)
+      .font(font.weight(.medium))
+      .fontDesign(.serif)
+      .foregroundStyle(palette.primary)
+      .lineSpacing(3)
   }
 }
 
 // MARK: - Medium view
 
 private struct VerseWidgetMediumView: View {
+  @Environment(\.widgetRenderingMode) private var renderingMode
   let entry: VerseEntry
 
   var body: some View {
+    let palette = WidgetTheme.Palette(renderingMode)
     HStack(spacing: 0) {
       RoundedRectangle(cornerRadius: 2)
-        .fill(entry.verse.accentColor)
+        .fill(entry.accentColor)
         .frame(width: 3)
-        .padding(.vertical, 4)
+        .padding(.vertical, 2)
+        .widgetAccentable()
 
       VStack(alignment: .leading, spacing: 10) {
-        HStack {
-          HStack(spacing: 5) {
-            Image(systemName: "book.closed.fill")
-              .font(.system(size: 9))
-              .foregroundStyle(entry.verse.accentColor)
-            Text("Verset du jour")
-              .font(.system(size: 9, weight: .semibold))
-              .foregroundStyle(Color.white.opacity(0.5))
-              .textCase(.uppercase)
-              .tracking(1)
-          }
-          Spacer()
-          Text(Date.now.formatted(.dateTime.day().month(.abbreviated)))
-            .font(.system(size: 9))
-            .foregroundStyle(Color.white.opacity(0.35))
-        }
+        VerseHeader(entry: entry, kicker: "widget.verse.kicker")
 
-        Text(entry.verse.text)
-          .font(.system(size: 13, weight: .medium, design: .serif))
-          .foregroundStyle(.white)
-          .lineSpacing(4)
-          .lineLimit(3)
+        if let verse = entry.verse {
+          Text(verse.text)
+            .font(.footnote.weight(.medium))
+            .fontDesign(.serif)
+            .foregroundStyle(palette.primary)
+            .lineSpacing(4)
+            .lineLimit(3)
+            .contentTransition(.opacity)
 
-        HStack(spacing: 4) {
-          Circle()
-            .fill(entry.verse.accentColor)
-            .frame(width: 4, height: 4)
-          Text(entry.verse.reference)
-            .font(.system(size: 11, weight: .bold, design: .serif))
-            .foregroundStyle(entry.verse.accentColor)
+          VerseReferenceRow(reference: verse.reference, accent: entry.accentColor)
+        } else {
+          VerseEmptyView(compact: true)
         }
       }
       .padding(.leading, 12)
+
+      Spacer(minLength: 0)
     }
-    .padding(.vertical, 14)
-    .padding(.trailing, 14)
-    .padding(.leading, 12)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(entry.accessibilityText)
     .containerBackground(for: .widget) {
-      ZStack {
-        Color(red: 0.05, green: 0.05, blue: 0.12)
-        LinearGradient(
-          colors: [entry.verse.accentColor.opacity(0.12), Color.clear],
-          startPoint: .topLeading,
-          endPoint: .bottomTrailing
-        )
-      }
+      WidgetTheme.nightBackground(accent: entry.accentColor, intensity: 0.12)
     }
-    .widgetURL(URL(string: "holyday://verse"))
   }
 }
 
 // MARK: - Large view
 
 private struct VerseWidgetLargeView: View {
+  @Environment(\.widgetRenderingMode) private var renderingMode
   let entry: VerseEntry
 
   var body: some View {
+    let palette = WidgetTheme.Palette(renderingMode)
     VStack(alignment: .leading, spacing: 0) {
-      HStack {
-        HStack(spacing: 6) {
-          Image(systemName: "book.closed.fill")
-            .font(.caption2)
-            .foregroundStyle(entry.verse.accentColor)
-          Text("HolyDay · Verset du jour")
-            .font(.system(size: 10, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.5))
-            .textCase(.uppercase)
-            .tracking(1)
-        }
+      VerseHeader(entry: entry, kicker: "widget.verse.kicker.large")
+
+      if let verse = entry.verse {
         Spacer()
-        Text(Date.now.formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated)))
-          .font(.system(size: 10))
-          .foregroundStyle(Color.white.opacity(0.35))
-      }
 
-      Spacer()
+        Text(String(format: String(localized: "widget.verse.quote"), verse.text))
+          .font(.title3.weight(.medium).italic())
+          .fontDesign(.serif)
+          .foregroundStyle(palette.primary)
+          .lineSpacing(8)
+          .multilineTextAlignment(.leading)
+          .contentTransition(.opacity)
 
-      Text("« \(entry.verse.text) »")
-        .font(.system(size: 18, weight: .medium, design: .serif).italic())
-        .foregroundStyle(.white)
-        .lineSpacing(9)
-        .multilineTextAlignment(.leading)
-
-      Spacer()
-
-      HStack {
         Spacer()
-        HStack(spacing: 5) {
-          Circle()
-            .fill(entry.verse.accentColor)
-            .frame(width: 5, height: 5)
-          Text(entry.verse.reference)
-            .font(.system(size: 14, weight: .bold, design: .serif))
-            .foregroundStyle(entry.verse.accentColor)
+
+        HStack {
+          Spacer()
+          VerseReferenceRow(
+            reference: verse.reference, accent: entry.accentColor, prominent: true)
         }
+      } else {
+        Spacer()
+
+        // L'état vide du large montre la promesse : l'invitation + un verset d'exemple grisé.
+        VStack(alignment: .leading, spacing: 16) {
+          VerseEmptyView()
+            .frame(maxHeight: 80)
+          Text(String(format: String(localized: "widget.verse.quote"), sampleText))
+            .font(.footnote.weight(.medium).italic())
+            .fontDesign(.serif)
+            .foregroundStyle(palette.tertiary)
+            .lineSpacing(5)
+        }
+
+        Spacer()
       }
     }
-    .padding(20)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(entry.accessibilityText)
     .containerBackground(for: .widget) {
       ZStack {
-        Color(red: 0.05, green: 0.05, blue: 0.12)
+        WidgetTheme.night
         LinearGradient(
           colors: [
-            entry.verse.accentColor.opacity(0.18),
+            entry.accentColor.opacity(0.18),
             Color.clear,
             Color(red: 0.4, green: 0.3, blue: 0.8).opacity(0.1),
           ],
@@ -345,7 +275,58 @@ private struct VerseWidgetLargeView: View {
         )
       }
     }
-    .widgetURL(URL(string: "holyday://verse"))
+  }
+
+  private var sampleText: String {
+    WidgetPreviewData.sampleVerse().text
+  }
+}
+
+// MARK: - Lock screen views
+
+private struct VerseWidgetRectangularView: View {
+  let entry: VerseEntry
+
+  var body: some View {
+    Group {
+      if let verse = entry.verse {
+        VStack(alignment: .leading, spacing: 2) {
+          Text(verse.reference)
+            .font(.headline)
+            .widgetAccentable()
+          Text(verse.text)
+            .font(.caption2)
+            .lineLimit(2)
+        }
+      } else {
+        Text("widget.verse.empty")
+          .font(.caption2)
+          .lineLimit(3)
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(entry.accessibilityText)
+    .containerBackground(for: .widget) { Color.clear }
+  }
+}
+
+private struct VerseWidgetInlineView: View {
+  let entry: VerseEntry
+
+  var body: some View {
+    Group {
+      if let verse = entry.verse {
+        Label(verse.reference, systemImage: entry.emotionIcon)
+      } else {
+        Label {
+          Text(verbatim: "HolyDay")
+        } icon: {
+          Image(systemName: "book.closed.fill")
+        }
+      }
+    }
+    .containerBackground(for: .widget) { Color.clear }
   }
 }
 
@@ -356,11 +337,16 @@ struct VerseWidgetEntryView: View {
   let entry: VerseEntry
 
   var body: some View {
-    switch family {
-    case .systemSmall: VerseWidgetSmallView(entry: entry)
-    case .systemLarge: VerseWidgetLargeView(entry: entry)
-    default: VerseWidgetMediumView(entry: entry)
+    Group {
+      switch family {
+      case .systemSmall: VerseWidgetSmallView(entry: entry)
+      case .systemLarge: VerseWidgetLargeView(entry: entry)
+      case .accessoryRectangular: VerseWidgetRectangularView(entry: entry)
+      case .accessoryInline: VerseWidgetInlineView(entry: entry)
+      default: VerseWidgetMediumView(entry: entry)
+      }
     }
+    .widgetURL(URL(string: "holyday://verse"))
   }
 }
 
@@ -373,9 +359,12 @@ struct VerseWidget: Widget {
     StaticConfiguration(kind: kind, provider: VerseTimelineProvider()) { entry in
       VerseWidgetEntryView(entry: entry)
     }
-    .configurationDisplayName("Verset du jour")
-    .description("Affichez le verset du jour directement sur votre écran d'accueil.")
-    .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+    .configurationDisplayName("widget.verse.name")
+    .description("widget.verse.description")
+    .supportedFamilies([
+      .systemSmall, .systemMedium, .systemLarge,
+      .accessoryRectangular, .accessoryInline,
+    ])
   }
 }
 
@@ -384,17 +373,35 @@ struct VerseWidget: Widget {
 #Preview("Small", as: .systemSmall) {
   VerseWidget()
 } timeline: {
-  VerseEntry(date: .now, verse: frenchVerses[0])
+  VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
+}
+
+#Preview("Small — vide", as: .systemSmall) {
+  VerseWidget()
+} timeline: {
+  VerseEntry(date: .now, verse: nil)
 }
 
 #Preview("Medium", as: .systemMedium) {
   VerseWidget()
 } timeline: {
-  VerseEntry(date: .now, verse: frenchVerses[1])
+  VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
 }
 
 #Preview("Large", as: .systemLarge) {
   VerseWidget()
 } timeline: {
-  VerseEntry(date: .now, verse: frenchVerses[2])
+  VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
+}
+
+#Preview("Large — vide", as: .systemLarge) {
+  VerseWidget()
+} timeline: {
+  VerseEntry(date: .now, verse: nil)
+}
+
+#Preview("Rectangular", as: .accessoryRectangular) {
+  VerseWidget()
+} timeline: {
+  VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
 }

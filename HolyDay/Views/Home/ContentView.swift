@@ -235,6 +235,9 @@ struct ContentView: View {
       selectedEmotion = emotion
       emotionVerse = VerseService.shared.verse(for: emotion)
     }
+    if let emotionVerse {
+      WidgetSyncService.updateLastVerse(emotionVerse, emotion: emotion)
+    }
   }
 
   // MARK: - Tour guidé
@@ -295,6 +298,7 @@ struct ContentView: View {
     )
     modelContext.insert(entry)
     StreakService.shared.recordPrayer()
+    WidgetSyncService.sync(context: modelContext)
     resetSelection()
   }
 
