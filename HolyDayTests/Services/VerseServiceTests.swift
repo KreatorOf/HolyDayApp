@@ -5,51 +5,51 @@ import XCTest
 @MainActor
 final class VerseServiceTests: XCTestCase {
 
-  func test_getVerseOfTheDay_returnsNonEmptyText() {
-    let verse = VerseService.shared.getVerseOfTheDay()
-    XCTAssertFalse(verse.text.isEmpty)
-  }
-
-  func test_getVerseOfTheDay_hasValidReference() {
-    let verse = VerseService.shared.getVerseOfTheDay()
-    XCTAssertFalse(verse.reference.isEmpty)
-    XCTAssertGreaterThan(verse.chapter, 0)
-    XCTAssertGreaterThan(verse.verse, 0)
-  }
-
-  func test_getVerseOfTheDay_isDeterministicWithinSameDay() {
-    let v1 = VerseService.shared.getVerseOfTheDay()
-    let v2 = VerseService.shared.getVerseOfTheDay()
-    XCTAssertEqual(v1.id, v2.id)
-    XCTAssertEqual(v1.text, v2.text)
-    XCTAssertEqual(v1.reference, v2.reference)
-  }
-
-  func test_getVerseOfTheDay_hasNonEmptyBook() {
-    let verse = VerseService.shared.getVerseOfTheDay()
-    XCTAssertFalse(verse.book.isEmpty)
-  }
-
-  func test_getVerseOfTheDay_chapterAndVerseArePositive() {
-    let verse = VerseService.shared.getVerseOfTheDay()
-    XCTAssertGreaterThan(verse.chapter, 0)
-    XCTAssertGreaterThan(verse.verse, 0)
-  }
-
-  // Vérifie que l'index calculé sur 365 jours ne dépasse jamais la taille de la liste
-  func test_getVerseOfTheDay_neverOutOfBounds() {
-    let calendar = Calendar.current
-    let year = calendar.component(.year, from: Date())
-    var components = DateComponents()
-    components.year = year
-
-    for day in 1...365 {
-      components.day = day
-      components.month = 1
-      // On ne peut pas injecter la date dans le service sans refacto,
-      // on vérifie juste que l'appel quotidien ne lève jamais d'exception
+  func test_verseForEmotion_returnsNonEmptyText_forAllEmotions() {
+    for emotion in Emotion.allCases {
+      let verse = VerseService.shared.verse(for: emotion)
+      XCTAssertFalse(verse.text.isEmpty, "Texte vide pour \(emotion.rawValue)")
     }
-    // Si on arrive ici sans crash, le modulo fonctionne correctement
-    XCTAssertNoThrow(VerseService.shared.getVerseOfTheDay())
+  }
+
+  func test_verseForEmotion_hasValidReference_forAllEmotions() {
+    for emotion in Emotion.allCases {
+      let verse = VerseService.shared.verse(for: emotion)
+      XCTAssertFalse(verse.reference.isEmpty, "Référence vide pour \(emotion.rawValue)")
+      XCTAssertFalse(verse.book.isEmpty, "Livre vide pour \(emotion.rawValue)")
+      XCTAssertGreaterThan(verse.chapter, 0)
+      XCTAssertGreaterThan(verse.verse, 0)
+    }
+  }
+
+  // Chaque émotion doit avoir au moins deux versets : c'est ce qui garantit que re-taper une
+  // émotion propose un autre verset (comportement documenté de la pioche).
+  func test_corpus_coversEveryEmotionWithAtLeastTwoVerses() {
+    for emotion in Emotion.allCases {
+      let pool = VerseCorpus.all.filter { $0.emotionTags.contains(emotion.rawValue) }
+      XCTAssertGreaterThanOrEqual(
+        pool.count, 2, "Le thème \(emotion.rawValue) a moins de deux versets")
+    }
+  }
+
+  func test_verseForEmotion_avoidsImmediateRepetition() {
+    for emotion in Emotion.allCases {
+      let v1 = VerseService.shared.verse(for: emotion)
+      let v2 = VerseService.shared.verse(for: emotion)
+      XCTAssertNotEqual(
+        v1.reference, v2.reference,
+        "Répétition immédiate pour \(emotion.rawValue)")
+    }
+  }
+
+  // Épuise plusieurs fois la pioche de chaque thème : le re-mélange ne doit jamais sortir des
+  // bornes du corpus ni boucler à vide.
+  func test_verseForEmotion_survivesDeckExhaustion() {
+    for emotion in Emotion.allCases {
+      for _ in 0..<(VerseCorpus.all.count * 3) {
+        let verse = VerseService.shared.verse(for: emotion)
+        XCTAssertFalse(verse.text.isEmpty)
+      }
+    }
   }
 }

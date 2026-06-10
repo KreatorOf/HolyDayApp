@@ -12,6 +12,7 @@ struct MainTabView: View {
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @State private var selectedTab = 0
   @Environment(\.scenePhase) private var scenePhase
+  @Environment(\.modelContext) private var modelContext
 
   private var preferredScheme: ColorScheme? {
     switch colorSchemePreference {
@@ -40,6 +41,19 @@ struct MainTabView: View {
       if phase == .active {
         StreakService.shared.refresh()
         NotificationService.shared.refreshScheduledReminders()
+        // Rattrape les modifications du journal (suppressions comprises) que les widgets ne
+        // peuvent pas observer eux-mêmes.
+        WidgetSyncService.sync(context: modelContext)
+      }
+    }
+    // Cibles des `widgetURL` de l'extension : holyday://pray|verse → onglet prière,
+    // holyday://journal → onglet journal.
+    .onOpenURL { url in
+      switch url.host() {
+      case "journal":
+        selectedTab = 1
+      default:
+        selectedTab = 0
       }
     }
   }

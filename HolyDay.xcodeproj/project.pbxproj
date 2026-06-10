@@ -82,6 +82,11 @@
 			path = HolyDay;
 			sourceTree = "<group>";
 		};
+		C9F0000A2FD9112200000001 /* HolyDayShared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HolyDayShared;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -126,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				C99CE6BD2FB5267700B06836 /* HolyDay */,
+				C9F0000A2FD9112200000001 /* HolyDayShared */,
 				C92BFF172FB7F619001C9BB0 /* HolyDayWidget */,
 				C96621D42FC33FE000BF73B8 /* HolyDayTests */,
 				C92BFF122FB7F619001C9BB0 /* Frameworks */,
@@ -160,6 +166,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C92BFF172FB7F619001C9BB0 /* HolyDayWidget */,
+				C9F0000A2FD9112200000001 /* HolyDayShared */,
 			);
 			name = HolyDayWidgetExtension;
 			productName = HolyDayWidgetExtension;
@@ -204,6 +211,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				C99CE6BD2FB5267700B06836 /* HolyDay */,
+				C9F0000A2FD9112200000001 /* HolyDayShared */,
 			);
 			name = HolyDay;
 			packageProductDependencies = (
@@ -351,6 +359,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = HolyDayWidget/HolyDayWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
@@ -384,6 +393,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = HolyDayWidget/HolyDayWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 4;
@@ -580,6 +590,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HolyDay/HolyDay.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 4;
@@ -618,6 +629,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HolyDay/HolyDay.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 4;

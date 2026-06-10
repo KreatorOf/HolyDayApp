@@ -63,6 +63,7 @@ final class StreakService {
     }
 
     defaults.set(today, forKey: lastPrayerDateKey)
+    SharedStore.setLastPrayerDate(today)
     currentStreak += 1
     defaults.set(currentStreak, forKey: streakKey)
 
@@ -107,6 +108,7 @@ final class StreakService {
 
     guard let lastDate = defaults.object(forKey: lastPrayerDateKey) as? Date else {
       currentStreak = 0
+      SharedStore.setLastPrayerDate(nil)
       return
     }
 
@@ -129,5 +131,10 @@ final class StreakService {
     } else {
       currentStreak = defaults.integer(forKey: streakKey)
     }
+
+    // Miroir vers l'App Group : le widget « Prier maintenant » lit cette date. Passer par
+    // `recalculate` couvre aussi la migration silencieuse des utilisateurs existants (la date
+    // vivait jusqu'ici uniquement dans UserDefaults.standard) et le rattrapage par gel.
+    SharedStore.setLastPrayerDate(defaults.object(forKey: lastPrayerDateKey) as? Date)
   }
 }

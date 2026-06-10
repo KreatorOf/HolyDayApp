@@ -12,19 +12,15 @@ import SwiftUI
 @Observable
 @MainActor
 final class PrayerGuideViewModel {
-  var verseOfTheDay: Verse
   var prayerSteps: [PrayerStep]
   var expandedStepId: UUID?
   var completedSteps: Set<UUID> = []
   var prayerTexts: [UUID: String] = [:]
   var reflectionQuestions: [UUID: [String]] = [:]
 
-  private let verseService: VerseService
   private var stepOpenedAt: [UUID: Date] = [:]
 
-  init(verseService: VerseService = .shared) {
-    self.verseService = verseService
-    self.verseOfTheDay = verseService.getVerseOfTheDay()
+  init() {
     self.prayerSteps = PrayerStep.defaultSteps
   }
 
@@ -56,6 +52,7 @@ final class PrayerGuideViewModel {
     if isAllCompleted {
       StreakService.shared.recordPrayer()
     }
+    WidgetSyncService.sync(context: context)
   }
 
   func markCompleted(_ step: PrayerStep) {
