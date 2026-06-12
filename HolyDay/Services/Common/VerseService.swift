@@ -24,9 +24,9 @@ final class VerseService {
   }
 
   // Le corpus vit dans `VerseCorpus` (dossier HolyDayShared), partagé avec l'extension widget.
-  // Le sigle de version (LSG/KJV) est ajouté à la référence ici, côté app uniquement.
+  // Le sigle de version (LSG/BSB) est ajouté à la référence ici, côté app uniquement.
   private func makeVerse(_ entry: CorpusVerse) -> Verse {
-    let translation = isFrench ? "LSG" : "KJV"
+    let translation = isFrench ? "LSG" : "BSB"
     let reference = "\(entry.reference(french: isFrench)) (\(translation))"
     return Verse(
       text: entry.text(french: isFrench),

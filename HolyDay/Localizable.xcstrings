@@ -1202,13 +1202,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The Bible verses used in this app are sourced from French public domain translations (Louis Segond 1910)."
+            "value" : "English verses are from the Berean Standard Bible (public domain). French verses are from the Louis Segond 1910 translation (public domain). Holy Bible, Berean Standard Bible, BSB."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Les versets bibliques utilisés dans l'application sont issus de traductions françaises dans le domaine public (Louis Segond 1910)."
+            "value" : "Les versets anglais proviennent de la Berean Standard Bible (domaine public). Les versets français proviennent de la traduction Louis Segond 1910 (domaine public). Holy Bible, Berean Standard Bible, BSB."
           }
         }
       }
