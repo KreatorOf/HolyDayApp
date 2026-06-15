@@ -78,7 +78,7 @@ enum Emotion: String, CaseIterable, Codable, Identifiable {
   /// libellé reste en couleur de texte standard, donc la lisibilité ne dépend pas de cette teinte.
   var pastel: Color {
     switch self {
-    case .joy: Color(red: 0.95, green: 0.68, blue: 0.22)
+    case .joy: Color(red: 1.00, green: 0.82, blue: 0.25)
     case .peace: Color(red: 0.40, green: 0.80, blue: 0.58)
     case .gratitude: Color(red: 0.99, green: 0.58, blue: 0.42)
     case .sadness: Color(red: 0.40, green: 0.64, blue: 0.93)
