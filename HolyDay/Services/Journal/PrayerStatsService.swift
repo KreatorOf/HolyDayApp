@@ -46,10 +46,11 @@ struct StatPoint: Identifiable {
   let value: Double
 }
 
-/// Un point de la courbe d'émotions : combien de prières d'une émotion donnée dans un bucket.
-struct EmotionStatPoint: Identifiable {
+/// Part d'une émotion dans la répartition globale : combien de prières l'ont déclarée sur la période.
+/// Non temporel — le donut montre une distribution (« la palette de ce qui t'amène à prier »), pas
+/// une évolution dans le temps qui suggérerait une trajectoire émotionnelle « souhaitable ».
+struct EmotionTotal: Identifiable {
   let id = UUID()
-  let date: Date
   let emotion: Emotion
   let count: Int
 }
@@ -68,17 +69,17 @@ enum PrayerStats {
       .sorted { $0.date < $1.date }
   }
 
-  /// Répartition des émotions par bucket (uniquement les prières où une émotion est renseignée).
-  static func emotions(_ entries: [PrayerEntry], period: StatsPeriod) -> [EmotionStatPoint] {
+  /// Répartition des émotions sur la période (uniquement les prières où une émotion est renseignée).
+  /// Triée dans l'ordre stable de `Emotion.allCases` → couleurs des secteurs cohérentes d'un rendu
+  /// à l'autre.
+  static func emotionTotals(_ entries: [PrayerEntry], period: StatsPeriod) -> [EmotionTotal] {
     let calendar = Calendar.current
-    let pairs = filtered(entries, period, calendar).compactMap { entry -> Key? in
-      guard let emotion = entry.emotion else { return nil }
-      return Key(date: bucketStart(entry.date, period.bucket, calendar), emotion: emotion)
+    let counts = filtered(entries, period, calendar)
+      .compactMap(\.emotion)
+      .reduce(into: [Emotion: Int]()) { $0[$1, default: 0] += 1 }
+    return Emotion.allCases.compactMap { emotion in
+      counts[emotion].map { EmotionTotal(emotion: emotion, count: $0) }
     }
-    return
-      Dictionary(grouping: pairs) { $0 }
-      .map { EmotionStatPoint(date: $0.key.date, emotion: $0.key.emotion, count: $0.value.count) }
-      .sorted { $0.date < $1.date }
   }
 
   /// Nombre de prières par jour (clé = début de journée). Sert à la heatmap des jours priés.
@@ -89,11 +90,6 @@ enum PrayerStats {
   }
 
   // MARK: - Helpers
-
-  private struct Key: Hashable {
-    let date: Date
-    let emotion: Emotion
-  }
 
   private static func filtered(
     _ entries: [PrayerEntry], _ period: StatsPeriod, _ calendar: Calendar
