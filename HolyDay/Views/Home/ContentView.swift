@@ -296,10 +296,27 @@ struct ContentView: View {
       emotion: selectedEmotion,
       verseReference: emotionVerse?.reference
     )
+    // Repli immédiat (1re ligne) pour que le journal ne montre jamais « Prière libre » nu et que la
+    // feuille se ferme sans attendre le modèle.
+    entry.customTitle = PrayerEntry.fallbackTitle(from: trimmed)
+    entry.titleSource = .fallback
     modelContext.insert(entry)
     StreakService.shared.recordPrayer()
     WidgetSyncService.sync(context: modelContext)
     resetSelection()
+
+    // Enrichissement asynchrone : le titre suggéré par le modèle on-device remplace le repli quand il
+    // arrive. On n'écrase jamais un titre déjà édité par l'utilisateur. Textes très courts ignorés.
+    if trimmed.count >= 15 {
+      Task { @MainActor in
+        if let aiTitle = await AIAssistantService.shared.generateTitle(for: trimmed),
+          entry.titleSource != .user
+        {
+          entry.customTitle = aiTitle
+          entry.titleSource = .ai
+        }
+      }
+    }
   }
 
   // Présente la sollicitation de don si l'état le permet, et démarre alors son délai de repos.

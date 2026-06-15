@@ -119,7 +119,7 @@ struct PrayerHistoryView: View {
         let snapshot = entries
         let matched = snapshot.filter {
           $0.text.localizedCaseInsensitiveContains(text)
-            || $0.stepTitle.localizedCaseInsensitiveContains(text)
+            || $0.displayTitle.localizedCaseInsensitiveContains(text)
         }
         let grouped = Dictionary(grouping: matched) {
           Calendar.current.startOfDay(for: $0.date)
@@ -383,24 +383,30 @@ struct PrayerHistoryView: View {
           }
         }
 
-        VStack(spacing: 8) {
+        VStack(spacing: 16) {
           if selectedDayEntries.isEmpty {
             emptyDayState
           } else {
-            ForEach(selectedDayEntries) { entry in
-              NavigationLink {
-                PrayerEntryDetailView(entry: entry)
-              } label: {
-                JournalEntryRow(entry: entry)
-              }
-              .buttonStyle(.plain)
-              .contextMenu {
-                Button(role: .destructive) {
-                  modelContext.delete(entry)
-                } label: {
-                  Label("common.delete", systemImage: "trash")
-                }
-              }
+            // La plus récente coiffe chaque pile.
+            let guided = selectedDayEntries.filter { !$0.isFreePrayer }.reversed()
+            let free = selectedDayEntries.filter(\.isFreePrayer).reversed()
+            if !guided.isEmpty {
+              JournalPrayerDeck(
+                titleKey: "journal.deck.guided.title",
+                systemImage: "hands.sparkles",
+                accent: AppTheme.adorationPurple,
+                entries: Array(guided),
+                onDelete: { modelContext.delete($0) }
+              )
+            }
+            if !free.isEmpty {
+              JournalPrayerDeck(
+                titleKey: "journal.deck.free.title",
+                systemImage: "square.and.pencil",
+                accent: AppTheme.adorationPurple,
+                entries: Array(free),
+                onDelete: { modelContext.delete($0) }
+              )
             }
           }
         }
@@ -734,10 +740,11 @@ struct JournalEntryRow: View {
 
         VStack(alignment: .leading, spacing: 4) {
           HStack {
-            Text(entry.stepTitle)
+            Text(entry.displayTitle)
               .font(.subheadline)
               .fontWeight(.semibold)
               .foregroundStyle(AppTheme.textPrimary)
+              .lineLimit(1)
             if entry.isAnswered {
               Image(systemName: "checkmark.seal.fill")
                 .font(.caption)
@@ -796,6 +803,140 @@ struct JournalEntryRow: View {
       }
     }
     .padding(.top, 2)
+  }
+}
+
+// MARK: Prayer deck
+
+/// Pile de prières d'un même type (guidées ou libres) pour un jour donné. Repliée, elle montre la
+/// carte la plus récente avec quelques cartes qui dépassent derrière (effet « deck ») ; un tap la
+/// déplie en liste complète. Conserve l'action de suppression sur chaque carte dépliée.
+struct JournalPrayerDeck: View {
+  let titleKey: LocalizedStringKey
+  let systemImage: String
+  let accent: Color
+  // Triées de la plus récente à la plus ancienne : la plus récente coiffe la pile.
+  let entries: [PrayerEntry]
+  var onDelete: (PrayerEntry) -> Void
+
+  @State private var isExpanded = false
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+  private var animation: Animation {
+    reduceMotion ? .easeInOut(duration: 0.2) : .spring(response: 0.4, dampingFraction: 0.82)
+  }
+
+  // Nombre de cartes qui dépassent derrière la carte de tête (2 max), uniquement si la pile a du fond.
+  private var peekCount: Int { min(max(entries.count - 1, 0), 2) }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      header
+      if isExpanded {
+        expandedList
+      } else {
+        collapsedDeck
+      }
+    }
+    .animation(animation, value: isExpanded)
+  }
+
+  private var header: some View {
+    Button {
+      isExpanded.toggle()
+    } label: {
+      HStack(spacing: 10) {
+        Image(systemName: systemImage)
+          .font(.subheadline.weight(.semibold))
+          .foregroundStyle(accent)
+          .frame(width: 28, height: 28)
+          .background(accent.opacity(0.15), in: .circle)
+        Text(titleKey)
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+          .textCase(.uppercase)
+          .tracking(1.0)
+        Text("\(entries.count)")
+          .font(.caption2.weight(.bold))
+          .foregroundStyle(AppTheme.textPrimary)
+          .padding(.horizontal, 7)
+          .padding(.vertical, 2)
+          .background(Capsule().fill(accent.opacity(0.25)))
+        Spacer()
+        Image(systemName: "chevron.down")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+          .rotationEffect(.degrees(isExpanded ? 180 : 0))
+      }
+      .contentShape(.rect)
+    }
+    .buttonStyle(.plain)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text(titleKey))
+    .accessibilityValue(Text("\(entries.count)"))
+    .accessibilityHint(
+      Text(isExpanded ? "journal.deck.collapse" : "journal.deck.expand")
+    )
+    .accessibilityAddTraits(.isButton)
+  }
+
+  // Repliée : la carte de tête (vraie ligne lisible) porte en `background` les cartes du fond, qui
+  // héritent ainsi exactement de sa taille et de son rayon d'angle → empilement parfaitement
+  // concentrique. Chaque niveau est plus petit, plus remonté et plus estompé → effet de profondeur.
+  @ViewBuilder
+  private var collapsedDeck: some View {
+    if let top = entries.first {
+      Button {
+        isExpanded = true
+      } label: {
+        JournalEntryRow(entry: top)
+          .background(alignment: .top) { peekCards }
+          .shadow(color: AppTheme.premiumShadow.opacity(0.5), radius: 6, y: 3)
+          .padding(.top, CGFloat(peekCount) * 12)
+          .contentShape(.rect)
+      }
+      .buttonStyle(.plain)
+    }
+  }
+
+  private var peekCards: some View {
+    ZStack(alignment: .top) {
+      ForEach(0..<peekCount, id: \.self) { index in
+        let depth = CGFloat(index + 1)
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+          .fill(AppTheme.cardSurface)
+          .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+              .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+          }
+          .scaleEffect(1 - depth * 0.05, anchor: .bottom)
+          .offset(y: -depth * 11)
+          // Cartes opaques + z-order décroissant : chaque carte occulte proprement celle du dessous,
+          // donc l'ordre de la pile est parfaitement lisible (la plus profonde reste derrière).
+          .zIndex(-depth)
+      }
+    }
+  }
+
+  private var expandedList: some View {
+    VStack(spacing: 8) {
+      ForEach(entries) { entry in
+        NavigationLink {
+          PrayerEntryDetailView(entry: entry)
+        } label: {
+          JournalEntryRow(entry: entry)
+        }
+        .buttonStyle(.plain)
+        .contextMenu {
+          Button(role: .destructive) {
+            onDelete(entry)
+          } label: {
+            Label("common.delete", systemImage: "trash")
+          }
+        }
+        .transition(.move(edge: .top).combined(with: .opacity))
+      }
+    }
   }
 }
 
