@@ -636,23 +636,6 @@
         }
       }
     },
-    "home.guided.cta" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not sure what to say"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Je ne sais pas quoi dire"
-          }
-        }
-      }
-    },
     "home.pray.cta" : {
       "localizations" : {
         "en" : {
@@ -3042,14 +3025,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Made with 🙏 by Matthias Cadet"
+            "state" : "translated",
+            "value" : "Developed with 🙏 by Matthias Cadet"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fais avec 🙏 par Matthias Cadet"
+            "value" : "Développé avec 🙏 par Matthias Cadet"
           }
         }
       }
@@ -4552,40 +4535,6 @@
         }
       }
     },
-    "tour.composer.message" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Freely write what's on your heart."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Écris librement ce que tu portes dans ton cœur."
-          }
-        }
-      }
-    },
-    "tour.composer.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your prayer"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ta prière"
-          }
-        }
-      }
-    },
     "tour.done" : {
       "localizations" : {
         "en" : {
@@ -4630,40 +4579,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ton ressenti"
-          }
-        }
-      }
-    },
-    "tour.guided.message" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Let yourself be guided step by step."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Laisse-toi accompagner étape par étape."
-          }
-        }
-      }
-    },
-    "tour.guided.title" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guided prayer"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prière guidée"
           }
         }
       }

@@ -16,17 +16,10 @@ struct JournalStatsView: View {
 
   @State private var period: StatsPeriod = .month
 
-  // Émotions réellement présentes, dans l'ordre stable de `allCases` (couleurs/empilement cohérents).
-  private func presentEmotions(in points: [EmotionStatPoint]) -> [Emotion] {
-    let present = Set(points.map(\.emotion))
-    return Emotion.allCases.filter(present.contains)
-  }
-
   var body: some View {
-    // Agrégations O(n) calculées une seule fois par rendu (auparavant relues plusieurs fois
-    // via les propriétés calculées, dont `presentEmotions` qui relançait le regroupement).
+    // Agrégations O(n) calculées une seule fois par rendu.
     let activity = PrayerStats.activity(entries, period: period)
-    let emotions = PrayerStats.emotions(entries, period: period)
+    let emotions = PrayerStats.emotionTotals(entries, period: period)
     return VStack(spacing: 20) {
       periodPicker
 
@@ -38,9 +31,7 @@ struct JournalStatsView: View {
           PrayedDaysHeatmap(entries: entries, period: period)
         }
         if !emotions.isEmpty {
-          chartCard("stats.emotions.title") {
-            emotionsChart(emotions, present: presentEmotions(in: emotions))
-          }
+          chartCard("stats.emotions.title") { emotionsChart(emotions) }
         }
       }
     }
@@ -86,20 +77,26 @@ struct JournalStatsView: View {
     .frame(height: 180)
   }
 
-  private func emotionsChart(_ emotionPoints: [EmotionStatPoint], present: [Emotion]) -> some View {
-    Chart(emotionPoints) { point in
-      BarMark(
-        x: .value("date", point.date, unit: period.bucket),
-        y: .value("count", point.count)
+  // Donut : répartition des émotions sur la période. Couleur = `pastel` de chaque émotion, identique
+  // au ruban de l'onglet prière et à l'accent du journal (la palette ACTS `color` regroupait des
+  // émotions sous une même teinte → secteurs indistinguables). Trou central pour l'aspect « palette »
+  // plutôt que camembert plein, et `angularInset` pour séparer visuellement les secteurs.
+  private func emotionsChart(_ totals: [EmotionTotal]) -> some View {
+    Chart(totals) { total in
+      SectorMark(
+        angle: .value("count", total.count),
+        innerRadius: .ratio(0.6),
+        angularInset: 1.5
       )
-      .foregroundStyle(by: .value("emotion", point.emotion.accessibilityLabel))
+      .cornerRadius(4)
+      .foregroundStyle(by: .value("emotion", total.emotion.accessibilityLabel))
     }
     .chartForegroundStyleScale(
-      domain: present.map(\.accessibilityLabel),
-      range: present.map(\.color)
+      domain: totals.map(\.emotion.accessibilityLabel),
+      range: totals.map(\.emotion.pastel)
     )
-    .chartYAxis { AxisMarks(position: .leading) }
-    .frame(height: 200)
+    .chartLegend(position: .bottom, alignment: .leading, spacing: 12)
+    .frame(height: 240)
   }
 
   // MARK: - Building blocks
