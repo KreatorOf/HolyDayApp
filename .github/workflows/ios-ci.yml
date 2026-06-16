@@ -82,7 +82,7 @@ jobs:
           xcodebuild build \
             -project HolyDay.xcodeproj \
             -scheme "HolyDay Dev" \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination 'generic/platform=iOS Simulator' \
             -derivedDataPath DerivedData \
             CODE_SIGNING_ALLOWED=NO
 
@@ -133,13 +133,23 @@ jobs:
             -project HolyDay.xcodeproj \
             -scheme "HolyDay Dev"
 
+      # Le nom du simulateur par défaut change à chaque mise à jour de l'image runner
+      # (iPhone 16 → 17 …). On résout dynamiquement un iPhone disponible plutôt que de
+      # pinner un nom qui finit par disparaître.
+      - name: Select simulator
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | python3 -c "import json,sys; devs=[d for r in json.load(sys.stdin)['devices'].values() for d in r if 'iPhone' in d['name']]; assert devs, 'no iPhone simulator available'; print(devs[-1]['udid'])")
+          echo "Using simulator $UDID"
+          echo "SIMULATOR_UDID=$UDID" >> "$GITHUB_ENV"
+
       - name: Build & Test
         run: |
           xcodebuild \
             clean test \
             -project HolyDay.xcodeproj \
             -scheme "HolyDay Dev"\
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
+            -destination "id=$SIMULATOR_UDID" \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO \
             | xcpretty --color --report junit --output test-results.xml

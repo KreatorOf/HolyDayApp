@@ -34,6 +34,11 @@ struct MainTabView: View {
         SettingsView()
       }
     }
+    // Teinte épinglée sur le TabView : sans elle, la couleur de l'item sélectionné dérive de
+    // l'environnement et les `.tint(...)` des NavigationStack enfants (IntentionDetailView…) la
+    // font retomber « par moment » sur un gris secondaire lors des push/pop. `.label` suit le
+    // mode clair/sombre (noir/blanc).
+    .tint(AppTheme.textPrimary)
     .sensoryFeedback(.selection, trigger: selectedTab)
     .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     .preferredColorScheme(preferredScheme)
