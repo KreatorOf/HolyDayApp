@@ -18,6 +18,7 @@ struct HolyDayApp: App {
   // Vrai au lancement à froid (état du process) → affiche le splash. Non rejoué au retour
   // d'arrière-plan, le process et donc cet état étant conservés.
   @State private var showSplash = true
+  @State private var splashOpacity = 1.0
 
   init() {
     #if DEBUG
@@ -92,16 +93,22 @@ struct HolyDayApp: App {
 
         if showSplash {
           SplashView()
-            .transition(.opacity)
+            .opacity(splashOpacity)
+            // Animation implicite : anime tout changement de `splashOpacity`, quelle que soit
+            // sa source. Indispensable ici car le changement vient d'une tâche async — un
+            // `withAnimation` appelé depuis une continuation async n'établit pas de transaction
+            // fiable et laissait le splash « couper net ».
+            .animation(.easeInOut(duration: 0.5), value: splashOpacity)
             .zIndex(1)
+            .allowsHitTesting(false)
         }
       }
-      // Fondu fiable du splash vers le contenu (plutôt qu'un withAnimation au niveau scène,
-      // qui peut couper net) : l'animation est pilotée par le changement de `showSplash`.
-      .animation(.easeInOut(duration: 0.6), value: showSplash)
       .task {
-        // Splash affiché au lancement, puis fondu vers le contenu.
+        // Splash affiché au lancement, puis fondu d'opacité vers le contenu.
         try? await Task.sleep(for: .seconds(2.5))
+        splashOpacity = 0
+        // Retire le splash de la hiérarchie une fois le fondu terminé.
+        try? await Task.sleep(for: .seconds(0.5))
         showSplash = false
       }
     }
