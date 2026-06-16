@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import TipKit
 
 struct ContentView: View {
   @Environment(\.modelContext) private var modelContext
@@ -29,9 +30,14 @@ struct ContentView: View {
   @State private var streakTokenBeforeFree: UUID?
 
   @AppStorage("holyday.userName") private var userName = ""
-  // Tour guidé post-onboarding, joué une seule fois. `tourStep` = étape courante (nil = inactif).
-  @AppStorage("holyday.hasSeenTour") private var hasSeenTour = false
-  @State private var tourStep: Int?
+
+  // Parcours de découverte (TipKit) : étape par étape, chaque tip fermé déclenche le suivant.
+  private let emotionsTip = EmotionsTip()
+  private let prayTip = PrayTip()
+  private let intentionsTip = IntentionsTip()
+  @State private var emotionsTipPresented = false
+  @State private var prayTipPresented = false
+  @State private var intentionsTipPresented = false
 
   // Hauteur réservée à la zone du verset : dimensionnée pour les versets courts (la majorité), afin
   // qu'apparition et révélation mot à mot ne déplacent jamais les éléments voisins.
@@ -50,7 +56,11 @@ struct ContentView: View {
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
         ToolbarItem(placement: .topBarTrailing) {
-          intentionsButton.tourAnchor(.intentions)
+          intentionsButton
+            .popoverTip(intentionsTip, isPresented: $intentionsTipPresented)
+            .onChange(of: intentionsTipPresented) { wasShown, isShown in
+              if wasShown, !isShown { Task { await TourEvents.intentionsDone.donate() } }
+            }
         }
       }
     }
@@ -111,16 +121,6 @@ struct ContentView: View {
     .sheet(isPresented: $showPaywallFromPrompt) {
       HolyDayPaywallView()
     }
-    .overlayPreferenceValue(TourAnchorKey.self) { anchors in
-      GeometryReader { proxy in
-        tourOverlay(anchors: anchors, proxy: proxy)
-      }
-    }
-    .onAppear {
-      // Tour guidé joué une seule fois, après l'onboarding. Déclenchement synchrone (un .task
-      // asynchrone pouvait être annulé pendant le lancement et ne jamais démarrer le tour).
-      if !hasSeenTour, tourStep == nil { tourStep = 0 }
-    }
   }
 
   // MARK: - Composer layer
@@ -141,7 +141,10 @@ struct ContentView: View {
             .padding(.horizontal, 32)
 
           EmotionRibbonView { select($0) }
-            .tourAnchor(.emotions)
+            .popoverTip(emotionsTip, isPresented: $emotionsTipPresented, arrowEdges: .top)
+            .onChange(of: emotionsTipPresented) { wasShown, isShown in
+              if wasShown, !isShown { Task { await TourEvents.emotionsDone.donate() } }
+            }
 
           // Emplacement réservé : hauteur fixe et verset ancré en haut, pour que la révélation mot
           // à mot s'écrive « vers le bas » sans décaler le ruban au-dessus ni le reste en dessous.
@@ -166,7 +169,10 @@ struct ContentView: View {
     }
     .safeAreaInset(edge: .bottom) {
       prayButton
-        .tourAnchor(.pray)
+        .popoverTip(prayTip, isPresented: $prayTipPresented, arrowEdges: .bottom)
+        .onChange(of: prayTipPresented) { wasShown, isShown in
+          if wasShown, !isShown { Task { await TourEvents.prayDone.donate() } }
+        }
         .padding(.bottom, 28)
     }
   }
@@ -238,48 +244,8 @@ struct ContentView: View {
     if let emotionVerse {
       WidgetSyncService.updateLastVerse(emotionVerse, emotion: emotion)
     }
-  }
-
-  // MARK: - Tour guidé
-
-  @ViewBuilder
-  private func tourOverlay(anchors: [Int: Anchor<CGRect>], proxy: GeometryProxy) -> some View {
-    if let raw = tourStep, let step = TourStep(rawValue: raw) {
-      TourOverlayView(
-        step: step,
-        targetRect: tourRect(step: step, raw: raw, anchors: anchors, proxy: proxy),
-        screen: proxy.size,
-        index: raw,
-        total: TourStep.allCases.count,
-        onNext: advanceTour,
-        onSkip: endTour
-      )
-    }
-  }
-
-  private func tourRect(
-    step: TourStep, raw: Int, anchors: [Int: Anchor<CGRect>], proxy: GeometryProxy
-  ) -> CGRect? {
-    if let anchor = anchors[raw] { return proxy[anchor] }
-    // Repli si l'ancre d'un bouton de la barre de navigation n'est pas propagée : coin haut-droit.
-    switch step {
-    case .intentions: return CGRect(x: proxy.size.width - 50, y: 2, width: 40, height: 40)
-    default: return nil
-    }
-  }
-
-  private func advanceTour() {
-    guard let raw = tourStep else { return }
-    if raw + 1 < TourStep.allCases.count {
-      withAnimation(.easeInOut(duration: 0.25)) { tourStep = raw + 1 }
-    } else {
-      endTour()
-    }
-  }
-
-  private func endTour() {
-    withAnimation(.easeInOut(duration: 0.3)) { tourStep = nil }
-    hasSeenTour = true
+    // L'utilisateur a découvert le geste : on retire le tip Émotions (le suivant s'enchaîne).
+    emotionsTip.invalidate(reason: .actionPerformed)
   }
 
   // Enregistre la prière libre saisie dans `FreePrayerSheet`. La sollicitation de don éventuelle est

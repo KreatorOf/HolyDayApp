@@ -83,6 +83,14 @@ final class TipService {
     tipTierIndexStored = tier.rawValue + 1
   }
 
+  #if DEBUG
+    // Bascule le badge supporter pour tester les écrans gated des deux côtés, sans passage au store.
+    func debugSetSupporter(_ enabled: Bool) {
+      hasTipped = enabled
+      tipTierIndexStored = enabled ? 1 : 0
+    }
+  #endif
+
   func applyCustomerInfo(_ info: CustomerInfo) {
     let entitlementActive = info.entitlements[RevenueCatConfig.entitlementId]?.isActive == true
     let hasTransactions = !info.nonSubscriptions.isEmpty

@@ -15,9 +15,9 @@ struct PrayerEntryDetailView: View {
   @State private var isRegenerating = false
   @FocusState private var titleFocused: Bool
 
-  // Seules les prières libres portent un `customTitle` éditable ; les étapes guidées gardent leur
-  // catégorie ACTS en titre figé.
-  private var isTitleEditable: Bool { entry.customTitle != nil }
+  // Le titre est éditable pour toute prière libre — que l'IA l'ait nommée ou non (titre suggéré,
+  // repli, ou aucun). Les étapes guidées gardent leur catégorie ACTS en titre figé.
+  private var isTitleEditable: Bool { entry.isFreePrayer }
 
   var body: some View {
     ScrollView {
