@@ -59,6 +59,9 @@ struct SettingsView: View {
           legalCard
           aboutCard
           dangerZoneSection
+          #if DEBUG
+            debugSection
+          #endif
           VStack(spacing: 0) {
             thanksFooter
             copyrightFooter
@@ -358,6 +361,37 @@ struct SettingsView: View {
       }
     }
   }
+
+  #if DEBUG
+    private var debugSection: some View {
+      VStack(alignment: .leading, spacing: 8) {
+        sectionLabel("Développeur")
+        settingsCard {
+          NavigationLink {
+            DebugMenuView()
+          } label: {
+            HStack(spacing: 14) {
+              iconBadge(systemName: "hammer.fill", color: .gray)
+              VStack(alignment: .leading, spacing: 2) {
+                Text("Menu de debug")
+                  .font(.body)
+                  .foregroundStyle(AppTheme.textPrimary)
+                Text("Resets, données de démo, inspecteur")
+                  .font(.caption)
+                  .foregroundStyle(AppTheme.textTertiary)
+              }
+              Spacer()
+              Image(systemName: "chevron.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AppTheme.textTertiary)
+            }
+            .padding(16)
+          }
+          .buttonStyle(.plain)
+        }
+      }
+    }
+  #endif
 
   // Effacement complet et irréversible de toutes les données personnelles : prières, intentions,
   // série, prénom et photo de profil.

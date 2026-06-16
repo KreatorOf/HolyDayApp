@@ -9,6 +9,7 @@ import OSLog
 import RevenueCat
 import SwiftData
 import SwiftUI
+import TipKit
 
 @main
 struct HolyDayApp: App {
@@ -37,7 +38,17 @@ struct HolyDayApp: App {
     }
     #if DEBUG
       SeedService.seedIfNeeded(in: container.mainContext)
+      // Le menu Debug demande une réinitialisation des tips : doit se faire AVANT configure().
+      if UserDefaults.standard.bool(forKey: "holyday.debug.resetTips") {
+        try? Tips.resetDatastore()
+        UserDefaults.standard.set(false, forKey: "holyday.debug.resetTips")
+      }
     #endif
+
+    try? Tips.configure([
+      .displayFrequency(.immediate),
+      .datastoreLocation(.applicationDefault),
+    ])
   }
 
   private static let logger = Logger(

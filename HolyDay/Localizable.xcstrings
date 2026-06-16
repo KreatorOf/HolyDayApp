@@ -1986,6 +1986,22 @@
         }
       }
     },
+    "onboarding.back": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retour"
+          }
+        }
+      }
+    },
     "onboarding.intention.placeholder": {
       "localizations": {
         "en": {
@@ -2114,34 +2130,34 @@
         }
       }
     },
+    "onboarding.notifications.mock.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What can you give thanks for today?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pour quoi peux-tu rendre grâce aujourd'hui ?"
+          }
+        }
+      }
+    },
     "onboarding.notifications.mock.title": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verse of the day"
+            "value": "A moment with God"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verset du jour"
-          }
-        }
-      }
-    },
-    "onboarding.notifications.mock.verse": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "\"The Lord is my shepherd, I shall not want.\""
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "« L'Éternel est mon berger, je ne manquerai de rien. »"
+            "value": "Un instant avec Dieu"
           }
         }
       }
@@ -2334,6 +2350,182 @@
           "stringUnit": {
             "state": "translated",
             "value": "Ton rythme"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.local.desc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your prayers are stored locally, never on a server."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tes prières sont stockées localement, jamais sur un serveur."
+          }
+        }
+      }
+    },
+    "onboarding.privacy.local.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On your device"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sur ton appareil"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.private.desc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing is shared or posted online."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien n'est partagé ni mis en ligne."
+          }
+        }
+      }
+    },
+    "onboarding.privacy.private.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never published"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jamais publiées"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you entrust belongs to you alone."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce que tu confies n'appartient qu'à toi."
+          }
+        }
+      }
+    },
+    "onboarding.privacy.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your prayers stay private"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tes prières restent privées"
+          }
+        }
+      }
+    },
+    "onboarding.privacy.you.desc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No one else can see what you write."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personne d'autre n'a accès à ce que tu écris."
+          }
+        }
+      }
+    },
+    "onboarding.privacy.you.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You alone"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toi seul"
+          }
+        }
+      }
+    },
+    "onboarding.progress.label": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progress"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Progression"
+          }
+        }
+      }
+    },
+    "onboarding.progress.value": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Step %1$lld of %2$lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Étape %1$lld sur %2$lld"
+          }
+        }
+      }
+    },
+    "onboarding.value.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your prayer life,\nmade simple."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ta vie de prière,\nsimplement."
           }
         }
       }
@@ -4637,22 +4829,6 @@
         }
       }
     },
-    "tour.done": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Done"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Terminé"
-          }
-        }
-      }
-    },
     "tour.emotions.message": {
       "localizations": {
         "en": {
@@ -4717,18 +4893,34 @@
         }
       }
     },
-    "tour.next": {
+    "tour.journal.message": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next"
+            "value": "Find all your prayers here, day after day."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Suivant"
+            "value": "Retrouve ici toutes tes prières, jour après jour."
+          }
+        }
+      }
+    },
+    "tour.journal.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your journal"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ton journal"
           }
         }
       }
@@ -4761,22 +4953,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Prier"
-          }
-        }
-      }
-    },
-    "tour.skip": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Skip"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Passer"
           }
         }
       }

@@ -7,6 +7,7 @@
 
 import SwiftData
 import SwiftUI
+import TipKit
 
 #if canImport(FoundationModels)
   import FoundationModels
@@ -15,6 +16,7 @@ import SwiftUI
 struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
   @Environment(\.modelContext) private var modelContext
+  private let journalTip = JournalTip()
   @State private var displayedMonth: Date = Self.firstOfCurrentMonth()
   @State private var selectedDate: Date? = Calendar.current.startOfDay(for: Date())
   @State private var topInset: CGFloat = 100
@@ -48,9 +50,11 @@ struct PrayerHistoryView: View {
             searchPanelSection
               .padding(.horizontal, 16)
           } else {
-            calendarCard
+            // Un seul groupage jour → prières par render, partagé calendrier + jour sélectionné.
+            let byDay = entriesByDay
+            calendarCard(byDay: byDay)
               .padding(.horizontal, 16)
-            selectedDaySection
+            selectedDaySection(byDay: byDay)
               .padding(.horizontal, 16)
           }
         }
@@ -163,6 +167,7 @@ struct PrayerHistoryView: View {
       Text("tab.journal")
         .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
         .foregroundStyle(AppTheme.textPrimary)
+        .popoverTip(journalTip, arrowEdge: .top)
       if isSearching {
         HStack(spacing: 10) {
           Image(systemName: "magnifyingglass")
@@ -202,8 +207,8 @@ struct PrayerHistoryView: View {
 
   // MARK: Calendar card
 
-  private var calendarCard: some View {
-    let prayedDays = prayedDaysInMonth
+  private func calendarCard(byDay: [Date: [PrayerEntry]]) -> some View {
+    let prayedDays = prayedDays(in: byDay)
     return VStack(spacing: 0) {
       monthNavigationHeader
       monthInsightStrip(dayCount: prayedDays.count)
@@ -365,14 +370,17 @@ struct PrayerHistoryView: View {
   // MARK: Selected day section
 
   @ViewBuilder
-  private var selectedDaySection: some View {
+  private func selectedDaySection(byDay: [Date: [PrayerEntry]]) -> some View {
     if let selected = selectedDate {
+      // Un seul accès indexé + tri par render (plus de re-filtrage de tout `entries` ×4).
+      let dayEntries = (byDay[Calendar.current.startOfDay(for: selected)] ?? [])
+        .sorted { $0.date < $1.date }
       VStack(alignment: .leading, spacing: 12) {
         HStack(alignment: .bottom) {
           dayHeaderLabel(selected)
           Spacer()
-          if !selectedDayEntries.isEmpty {
-            Text("\(selectedDayEntries.count)")
+          if !dayEntries.isEmpty {
+            Text("\(dayEntries.count)")
               .font(.caption2.weight(.bold))
               .foregroundStyle(AppTheme.textPrimary)
               .padding(.horizontal, 8)
@@ -384,12 +392,12 @@ struct PrayerHistoryView: View {
         }
 
         VStack(spacing: 16) {
-          if selectedDayEntries.isEmpty {
+          if dayEntries.isEmpty {
             emptyDayState
           } else {
             // La plus récente coiffe chaque pile.
-            let guided = selectedDayEntries.filter { !$0.isFreePrayer }.reversed()
-            let free = selectedDayEntries.filter(\.isFreePrayer).reversed()
+            let guided = dayEntries.filter { !$0.isFreePrayer }.reversed()
+            let free = dayEntries.filter(\.isFreePrayer).reversed()
             if !guided.isEmpty {
               JournalPrayerDeck(
                 titleKey: "journal.deck.guided.title",
@@ -642,9 +650,10 @@ struct PrayerHistoryView: View {
 
   // MARK: Computed helpers
 
-  private var selectedDayEntries: [PrayerEntry] {
-    guard let selected = selectedDate else { return [] }
-    return entriesForDate(selected)
+  // Index jour → prières calculé une seule fois par render, partagé par le calendrier (compteurs)
+  // et le jour sélectionné : évite de re-scanner tout `entries` à chaque accès / frame d'animation.
+  private var entriesByDay: [Date: [PrayerEntry]] {
+    Dictionary(grouping: entries) { Calendar.current.startOfDay(for: $0.date) }
   }
 
   private var monthYearLabel: String {
@@ -667,15 +676,13 @@ struct PrayerHistoryView: View {
     return days
   }
 
-  private var prayedDaysInMonth: [Date: Int] {
+  private func prayedDays(in byDay: [Date: [PrayerEntry]]) -> [Date: Int] {
     let calendar = Calendar.current
-    return
-      entries
-      .filter { calendar.isDate($0.date, equalTo: displayedMonth, toGranularity: .month) }
-      .reduce(into: [Date: Int]()) { result, entry in
-        let day = calendar.startOfDay(for: entry.date)
-        result[day, default: 0] += 1
+    return byDay.reduce(into: [Date: Int]()) { result, pair in
+      if calendar.isDate(pair.key, equalTo: displayedMonth, toGranularity: .month) {
+        result[pair.key] = pair.value.count
       }
+    }
   }
 
   private var isCurrentMonth: Bool {
@@ -692,15 +699,6 @@ struct PrayerHistoryView: View {
       displayedMonth = Self.firstOfCurrentMonth()
       selectedDate = Calendar.current.startOfDay(for: Date())
     }
-  }
-
-  private func entriesForDate(_ date: Date) -> [PrayerEntry] {
-    let calendar = Calendar.current
-    let target = calendar.startOfDay(for: date)
-    return
-      entries
-      .filter { calendar.startOfDay(for: $0.date) == target }
-      .sorted { $0.date < $1.date }
   }
 
   private func navigateMonth(by offset: Int) {
