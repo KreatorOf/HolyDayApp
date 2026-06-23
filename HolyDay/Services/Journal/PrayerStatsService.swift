@@ -82,13 +82,6 @@ enum PrayerStats {
     }
   }
 
-  /// Nombre de prières par jour (clé = début de journée). Sert à la heatmap des jours priés.
-  static func dailyCounts(_ entries: [PrayerEntry]) -> [Date: Int] {
-    let calendar = Calendar.current
-    return Dictionary(grouping: entries) { calendar.startOfDay(for: $0.date) }
-      .mapValues(\.count)
-  }
-
   // MARK: - Helpers
 
   private static func filtered(

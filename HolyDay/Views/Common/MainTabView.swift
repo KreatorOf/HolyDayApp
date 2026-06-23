@@ -44,11 +44,10 @@ struct MainTabView: View {
     .preferredColorScheme(preferredScheme)
     .onChange(of: scenePhase) { _, phase in
       if phase == .active {
-        StreakService.shared.refresh()
+        PrayerRecordService.shared.refresh()
         NotificationService.shared.refreshScheduledReminders()
-        // Rattrape les modifications du journal (suppressions comprises) que les widgets ne
-        // peuvent pas observer eux-mêmes.
-        WidgetSyncService.sync(context: modelContext)
+        // Rafraîchit les widgets (dernier verset, « a prié aujourd'hui ») au retour au premier plan.
+        WidgetSyncService.sync()
       }
     }
     // Cibles des `widgetURL` de l'extension : holyday://pray|verse → onglet prière,

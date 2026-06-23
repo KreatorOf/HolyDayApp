@@ -1,34 +1,32 @@
 default_platform(:ios)
 
+APP_ID    = "com.matthiascadet.HolyDay"
+WIDGET_ID = "com.matthiascadet.HolyDay.HolyDayWidget"
+
 platform :ios do
 
-  lane :beta do
-    api_key = app_store_connect_api_key(
-      key_id: ENV["ASC_KEY_ID"],
-      issuer_id: ENV["ASC_ISSUER_ID"],
-      key_filepath: ENV["ASC_KEY_FILEPATH"]
-    )
+  # --- Partie commune : signing + incrément + build ---
+  private_lane :build_release do |options|
+    api_key = options[:api_key]
 
     match(
       type: "appstore",
-      app_identifier: ["com.matthiascadet.HolyDay", "com.matthiascadet.HolyDay.HolyDayWidget"],
+      app_identifier: [APP_ID, WIDGET_ID],
       readonly: true
     )
 
-    # Désactive le signing automatique et applique les profils match
     update_code_signing_settings(
       use_automatic_signing: false,
       targets: ["HolyDay"],
-      bundle_identifier: "com.matthiascadet.HolyDay",
-      profile_name: "match AppStore com.matthiascadet.HolyDay",
+      bundle_identifier: APP_ID,
+      profile_name: "match AppStore #{APP_ID}",
       code_sign_identity: "Apple Distribution"
     )
-
     update_code_signing_settings(
       use_automatic_signing: false,
       targets: ["HolyDayWidgetExtension"],
-      bundle_identifier: "com.matthiascadet.HolyDay.HolyDayWidget",
-      profile_name: "match AppStore com.matthiascadet.HolyDay.HolyDayWidget",
+      bundle_identifier: WIDGET_ID,
+      profile_name: "match AppStore #{WIDGET_ID}",
       code_sign_identity: "Apple Distribution"
     )
 
@@ -40,11 +38,78 @@ platform :ios do
       scheme: "HolyDay",
       export_method: "app-store"
     )
+  end
 
+  def asc_api_key
+    app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_FILEPATH"]
+    )
+  end
+
+  # --- Beta interne (inchangée) ---
+  lane :beta do
+    api_key = asc_api_key
+    build_release(api_key: api_key)
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: true
     )
   end
 
+  # --- Beta externe ---
+  lane :beta_external do
+    api_key = asc_api_key
+    build_release(api_key: api_key)
+
+    upload_to_testflight(
+      api_key: api_key,
+      distribute_external: true,
+      notify_external_testers: true,
+      groups: ["HolyDay Beta"],          # le groupe externe (voir note plus bas)
+      submit_beta_review: true,
+      # IMPORTANT : false, car la review externe exige un build "processed"
+      skip_waiting_for_build_processing: false,
+
+      # Infos de contact pour la Beta App Review
+      beta_app_review_info: {
+        contact_email: "matthias.cadet25+betaholyday@gmail.com",
+        contact_first_name: "Matthias",
+        contact_last_name: "Cadet",
+        contact_phone: "+33613395971",
+        notes: "App de journal de prière. Aucun compte requis, pas de login. " \
+               "Toutes les fonctionnalités sont accessibles directement. " \
+               "Les dons RevenueCat sont optionnels et ne déverrouillent rien."
+      },
+
+      # Métadonnées localisées (FR + EN)
+      localized_app_info: {
+        "default" => {
+          feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
+          marketing_url: "https://holyday-landing.vercel.app/index.html",
+          privacy_policy_url: "https://holyday-landing.vercel.app/privacy.html",
+          description: "Journal de prière quotidien : check-in d'humeur et verset en lien avec l'humeur (Louis Segond 1910), prière guidée ACTS ou libre, et journal de prières."
+        },
+        "fr-FR" => {
+          feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
+          marketing_url: "https://holyday-landing.vercel.app/index.html",
+          privacy_policy_url: "https://holyday-landing.vercel.app/privacy.html",
+          description: "Journal de prière quotidien : check-in d'humeur et verset en lien avec l'humeur (Louis Segond 1910), prière guidée ACTS ou libre, et journal de prières."
+        },
+        "en-US" => {
+          feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
+          marketing_url: "https://holyday-landing.vercel.app/index.html",
+          description: "Daily prayer journal: mood check-in Bible verses (Berean Standard Bible), ACTS guided prayer, and prayersjournal."
+        }
+      },
+
+      # "What to test" par langue
+      localized_build_info: {
+        "default" => { whats_new: "Première beta externe. Merci de tester le check-in d'humeur -> le verset correspondnat s'affiche. La prière guidée, la prière libre" },
+        "fr-FR"   => { whats_new: "Teste le check-in d'humeur, l'affichage des versets, la prière guidée ACTS et la prière libre." },
+        "en-US"   => { whats_new: "Please test the mood check-in, and verse display, ACTS guided prayer and free prayer." }
+      }
+    )
+  end
 end

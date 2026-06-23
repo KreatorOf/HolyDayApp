@@ -27,9 +27,6 @@ struct JournalStatsView: View {
         emptyState
       } else {
         chartCard(activityTitleKey) { activityChart(activity) }
-        chartCard("stats.heatmap.title") {
-          PrayedDaysHeatmap(entries: entries, period: period)
-        }
         if !emotions.isEmpty {
           chartCard("stats.emotions.title") { emotionsChart(emotions) }
         }

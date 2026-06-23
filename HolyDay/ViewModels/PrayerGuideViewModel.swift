@@ -50,9 +50,9 @@ final class PrayerGuideViewModel {
     context.insert(entry)
     markCompleted(step)
     if isAllCompleted {
-      StreakService.shared.recordPrayer()
+      PrayerRecordService.shared.recordPrayer()
     }
-    WidgetSyncService.sync(context: context)
+    WidgetSyncService.sync()
   }
 
   func markCompleted(_ step: PrayerStep) {

@@ -18,16 +18,4 @@ enum WidgetPreviewData {
       reference: entry.reference(french: isFrench),
       emotionTag: "peace")
   }
-
-  /// Trois mois de pratique plausible : des trous réguliers, des jours à plusieurs prières.
-  static func sampleCounts(relativeTo date: Date = .now) -> [String: Int] {
-    var counts: [String: Int] = [:]
-    for dayOffset in 0..<90 where dayOffset % 3 != 0 {
-      guard let day = Calendar.current.date(byAdding: .day, value: -dayOffset, to: date) else {
-        continue
-      }
-      counts[SharedStore.dayKey(for: day)] = dayOffset % 4 + 1
-    }
-    return counts
-  }
 }

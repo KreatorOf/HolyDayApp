@@ -23,7 +23,6 @@ nonisolated enum SharedStore {
   static let appGroupID = "group.com.matthiascadet.HolyDay"
 
   private static let lastPrayerDateKey = "holyday.shared.lastPrayerDate"
-  private static let dailyCountsKey = "holyday.shared.dailyCounts"
   private static let lastVerseTextKey = "holyday.shared.lastVerse.text"
   private static let lastVerseReferenceKey = "holyday.shared.lastVerse.reference"
   private static let lastVerseEmotionKey = "holyday.shared.lastVerse.emotion"
@@ -40,11 +39,6 @@ nonisolated enum SharedStore {
     } else {
       defaults?.removeObject(forKey: lastPrayerDateKey)
     }
-  }
-
-  /// Nombre de prières par jour, indexé par `dayKey(for:)`.
-  static func setDailyCounts(_ counts: [String: Int]) {
-    defaults?.set(counts, forKey: dailyCountsKey)
   }
 
   static func setLastVerse(text: String, reference: String, emotionTag: String) {
@@ -64,10 +58,6 @@ nonisolated enum SharedStore {
     return Calendar.current.isDate(last, inSameDayAs: date)
   }
 
-  static func dailyCounts() -> [String: Int] {
-    defaults?.dictionary(forKey: dailyCountsKey) as? [String: Int] ?? [:]
-  }
-
   static var lastVerse: SharedVerse? {
     guard let text = defaults?.string(forKey: lastVerseTextKey), !text.isEmpty,
       let reference = defaults?.string(forKey: lastVerseReferenceKey)
@@ -76,13 +66,5 @@ nonisolated enum SharedStore {
       text: text,
       reference: reference,
       emotionTag: defaults?.string(forKey: lastVerseEmotionKey) ?? "")
-  }
-
-  // MARK: - Clé de jour
-
-  /// Clé stable et indépendante de la locale ("2026-06-10") pour indexer un jour calendaire.
-  static func dayKey(for date: Date) -> String {
-    let parts = Calendar.current.dateComponents([.year, .month, .day], from: date)
-    return String(format: "%04d-%02d-%02d", parts.year ?? 0, parts.month ?? 0, parts.day ?? 0)
   }
 }
