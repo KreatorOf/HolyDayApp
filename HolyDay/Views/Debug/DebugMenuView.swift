@@ -22,7 +22,7 @@
     @Query private var prayers: [PrayerEntry]
     @Query private var intentions: [PrayerIntention]
 
-    @State private var streak = StreakService.shared
+    @State private var prayerRecord = PrayerRecordService.shared
     @State private var tip = TipService.shared
     @State private var showNukeConfirmation = false
     @State private var toast: String?
@@ -43,7 +43,7 @@
         Button("Tout effacer", role: .destructive, action: nuke)
         Button("Annuler", role: .cancel) {}
       } message: {
-        Text("Prières, intentions, série, prénom, thème, onboarding et badge supporter.")
+        Text("Prières, intentions, suivi prière, prénom, thème, onboarding et badge supporter.")
       }
     }
 
@@ -53,10 +53,7 @@
       Section("État") {
         infoRow("Onboarding terminé", hasCompletedOnboarding ? "oui" : "non")
         infoRow("Prénom", userName.isEmpty ? "—" : userName)
-        infoRow("Série actuelle", "\(streak.currentStreak)")
-        infoRow("Record", "\(streak.bestStreak)")
-        infoRow("Gels disponibles", "\(streak.freezesAvailable)")
-        infoRow("Jours priés", "\(streak.totalPrayedDays)")
+        infoRow("Jours priés", "\(prayerRecord.totalPrayedDays)")
         infoRow("Prières", "\(prayers.count)")
         infoRow("Intentions", "\(intentions.count)")
         infoRow("IA disponible", AIAssistantService.shared.isAvailable ? "oui" : "non")
@@ -90,9 +87,9 @@
           Tips.hideAllTipsForTesting()
           flash("Tips masqués")
         }
-        actionRow("Réinitialiser la série", systemName: "flame") {
-          DebugActions.resetStreak()
-          flash("Série remise à zéro")
+        actionRow("Réinitialiser le suivi prière", systemName: "arrow.counterclockwise") {
+          DebugActions.resetPrayerRecord()
+          flash("Suivi prière remis à zéro")
         }
         actionRow("Vider les prières", systemName: "book.closed", role: .destructive) {
           DebugActions.clearPrayers(in: context)
@@ -169,7 +166,7 @@
     private func nuke() {
       DebugActions.clearPrayers(in: context)
       DebugActions.clearIntentions(in: context)
-      DebugActions.resetStreak()
+      DebugActions.resetPrayerRecord()
       tip.debugSetSupporter(false)
       userName = ""
       colorSchemePreference = "system"

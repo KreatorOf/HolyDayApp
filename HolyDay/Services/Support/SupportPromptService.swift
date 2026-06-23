@@ -37,7 +37,7 @@ final class SupportPromptService {
 
   init(
     defaults: UserDefaults = .standard,
-    prayedDaysProvider: @escaping () -> Int = { StreakService.shared.totalPrayedDays },
+    prayedDaysProvider: @escaping () -> Int = { PrayerRecordService.shared.totalPrayedDays },
     hasTippedProvider: @escaping () -> Bool = { TipService.shared.hasTipped },
     now: @escaping () -> Date = { Date() }
   ) {

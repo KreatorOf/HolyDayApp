@@ -6,21 +6,14 @@
 //
 
 import Foundation
-import SwiftData
 import WidgetKit
 
-/// Recopie vers le conteneur App Group les données dont les widgets ont besoin (cf. `SharedStore`),
-/// puis rafraîchit leurs timelines. À appeler après chaque prière enregistrée et au retour de
-/// l'app au premier plan (rattrape les entrées modifiées dans le journal).
+/// Rafraîchit les timelines des widgets pour qu'ils reflètent les dernières données partagées
+/// (cf. `SharedStore` : dernier verset, « a prié aujourd'hui »). À appeler après chaque prière
+/// enregistrée et au retour de l'app au premier plan.
 enum WidgetSyncService {
   @MainActor
-  static func sync(context: ModelContext) {
-    let entries = (try? context.fetch(FetchDescriptor<PrayerEntry>())) ?? []
-    var counts: [String: Int] = [:]
-    for entry in entries {
-      counts[SharedStore.dayKey(for: entry.date), default: 0] += 1
-    }
-    SharedStore.setDailyCounts(counts)
+  static func sync() {
     WidgetCenter.shared.reloadAllTimelines()
   }
 

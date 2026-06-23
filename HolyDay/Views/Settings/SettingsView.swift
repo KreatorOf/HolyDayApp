@@ -394,11 +394,11 @@ struct SettingsView: View {
   #endif
 
   // Effacement complet et irréversible de toutes les données personnelles : prières, intentions,
-  // série, prénom et photo de profil.
+  // suivi des prières, prénom et photo de profil.
   private func resetAllData() {
     try? modelContext.delete(model: PrayerEntry.self)
     try? modelContext.delete(model: PrayerIntention.self)
-    StreakService.shared.reset()
+    PrayerRecordService.shared.reset()
     SupportPromptService.shared.reset()
     AvatarService.shared.delete()
     avatarImage = nil

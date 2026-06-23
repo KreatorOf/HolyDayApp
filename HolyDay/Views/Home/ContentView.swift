@@ -11,7 +11,7 @@ import TipKit
 
 struct ContentView: View {
   @Environment(\.modelContext) private var modelContext
-  @State private var streak = StreakService.shared
+  @State private var prayerRecord = PrayerRecordService.shared
 
   @State private var selectedEmotion: Emotion?
   @State private var emotionVerse: Verse?
@@ -23,11 +23,11 @@ struct ContentView: View {
   @State private var showSupportPrompt = false
   @State private var showPaywallFromPrompt = false
   @State private var openPaywallAfterPrompt = false
-  // Jeton de streak avant l'ouverture de la prière structurée : permet de savoir, à sa fermeture,
-  // si une nouvelle prière a réellement été enregistrée pendant la session.
-  @State private var streakTokenBeforeStructured: UUID?
+  // Jeton d'enregistrement avant l'ouverture de la prière structurée : permet de savoir, à sa
+  // fermeture, si une nouvelle prière a réellement été enregistrée pendant la session.
+  @State private var recordTokenBeforeStructured: UUID?
   // Pendant équivalent pour la prière libre (présentée en feuille depuis le menu « Prier »).
-  @State private var streakTokenBeforeFree: UUID?
+  @State private var recordTokenBeforeFree: UUID?
 
   @AppStorage("holyday.userName") private var userName = ""
 
@@ -68,7 +68,7 @@ struct ContentView: View {
       isPresented: $showStructuredPrayer,
       onDismiss: {
         // Une prière structurée a-t-elle été enregistrée pendant la session ?
-        if streak.lastIncrementToken != streakTokenBeforeStructured {
+        if prayerRecord.lastRecordToken != recordTokenBeforeStructured {
           presentSupportPromptIfEligible()
         }
       }
@@ -82,7 +82,7 @@ struct ContentView: View {
       isPresented: $showFreePrayer,
       onDismiss: {
         // Même logique que la prière structurée : une nouvelle prière a-t-elle été enregistrée ?
-        if streak.lastIncrementToken != streakTokenBeforeFree {
+        if prayerRecord.lastRecordToken != recordTokenBeforeFree {
           presentSupportPromptIfEligible()
         }
       }
@@ -182,13 +182,13 @@ struct ContentView: View {
   private var prayButton: some View {
     Menu {
       Button {
-        streakTokenBeforeFree = streak.lastIncrementToken
+        recordTokenBeforeFree = prayerRecord.lastRecordToken
         showFreePrayer = true
       } label: {
         Label("prayer.free.title", systemImage: "square.and.pencil")
       }
       Button {
-        streakTokenBeforeStructured = streak.lastIncrementToken
+        recordTokenBeforeStructured = prayerRecord.lastRecordToken
         showStructuredPrayer = true
       } label: {
         Label("prayer.guided.title", systemImage: "hands.sparkles")
@@ -267,8 +267,8 @@ struct ContentView: View {
     entry.customTitle = PrayerEntry.fallbackTitle(from: trimmed)
     entry.titleSource = .fallback
     modelContext.insert(entry)
-    StreakService.shared.recordPrayer()
-    WidgetSyncService.sync(context: modelContext)
+    PrayerRecordService.shared.recordPrayer()
+    WidgetSyncService.sync()
     resetSelection()
 
     // Enrichissement asynchrone : le titre suggéré par le modèle on-device remplace le repli quand il

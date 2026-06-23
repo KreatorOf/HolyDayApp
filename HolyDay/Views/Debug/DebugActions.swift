@@ -16,8 +16,8 @@
 
     // MARK: - Resets
 
-    static func resetStreak() {
-      StreakService.shared.reset()
+    static func resetPrayerRecord() {
+      PrayerRecordService.shared.reset()
     }
 
     static func clearPrayers(in context: ModelContext) {
