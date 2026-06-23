@@ -1,0 +1,50 @@
+default_platform(:ios)
+
+platform :ios do
+
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_FILEPATH"]
+    )
+
+    match(
+      type: "appstore",
+      app_identifier: ["com.matthiascadet.HolyDay", "com.matthiascadet.HolyDay.HolyDayWidget"],
+      readonly: true
+    )
+
+    # Désactive le signing automatique et applique les profils match
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      targets: ["HolyDay"],
+      bundle_identifier: "com.matthiascadet.HolyDay",
+      profile_name: "match AppStore com.matthiascadet.HolyDay",
+      code_sign_identity: "Apple Distribution"
+    )
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      targets: ["HolyDayWidgetExtension"],
+      bundle_identifier: "com.matthiascadet.HolyDay.HolyDayWidget",
+      profile_name: "match AppStore com.matthiascadet.HolyDay.HolyDayWidget",
+      code_sign_identity: "Apple Distribution"
+    )
+
+    increment_build_number(
+      build_number: latest_testflight_build_number(api_key: api_key) + 1
+    )
+
+    build_app(
+      scheme: "HolyDay",
+      export_method: "app-store"
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true
+    )
+  end
+
+end
