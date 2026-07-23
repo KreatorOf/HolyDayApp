@@ -17,6 +17,10 @@ struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
   @Environment(\.modelContext) private var modelContext
   private let journalTip = JournalTip()
+  // Recherche sémantique on-device (FoundationModels) : indisponible sur la majorité des appareils
+  // (Apple Intelligence requis). On masque alors le bouton plutôt que d'exposer une action qui
+  // tourne dans le vide. La recherche textuelle locale reste le mode par défaut.
+  private let aiAvailable = AIAssistantService.shared.isAvailable
   @State private var displayedMonth: Date = Self.firstOfCurrentMonth()
   @State private var selectedDate: Date? = Calendar.current.startOfDay(for: Date())
   @State private var topInset: CGFloat = 100
@@ -531,7 +535,9 @@ struct PrayerHistoryView: View {
   private var searchResultsSection: some View {
     let results = aiResults ?? cachedSearchResults
     VStack(alignment: .leading, spacing: 16) {
-      aiSearchButton
+      if aiAvailable {
+        aiSearchButton
+      }
       if results.isEmpty {
         searchEmptyState
       } else {

@@ -220,6 +220,38 @@
         }
       }
     },
+    "accessibility.storeError.dismiss": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss warning"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fermer l'avertissement"
+          }
+        }
+      }
+    },
+    "app.storeError.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load your prayers. Your data is safe; changes made this session won't be saved. Please restart the app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de charger vos prières. Vos données sont intactes ; les modifications de cette session ne seront pas enregistrées. Redémarrez l'application."
+          }
+        }
+      }
+    },
     "badge.name.ami": {
       "localizations": {
         "en": {
