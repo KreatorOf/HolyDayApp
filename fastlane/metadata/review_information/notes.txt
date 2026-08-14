@@ -1,0 +1,3 @@
+App de journal de prière. Aucun compte requis, aucun login : toutes les fonctionnalités sont accessibles immédiatement. Les dons (RevenueCat) sont entièrement optionnels et ne déverrouillent aucune fonctionnalité.
+
+Prayer journal app. No account and no login required: every feature is available right away. Donations (RevenueCat) are entirely optional and never unlock any feature.

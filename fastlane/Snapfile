@@ -1,0 +1,40 @@
+# Configuration de `fastlane snapshot` pour HolyDay.
+# Doc : https://docs.fastlane.tools/actions/snapshot/
+
+# Scheme dédié qui lance le target UI Test HolyDayUITests.
+scheme("HolyDayUITests")
+
+# Ne capture que la classe de captures (évite d'éventuels autres tests UI).
+only_testing(["HolyDayUITests/HolyDayUITests"])
+
+# Un appareil par famille de tailles requise par l'App Store :
+#  - iPhone 17 Pro Max → 6.9" (1320 x 2868)
+#  - iPad Pro 13" (M5)  → 2064 x 2752
+devices([
+  "iPhone 17 Pro Max",
+  "iPad Pro 13-inch (M5)"
+])
+
+languages([
+  "fr-FR",
+  "en-US"
+])
+
+# Les captures atterrissent là où `deliver`/`upload_to_app_store` les attend.
+output_directory("./fastlane/screenshots")
+
+# Repart d'un dossier propre à chaque run.
+clear_previous_screenshots(true)
+
+# Barre d'état propre : 9:41, batterie pleine, réseau plein.
+override_status_bar(true)
+
+# Réinstallation propre entre chaque langue (défauts/onboarding remis à zéro).
+reinstall_app(true)
+app_identifier("com.matthiascadet.HolyDay")
+
+# Laisse Xcode continuer même si un test échoue sur une langue.
+stop_after_first_error(false)
+
+# Concurrence : 1 simulateur à la fois (builds iOS 26 lourds).
+concurrent_simulators(false)

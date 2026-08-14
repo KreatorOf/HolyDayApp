@@ -7,7 +7,11 @@ platform :ios do
 
   # --- Partie commune : signing + incrément + build ---
   private_lane :build_release do |options|
-    api_key = options[:api_key]
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_filepath: ENV["ASC_KEY_FILEPATH"]
+    )
 
     match(
       type: "appstore",
@@ -109,6 +113,37 @@ platform :ios do
         "default" => { whats_new: "Première beta externe. Merci de tester le check-in d'humeur -> le verset correspondnat s'affiche. La prière guidée, la prière libre" },
         "fr-FR"   => { whats_new: "Teste le check-in d'humeur, l'affichage des versets, la prière guidée ACTS et la prière libre." },
         "en-US"   => { whats_new: "Please test the mood check-in, and verse display, ACTS guided prayer and free prayer." }
+      }
+    )
+  end
+
+  # --- Captures d'écran App Store ---
+  # Lance le target UI Test HolyDayUITests via `snapshot` (config : fastlane/Snapfile) et
+  # dépose les PNG dans fastlane/screenshots/<langue>/, prêts pour `upload_to_app_store`.
+  lane :screenshots do
+    capture_screenshots
+  end
+
+  # --- Release App Store ---
+  # Build signé "app-store", puis upload du binaire + métadonnées (fastlane/metadata)
+  # et captures (fastlane/screenshots) vers App Store Connect.
+  # Par sécurité, ne soumet PAS automatiquement à la review : mettre submit_for_review
+  # à true (ou lancer `fastlane release submit:true`) une fois tout vérifié.
+  lane :release do |options|
+    api_key = asc_api_key
+    build_release(api_key: api_key)
+
+    upload_to_app_store(
+      api_key: api_key,
+      submit_for_review: options.fetch(:submit, false),
+      automatic_release: false,
+      force: true,                         # pas d'aperçu HTML interactif (CI-friendly)
+      precheck_include_in_app_purchases: false,
+      metadata_path: "./fastlane/metadata",
+      screenshots_path: "./fastlane/screenshots",
+      submission_information: {
+        # Pas de tracking publicitaire / IDFA
+        add_id_info_uses_idfa: false
       }
     )
   end
