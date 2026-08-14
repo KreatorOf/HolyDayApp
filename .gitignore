@@ -17,3 +17,9 @@ DerivedData/
 .DS_Store
 *.p8
 .env
+
+# fastlane — artefacts régénérés à chaque run
+fastlane/report.xml
+fastlane/README.md
+fastlane/Preview.html
+fastlane/test_output/
