@@ -5,4 +5,4 @@
 # fastlane/Appfile
 app_identifier("com.matthiascadet.HolyDay")
 apple_id("matthias.cadet25@gmail.com")
-team_id("8G5S826A9S") # ton Team ID, visible sur developer.apple.com/account
+team_id("4N5T33BN66") # ton Team ID, visible sur developer.apple.com/account
