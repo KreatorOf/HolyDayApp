@@ -40,6 +40,10 @@ struct HolyDayPaywallView: View {
       }
       .toolbarBackground(.hidden, for: .navigationBar)
     }
+    // Recharge l'offering à l'ouverture : le prix affiché suit alors toujours le storefront courant
+    // (sinon il reste figé sur celui du lancement de l'app — décalage visible si le storefront a
+    // changé depuis, ex. bascule de compte sandbox).
+    .task { await tipService.refreshCustomerInfo() }
     .fullScreenCover(isPresented: $showThankYou) {
       DonationThankYouView(tier: purchasedTier) { dismiss() }
     }
