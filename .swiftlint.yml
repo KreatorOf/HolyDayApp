@@ -18,6 +18,8 @@ excluded:
   - DerivedData
   - Pods
   - .build
+  # Helper fourni tel quel par fastlane snapshot — ne pas le modifier / linter.
+  - HolyDayUITests/SnapshotHelper.swift
 
 identifier_name:
   min_length: 2

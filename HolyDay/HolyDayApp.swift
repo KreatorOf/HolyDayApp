@@ -16,8 +16,8 @@ struct HolyDayApp: App {
   let container: ModelContainer
   @AppStorage("holyday.hasCompletedOnboarding") private var hasCompletedOnboarding = false
   // Vrai au lancement à froid (état du process) → affiche le splash. Non rejoué au retour
-  // d'arrière-plan, le process et donc cet état étant conservés.
-  @State private var showSplash = true
+  // d'arrière-plan, le process et donc cet état étant conservés. Ignoré en mode capture d'écran.
+  @State private var showSplash = !ScreenshotMode.isActive
   @State private var splashOpacity = 1.0
 
   init() {
@@ -46,10 +46,14 @@ struct HolyDayApp: App {
       }
     #endif
 
-    try? Tips.configure([
-      .displayFrequency(.immediate),
-      .datastoreLocation(.applicationDefault),
-    ])
+    // En mode capture d'écran, on ne configure pas TipKit : les popovers du parcours de
+    // découverte ne doivent pas venir masquer les écrans capturés.
+    if !ScreenshotMode.isActive {
+      try? Tips.configure([
+        .displayFrequency(.immediate),
+        .datastoreLocation(.applicationDefault),
+      ])
+    }
   }
 
   private static let logger = Logger(
@@ -76,7 +80,7 @@ struct HolyDayApp: App {
     WindowGroup {
       ZStack {
         Group {
-          if hasCompletedOnboarding {
+          if hasCompletedOnboarding || ScreenshotMode.isActive {
             MainTabView()
               .transition(.opacity)
           } else {

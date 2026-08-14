@@ -63,6 +63,13 @@ struct ContentView: View {
             }
         }
       }
+      // Capture d'écran : pré-sélectionne une émotion pour afficher le verset sans dépendre du
+      // ruban animé. Sans effet hors run `fastlane snapshot`.
+      .onAppear {
+        if selectedEmotion == nil, let emotion = ScreenshotMode.preselectedEmotion {
+          select(emotion)
+        }
+      }
     }
     .fullScreenCover(
       isPresented: $showStructuredPrayer,
@@ -187,12 +194,14 @@ struct ContentView: View {
       } label: {
         Label("prayer.free.title", systemImage: "square.and.pencil")
       }
+      .accessibilityIdentifier("prayer.free.menuItem")
       Button {
         recordTokenBeforeStructured = prayerRecord.lastRecordToken
         showStructuredPrayer = true
       } label: {
         Label("prayer.guided.title", systemImage: "hands.sparkles")
       }
+      .accessibilityIdentifier("prayer.guided.menuItem")
     } label: {
       Label("home.pray.cta", systemImage: "hands.sparkles")
         .font(.headline)
@@ -200,6 +209,7 @@ struct ContentView: View {
         .padding(.horizontal, 26)
         .padding(.vertical, 6)
     }
+    .accessibilityIdentifier("home.prayButton")
     // Style natif iOS 26 pour un bouton « menu » en Liquid Glass : `.menuStyle(.button)` fait rendre
     // le Menu comme un bouton, et `.buttonStyle(.glass)` applique le morph de verre interactif géré
     // par le système. Indispensable car le style de Menu par défaut peint sa propre teinte d'état

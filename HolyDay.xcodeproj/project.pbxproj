@@ -12,9 +12,17 @@
 		C92BFF232FB7F61B001C9BB0 /* HolyDayWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C92BFF112FB7F619001C9BB0 /* HolyDayWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C94E22042FC7B40400891B0D /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = C94E22032FC7B40400891B0D /* RevenueCat */; };
 		C94E22052FC7B40400891B0D /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = C94E22062FC7B40400891B0D /* RevenueCatUI */; };
+		C959EFE3180F02027F3D2AC9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 064A9DF645927DEB23F2108B /* Foundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		90211D9323E77041F6D127DD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C99CE6B32FB5267700B06836 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C99CE6BA2FB5267700B06836;
+			remoteInfo = HolyDay;
+		};
 		C92BFF212FB7F61B001C9BB0 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C99CE6B32FB5267700B06836 /* Project object */;
@@ -46,11 +54,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		064A9DF645927DEB23F2108B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		C92BFF112FB7F619001C9BB0 /* HolyDayWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HolyDayWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C92BFF132FB7F619001C9BB0 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		C92BFF152FB7F619001C9BB0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		C96621D32FC33FE000BF73B8 /* HolyDayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HolyDayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C99CE6BB2FB5267700B06836 /* HolyDay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HolyDay.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1780EB1E23628AF2D49AF87 /* HolyDayUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HolyDayUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -93,9 +103,24 @@
 			path = HolyDayShared;
 			sourceTree = "<group>";
 		};
+		FC62F533F15A158C1C84DBAC /* HolyDayUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+			);
+			path = HolyDayUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		607AF5AB5822DE96A2D62F41 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C959EFE3180F02027F3D2AC9 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C92BFF0E2FB7F619001C9BB0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -124,11 +149,20 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		53C2CEF69A81A41DB2FE3D8D /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				064A9DF645927DEB23F2108B /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		C92BFF122FB7F619001C9BB0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				C92BFF132FB7F619001C9BB0 /* WidgetKit.framework */,
 				C92BFF152FB7F619001C9BB0 /* SwiftUI.framework */,
+				53C2CEF69A81A41DB2FE3D8D /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -142,6 +176,7 @@
 				C96621D42FC33FE000BF73B8 /* HolyDayTests */,
 				C92BFF122FB7F619001C9BB0 /* Frameworks */,
 				C99CE6BC2FB5267700B06836 /* Products */,
+				FC62F533F15A158C1C84DBAC /* HolyDayUITests */,
 			);
 			sourceTree = "<group>";
 		};
@@ -151,6 +186,7 @@
 				C99CE6BB2FB5267700B06836 /* HolyDay.app */,
 				C92BFF112FB7F619001C9BB0 /* HolyDayWidgetExtension.appex */,
 				C96621D32FC33FE000BF73B8 /* HolyDayTests.xctest */,
+				D1780EB1E23628AF2D49AF87 /* HolyDayUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -158,6 +194,27 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		2B5B18865F4E14A007D143FD /* HolyDayUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = F4075DF20D65D90092D6F571 /* Build configuration list for PBXNativeTarget "HolyDayUITests" */;
+			buildPhases = (
+				FB23E758620F7F25B80C6CAC /* Sources */,
+				607AF5AB5822DE96A2D62F41 /* Frameworks */,
+				B9A1D52468A5EE95E38DCED9 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D2C5E7D5DCCB1DDEEA2F32ED /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				FC62F533F15A158C1C84DBAC /* HolyDayUITests */,
+			);
+			name = HolyDayUITests;
+			productName = HolyDayUITests;
+			productReference = D1780EB1E23628AF2D49AF87 /* HolyDayUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		C92BFF102FB7F619001C9BB0 /* HolyDayWidgetExtension */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C92BFF252FB7F61B001C9BB0 /* Build configuration list for PBXNativeTarget "HolyDayWidgetExtension" */;
@@ -236,7 +293,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2650;
-				LastUpgradeCheck = 2650;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					C92BFF102FB7F619001C9BB0 = {
 						CreatedOnToolsVersion = 26.5;
@@ -271,11 +328,19 @@
 				C99CE6BA2FB5267700B06836 /* HolyDay */,
 				C92BFF102FB7F619001C9BB0 /* HolyDayWidgetExtension */,
 				C96621D22FC33FE000BF73B8 /* HolyDayTests */,
+				2B5B18865F4E14A007D143FD /* HolyDayUITests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		B9A1D52468A5EE95E38DCED9 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		C92BFF0F2FB7F619001C9BB0 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -344,6 +409,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FB23E758620F7F25B80C6CAC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -357,18 +429,71 @@
 			target = C99CE6BA2FB5267700B06836 /* HolyDay */;
 			targetProxy = C96621D92FC33FE000BF73B8 /* PBXContainerItemProxy */;
 		};
+		D2C5E7D5DCCB1DDEEA2F32ED /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = HolyDay;
+			target = C99CE6BA2FB5267700B06836 /* HolyDay */;
+			targetProxy = 90211D9323E77041F6D127DD /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		50BC09B8BBA92B406901531C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
+				DEVELOPMENT_TEAM = 4N5T33BN66;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDayUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HolyDay;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		9026D01A6A20C36E3A3669E0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
+				DEVELOPMENT_TEAM = 4N5T33BN66;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDayUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 6.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = HolyDay;
+			};
+			name = Debug;
+		};
 		C92BFF262FB7F61B001C9BB0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = HolyDayWidget/HolyDayWidget.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 7;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HolyDayWidget/Info.plist;
@@ -383,7 +508,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay.HolyDayWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.matthiascadet.HolyDay.HolyDayWidget";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -400,9 +525,9 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = HolyDayWidget/HolyDayWidget.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 7;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = HolyDayWidget/Info.plist;
@@ -417,7 +542,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay.HolyDayWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.matthiascadet.HolyDay.HolyDayWidget";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -433,7 +558,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
@@ -454,7 +579,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
 				MARKETING_VERSION = 1.0;
@@ -475,6 +600,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -529,6 +655,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -539,6 +666,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -586,6 +714,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -597,9 +726,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HolyDay/HolyDay.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 7;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -619,7 +748,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.matthiascadet.HolyDay";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -636,9 +765,9 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = HolyDay/HolyDay.entitlements;
-				CODE_SIGN_IDENTITY = "Apple Distribution";
-				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 7;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -658,7 +787,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.matthiascadet.HolyDay";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
@@ -704,6 +833,15 @@
 			buildConfigurations = (
 				C99CE6C72FB5267700B06836 /* Debug */,
 				C99CE6C82FB5267700B06836 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		F4075DF20D65D90092D6F571 /* Build configuration list for PBXNativeTarget "HolyDayUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				50BC09B8BBA92B406901531C /* Release */,
+				9026D01A6A20C36E3A3669E0 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
