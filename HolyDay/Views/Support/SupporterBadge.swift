@@ -36,6 +36,9 @@ struct SupporterBadge: View {
     .padding(.horizontal, style == .iconOnly ? vPadding : hPadding)
     .padding(.vertical, vPadding)
     .background(tier.color.opacity(0.12), in: Capsule())
+    // Fusionne icône + texte en un seul élément : sinon le label ne s'applique pas au conteneur et,
+    // en `.iconOnly`, VoiceOver lirait le symbole SF au lieu du nom du palier.
+    .accessibilityElement(children: .ignore)
     .accessibilityLabel(tier.badgeName)
   }
 }

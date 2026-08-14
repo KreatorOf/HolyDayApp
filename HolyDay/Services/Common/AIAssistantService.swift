@@ -110,6 +110,9 @@ final class AIAssistantService {
     let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty, !entries.isEmpty else { return [] }
     #if canImport(FoundationModels)
+      // Appareil non éligible / Apple Intelligence désactivé : on n'ouvre pas de session pour rien,
+      // l'appelant retombe sur la recherche textuelle locale.
+      guard case .available = SystemLanguageModel.default.availability else { return [] }
       let pool = Array(entries.prefix(50))
       let session = LanguageModelSession(instructions: searchSystemPrompt)
       let response = try await session.respond(

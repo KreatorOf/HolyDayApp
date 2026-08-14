@@ -61,14 +61,20 @@ struct JournalStatsView: View {
 
   private func activityChart(_ activityPoints: [StatPoint]) -> some View {
     Chart(activityPoints) { point in
+      // Aire et ligne sont purement visuelles : masquées à VoiceOver pour ne pas tripler chaque
+      // point de donnée. Seul le PointMark porte le label/valeur lus par l'assistance.
       AreaMark(x: .value("date", point.date), y: .value("value", point.value))
         .interpolationMethod(.catmullRom)
         .foregroundStyle(gradient(AppTheme.adorationPurple))
+        .accessibilityHidden(true)
       LineMark(x: .value("date", point.date), y: .value("value", point.value))
         .interpolationMethod(.catmullRom)
         .foregroundStyle(AppTheme.adorationPurple)
+        .accessibilityHidden(true)
       PointMark(x: .value("date", point.date), y: .value("value", point.value))
         .foregroundStyle(AppTheme.adorationPurple)
+        .accessibilityLabel(point.date.formatted(.dateTime.day().month(.wide)))
+        .accessibilityValue(Text("\(Int(point.value))"))
     }
     .chartYAxis { AxisMarks(position: .leading) }
     .frame(height: 180)
@@ -87,6 +93,8 @@ struct JournalStatsView: View {
       )
       .cornerRadius(4)
       .foregroundStyle(by: .value("emotion", total.emotion.accessibilityLabel))
+      .accessibilityLabel(total.emotion.accessibilityLabel)
+      .accessibilityValue(Text("\(total.count)"))
     }
     .chartForegroundStyleScale(
       domain: totals.map(\.emotion.accessibilityLabel),

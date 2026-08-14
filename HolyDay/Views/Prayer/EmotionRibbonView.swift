@@ -14,6 +14,9 @@ struct EmotionRibbonView: View {
   var onSelect: (Emotion) -> Void
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  // VoiceOver actif : le marquee expose 3 copies de chaque bulle (triplicat) et défile en continu
+  // (cible mouvante). On sert alors les rangées statiques — une occurrence par émotion, immobile.
+  @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
   @Environment(\.scenePhase) private var scenePhase
   // Le marquee ne redessine que lorsqu'il est réellement à l'écran et l'app active : inutile de
   // brûler des frames quand il est masqué par le clavier, sur un autre onglet ou en arrière-plan.
@@ -43,7 +46,7 @@ struct EmotionRibbonView: View {
 
   var body: some View {
     Group {
-      if reduceMotion {
+      if reduceMotion || voiceOverEnabled {
         staticRows
       } else {
         marquee
