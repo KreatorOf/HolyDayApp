@@ -19,9 +19,13 @@ platform :ios do
       readonly: true
     )
 
+    # build_configurations est limite a Release : sans ce filtre l'action ecrit
+    # aussi dans Debug, ce qui casse les builds sur device depuis Xcode (un profil
+    # AppStore n'autorise pas l'installation directe). Le scheme archive en Release.
     update_code_signing_settings(
       use_automatic_signing: false,
       targets: ["HolyDay"],
+      build_configurations: ["Release"],
       bundle_identifier: APP_ID,
       profile_name: "match AppStore #{APP_ID}",
       code_sign_identity: "Apple Distribution"
@@ -29,6 +33,7 @@ platform :ios do
     update_code_signing_settings(
       use_automatic_signing: false,
       targets: ["HolyDayWidgetExtension"],
+      build_configurations: ["Release"],
       bundle_identifier: WIDGET_ID,
       profile_name: "match AppStore #{WIDGET_ID}",
       code_sign_identity: "Apple Distribution"
