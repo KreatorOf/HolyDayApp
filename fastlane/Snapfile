@@ -7,12 +7,11 @@ scheme("HolyDayUITests")
 # Ne capture que la classe de captures (évite d'éventuels autres tests UI).
 only_testing(["HolyDayUITests/HolyDayUITests"])
 
-# Un appareil par famille de tailles requise par l'App Store :
+# Un appareil par famille de tailles requise par l'App Store.
+# L'app est iPhone uniquement (TARGETED_DEVICE_FAMILY = 1) : pas de captures iPad.
 #  - iPhone 17 Pro Max → 6.9" (1320 x 2868)
-#  - iPad Pro 13" (M5)  → 2064 x 2752
 devices([
-  "iPhone 17 Pro Max",
-  "iPad Pro 13-inch (M5)"
+  "iPhone 17 Pro Max"
 ])
 
 languages([
