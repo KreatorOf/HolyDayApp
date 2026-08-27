@@ -6,9 +6,14 @@ repos:
         entry: /opt/homebrew/bin/swift-format format --in-place
         language: system
         types: [swift]
+        # Helper fourni tel quel par fastlane snapshot — ne pas le reformater
+        # (même exclusion que dans ios/.swiftlint.yml).
+        exclude: '^ios/HolyDayUITests/SnapshotHelper\.swift$'
 
       - id: swiftlint
         name: SwiftLint
-        entry: /opt/homebrew/bin/swiftlint
+        # Le hook tourne depuis la racine du dépôt, mais la config vit dans ios/ : sans
+        # --config explicite SwiftLint ne la trouve pas et lint avec ses règles par défaut.
+        entry: /opt/homebrew/bin/swiftlint lint --config ios/.swiftlint.yml
         language: system
         types: [swift]

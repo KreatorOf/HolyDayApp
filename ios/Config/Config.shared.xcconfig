@@ -1,0 +1,10 @@
+// Config.shared.xcconfig
+// Paramètres communs à tous les environnements.
+// Référencé comme base configuration du projet (Debug et Release) : chaque cible en hérite.
+
+// Version minimale d'iOS supportée. Les API postérieures (Liquid Glass, FoundationModels)
+// sont conditionnées à l'exécution — voir HolyDay/Theme/GlassCompat.swift et BackDeployCompat.swift.
+IPHONEOS_DEPLOYMENT_TARGET = 18.0
+
+// Identifiant du bundle de base (le suffixe est ajouté par env si besoin)
+PRODUCT_BUNDLE_IDENTIFIER_BASE = com.matthiascadet.HolyDay
