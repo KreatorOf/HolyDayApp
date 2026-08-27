@@ -1,14 +1,25 @@
 name: iOS CI
 
+# Monorepo : sans filtre, un commit Android-only relancerait toute la CI iOS.
+# `shared/` est inclus car verses.json y est la source de vérité du corpus embarqué.
 on:
   push:
     branches:
       - main
       - "feature/*"
+    paths:
+      - "ios/**"
+      - "shared/**"
+      - ".github/workflows/ios-ci.yml"
   pull_request:
     branches:
       - main
       - "feature/*"
+    # Dupliqué volontairement : le parseur de workflows GitHub ne gère pas les ancres YAML.
+    paths:
+      - "ios/**"
+      - "shared/**"
+      - ".github/workflows/ios-ci.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,8 +27,11 @@ concurrency:
 
 jobs:
   lint:
-    name: SwiftLint
+    name: Lint (SwiftLint + swift-format)
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ios
 
     steps:
       - name: Checkout
@@ -27,20 +41,31 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/Library/Caches/Homebrew
-          key: ${{ runner.os }}-brew-swiftlint
+          key: ${{ runner.os }}-brew-lint
           restore-keys: |
             ${{ runner.os }}-brew-
 
-      - name: Install SwiftLint
-        run: brew install swiftlint
+      - name: Install linters
+        run: brew install swiftlint swift-format
 
       - name: Run SwiftLint
-        run: swiftlint lint --reporter github-actions-logging
+        run: swiftlint lint --strict --reporter github-actions-logging
+
+      # HolyDayUITests/SnapshotHelper.swift est fourni tel quel par fastlane : listé par
+      # fichier plutôt qu'en --recursive, car swift-format n'a pas d'option d'exclusion.
+      - name: Run swift-format
+        run: |
+          swift-format lint --strict --recursive \
+            HolyDay/ HolyDayShared/ HolyDayTests/ HolyDayWidget/ \
+            HolyDayUITests/HolyDayUITests.swift
 
   periphery:
     name: Periphery (dead code)
     runs-on: macos-latest
     needs: lint
+    defaults:
+      run:
+        working-directory: ios
 
     steps:
       - name: Checkout
@@ -54,7 +79,7 @@ jobs:
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:
-          path: DerivedData
+          path: ios/DerivedData
           key: ${{ runner.os }}-periphery-deriveddata-${{ hashFiles('**/*.xcodeproj/project.pbxproj') }}
           restore-keys: |
             ${{ runner.os }}-periphery-deriveddata-
@@ -100,6 +125,9 @@ jobs:
     name: Build & Test
     runs-on: macos-latest
     needs: lint
+    defaults:
+      run:
+        working-directory: ios
 
     steps:
       - name: Checkout
@@ -160,6 +188,6 @@ jobs:
         with:
           name: test-results
           path: |
-            TestResults.xcresult
-            test-results.xml
+            ios/TestResults.xcresult
+            ios/test-results.xml
           retention-days: 7
