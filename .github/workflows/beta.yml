@@ -11,12 +11,22 @@ on:
 
 jobs:
   deploy:
-    runs-on: macos-15
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: ios
     steps:
       - uses: actions/checkout@v4
+
+      # Sans sélection explicite, l'image runner impose son Xcode par défaut, dont le SDK ne
+      # contient pas les symboles iOS 26 (`glassEffect`, `GlassEffectContainer`,
+      # `Button(role: .close)`). Le back-deployment les garde derrière `#available` à l'exécution,
+      # mais ils doivent exister à la compilation : sans ça l'archive échoue sur
+      # « cannot find 'glassEffect' in scope ». Aligné sur ios-ci.yml.
+      - name: Select Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1
