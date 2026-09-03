@@ -42,6 +42,21 @@ object WidgetSyncService {
         sync()
     }
 
+    /**
+     * Répare les snapshots écrits avant la 1.0.1 : le corpus anglais est la Berean Standard Bible,
+     * mais la référence était rendue "(KJV)" et stockée ici telle qu'affichée. Sans cette reprise,
+     * le widget conserverait la mauvaise attribution jusqu'à la prochaine sélection d'émotion.
+     * Miroir de `SharedStore.repairLegacyTranslationSigil()` côté iOS.
+     */
+    fun repairLegacyTranslationSigil() {
+        val legacy = "(KJV)"
+        val reference = AppPreferences.raw.getString(LAST_VERSE_REFERENCE_KEY, null) ?: return
+        if (!reference.endsWith(legacy)) return
+        AppPreferences.raw.edit()
+            .putString(LAST_VERSE_REFERENCE_KEY, reference.dropLast(legacy.length) + "(BSB)")
+            .apply()
+    }
+
     fun lastPrayerDateMillis(): Long? =
         AppPreferences.raw.getLong(LAST_PRAYER_DATE_KEY, -1L).takeIf { it >= 0 }
 

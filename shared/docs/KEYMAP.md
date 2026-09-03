@@ -1,5 +1,7 @@
 # Correspondance clés iOS -> Android
 
+Cette table ne mappe que les **noms** de clés : quelques valeurs divergent volontairement entre les deux plateformes (mentions propres à l'OS ou au store). Voir « Divergences de valeur volontaires » dans `PORT_PROGRESS.md` avant de réaligner un texte.
+
 | Catalogue | Clé iOS (.xcstrings) | Nom ressource Android |
 |---|---|---|
 | app | `accessibility.reflection.hint.hide` | `accessibility_reflection_hint_hide` |

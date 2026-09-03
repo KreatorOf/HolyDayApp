@@ -1309,13 +1309,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last updated: May 2026"
+            "value": "Last updated: September 2026"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dernière mise à jour : mai 2026"
+            "value": "Dernière mise à jour : septembre 2026"
           }
         }
       }
@@ -1357,13 +1357,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The Bible verses used in this app are sourced from French public domain translations (Louis Segond 1910)."
+            "value": "The Bible verses used in this app come from public domain translations: Louis Segond 1910 (LSG) for French, and the Berean Standard Bible (BSB) for English. The Holy Bible, Berean Standard Bible, BSB is produced in cooperation with Bible Hub, Discovery Bible, OpenBible.com, and the Berean Bible Translation Committee."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les versets bibliques utilisés dans l'application sont issus de traductions françaises dans le domaine public (Louis Segond 1910)."
+            "value": "Les versets bibliques utilisés dans l'application sont issus de traductions dans le domaine public : Louis Segond 1910 (LSG) pour le français, Berean Standard Bible (BSB) pour l'anglais. La Berean Standard Bible est produite en coopération avec Bible Hub, Discovery Bible, OpenBible.com et le Berean Bible Translation Committee."
           }
         }
       }

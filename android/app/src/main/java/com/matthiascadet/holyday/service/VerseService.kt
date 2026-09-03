@@ -21,8 +21,11 @@ object VerseService {
             return !lang.startsWith("en")
         }
 
+    // Le sigle doit suivre les traductions réellement embarquées dans `VerseCorpus` — l'anglais
+    // est la Berean Standard Bible, pas la King James : un sigle qui dérive attribue le texte à
+    // la mauvaise traduction.
     private fun makeVerse(entry: CorpusVerse): Verse {
-        val translation = if (isFrench) "LSG" else "KJV"
+        val translation = if (isFrench) "LSG" else "BSB"
         val reference = "${entry.reference(isFrench)} ($translation)"
         return Verse(
             text = entry.text(isFrench),

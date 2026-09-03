@@ -80,10 +80,10 @@
     <string name="journal_search_empty">Aucune prière trouvée</string>
     <string name="journal_search_placeholder">Rechercher une prière…</string>
     <string name="journal_search_recent_title">Prières récentes</string>
-    <string name="legal_last_update">Dernière mise à jour : mai 2026</string>
+    <string name="legal_last_update">Dernière mise à jour : septembre 2026</string>
     <string name="legal_nav_title">Mentions légales</string>
     <string name="legal_section_biblical">Contenu biblique</string>
-    <string name="legal_section_biblical_content">Les versets bibliques utilisés dans l\'application sont issus de traductions françaises dans le domaine public (Louis Segond 1910).</string>
+    <string name="legal_section_biblical_content">Les versets bibliques utilisés dans l\'application sont issus de traductions dans le domaine public : Louis Segond 1910 (LSG) pour le français, Berean Standard Bible (BSB) pour l\'anglais. La Berean Standard Bible est produite en coopération avec Bible Hub, Discovery Bible, OpenBible.com et le Berean Bible Translation Committee.</string>
     <string name="legal_section_contact">Contact</string>
     <string name="legal_section_data">Données personnelles</string>
     <string name="legal_section_data_content">HolyDay ne collecte aucune donnée personnelle identifiable. Vos prières et votre journal de prière restent sur votre appareil et ne sont jamais transmis à des serveurs tiers.</string>
@@ -92,7 +92,7 @@
     <string name="legal_section_liability">Responsabilité</string>
     <string name="legal_section_liability_content">L\'application est fournie sans garantie d\'aucune sorte. L\'éditeur décline toute responsabilité en cas d\'utilisation inappropriée.</string>
     <string name="legal_section_notifications">Notifications</string>
-    <string name="legal_section_notifications_content">Si vous activez les rappels de prière, l\'application utilise les notifications locales d\'iOS. Aucune donnée n\'est envoyée hors de votre appareil dans ce cadre.</string>
+    <string name="legal_section_notifications_content">Si vous activez les rappels de prière, l\'application utilise les notifications locales d\'Android. Aucune donnée n\'est envoyée hors de votre appareil dans ce cadre.</string>
     <string name="legal_section_publisher">Éditeur</string>
     <string name="legal_section_publisher_content">HolyDay est développée et maintenue par Matthias Cadet à titre personnel.</string>
     <string name="notification_invite_0">Un instant avec Dieu</string>
@@ -155,7 +155,7 @@
     <string name="paywall_error_title">Erreur</string>
     <string name="paywall_header_subtitle">Votre soutien permet de continuer à développer HolyDay avec soin.</string>
     <string name="paywall_header_title">Soutenir HolyDay</string>
-    <string name="paywall_legal_footer">Paiements gérés par Apple. Les achats non remboursables sont des dons volontaires.</string>
+    <string name="paywall_legal_footer">Paiements gérés par Google Play. Les achats non remboursables sont des dons volontaires.</string>
     <string name="paywall_restore">Restaurer les achats</string>
     <string name="paywall_tip_ami_phrase">Un petit geste qui aide HolyDay à grandir. Merci d\'être là.</string>
     <string name="paywall_tip_bienfaiteur_phrase">Vous semez pour que d\'autres puissent prier. Merci infiniment.</string>

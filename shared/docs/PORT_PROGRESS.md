@@ -56,7 +56,7 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
 - Piège d'outillage noté : Kotlin imbrique les commentaires `/* */` — tout `/*` littéral dans un KDoc (ex: chemin de fichier avec un glob) casse la compilation ("Unclosed comment"). Éviter.
 
 ### 2. Services — TOUS FAITS ET COMPILENT (`service/`)
-- ✅ VerseService — port fidèle (pioche/deck par émotion, LSG/KJV comme iOS)
+- ✅ VerseService — port fidèle (pioche/deck par émotion, LSG/BSB comme iOS)
 - ✅ PrayerRecordService — StateFlow au lieu de @Observable, SharedPreferences au lieu de UserDefaults
 - ✅ PrayerStats (`data/model/PrayerStats.kt`) — bucket semaine=ISO lundi (iOS = 1er jour de semaine de la locale ; différence mineure assumée)
 - ✅ NotificationService + PrayerReminderReceiver + BootRescheduleReceiver — **redesign volontaire** : au lieu de pré-planifier 60 notifications (contournement de la limite iOS de 64 notifs en attente), une seule AlarmManager exacte s'auto-replanifie à chaque déclenchement. Comportement perçu identique, mécanisme plus simple car Android n'a pas cette limite.
@@ -98,6 +98,10 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
 
 ### 7. Localisation
 - ⬜ Extraction complète des clés .xcstrings → strings.xml (fr default + en)
+- **Divergences de valeur volontaires** (même clé, texte différent par plateforme — ne pas « corriger » en recopiant le texte iOS) :
+  - `legal.section.notifications.content` → iOS dit « notifications locales d'iOS », Android « notifications locales d'Android ».
+  - `paywall.legal.footer` → iOS dit « Paiements gérés par Apple », Android « Paiements gérés par Google Play ».
+  - Les deux étaient des copies littérales du texte iOS, corrigées en 1.0.1.
 
 ### 8. Tests
 - ✅ Unit tests (miroir exact des 4 fichiers iOS) — **35/35 passent** (`./gradlew :app:testDebugUnitTest`)
