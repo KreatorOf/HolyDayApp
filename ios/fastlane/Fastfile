@@ -2,6 +2,11 @@ default_platform(:ios)
 
 APP_ID    = "com.matthiascadet.HolyDay"
 WIDGET_ID = "com.matthiascadet.HolyDay.HolyDayWidget"
+XCODEPROJ = "HolyDay.xcodeproj"
+
+# « Ce qu'il faut tester » envoyé aux testeurs TestFlight (interne comme externe).
+# Distinct des notes App Store (metadata/<langue>/release_notes.txt), qui s'adressent au public.
+TESTFLIGHT_NOTES = "fastlane/testflight_whats_new.txt"
 
 platform :ios do
 
@@ -14,13 +19,121 @@ platform :ios do
     setup_ci if ENV["CI"]
   end
 
-  # --- Partie commune : signing + incrément + build ---
-  private_lane :build_release do |options|
-    api_key = app_store_connect_api_key(
-      key_id: ENV["ASC_KEY_ID"],
-      issuer_id: ENV["ASC_ISSUER_ID"],
-      key_filepath: ENV["ASC_KEY_FILEPATH"]
+  # =====================================================================================
+  #  Lanes — trois verbes, un par destination
+  #
+  #    fastlane beta            build neuf  -> TestFlight (testeurs internes)
+  #    fastlane beta_external   build neuf  -> TestFlight externe + Beta App Review
+  #    fastlane release         AUCUN build -> promeut vers l'App Store le build déjà testé
+  #    fastlane screenshots     captures d'écran App Store
+  #
+  #  Le point important : `release` ne recompile jamais. On soumet exactement le binaire qui
+  #  est passé par TestFlight, pas un jumeau reconstruit juste après la recette.
+  # =====================================================================================
+
+  desc "Build et envoi sur TestFlight (testeurs internes)"
+  lane :beta do
+    build_release
+    upload_to_testflight(
+      api_key: asc_api_key,
+      changelog: testflight_notes,
+      skip_waiting_for_build_processing: true
     )
+    UI.success("Build #{lane_context[SharedValues::BUILD_NUMBER]} envoyé sur TestFlight.")
+    UI.message("Une fois testé : `bundle exec fastlane release` (promotion, sans recompilation).")
+  end
+
+  desc "Build et envoi en beta externe (passe par la Beta App Review)"
+  lane :beta_external do
+    build_release
+
+    upload_to_testflight(
+      api_key: asc_api_key,
+      distribute_external: true,
+      notify_external_testers: true,
+      groups: ["HolyDay Beta"],
+      submit_beta_review: true,
+      changelog: testflight_notes,
+      # La review externe exige un build « processed » : on attend, contrairement à la lane interne.
+      skip_waiting_for_build_processing: false,
+
+      beta_app_review_info: {
+        contact_email: "matthias.cadet25+betaholyday@gmail.com",
+        contact_first_name: "Matthias",
+        contact_last_name: "Cadet",
+        contact_phone: "+33613395971",
+        notes: "App de journal de prière. Aucun compte requis, pas de login. " \
+               "Toutes les fonctionnalités sont accessibles directement. " \
+               "Les dons RevenueCat sont optionnels et ne déverrouillent rien."
+      },
+
+      localized_app_info: {
+        "default" => beta_app_info(:fr),
+        "fr-FR"   => beta_app_info(:fr),
+        "en-US"   => beta_app_info(:en)
+      }
+    )
+  end
+
+  desc "Promeut vers l'App Store le dernier build TestFlight (ne recompile pas). " \
+       "`submit:true` pour envoyer aussi en review."
+  lane :release do |options|
+    key = asc_api_key
+    version = get_version_number(xcodeproj: XCODEPROJ, target: "HolyDay")
+    build = latest_testflight_build_number(api_key: key, app_identifier: APP_ID, version: version)
+
+    if build.to_i.zero?
+      UI.user_error!(
+        "Aucun build TestFlight pour la version #{version}. " \
+        "Lance d'abord `bundle exec fastlane beta`."
+      )
+    end
+
+    UI.important("Promotion du build #{build} (version #{version}) — sans recompilation.")
+
+    upload_to_app_store(
+      api_key: key,
+      app_version: version,
+      build_number: build.to_s,
+      # Le cœur de la lane : on ne téléverse aucun binaire, on désigne celui déjà sur TestFlight.
+      skip_binary_upload: true,
+      # Le dépôt ne versionne aucune capture (fastlane/screenshots est vide) : par défaut on laisse
+      # intactes celles déjà en ligne. Pour les remplacer : `fastlane screenshots` puis
+      # `fastlane release screenshots:true`.
+      skip_screenshots: !options.fetch(:screenshots, false),
+      # Par sécurité, ne soumet pas à la review sans le demander explicitement.
+      submit_for_review: options.fetch(:submit, false),
+      # La mise en vente reste déclenchée à la main après approbation.
+      automatic_release: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      metadata_path: "./fastlane/metadata",
+      submission_information: {
+        add_id_info_uses_idfa: false
+      }
+    )
+
+    if options.fetch(:submit, false)
+      UI.success("Version #{version} (build #{build}) soumise à la review.")
+    else
+      UI.success("Version #{version} (build #{build}) préparée sur App Store Connect.")
+      UI.message("Relis la fiche, puis `bundle exec fastlane release submit:true`.")
+    end
+  end
+
+  desc "Captures d'écran App Store (cible HolyDayUITests, config fastlane/Snapfile)"
+  lane :screenshots do
+    capture_screenshots
+  end
+
+  # =====================================================================================
+  #  Interne
+  # =====================================================================================
+
+  # Signature + numérotation + archive. Utilisée par les deux lanes de beta uniquement :
+  # `release` ne construit rien.
+  private_lane :build_release do
+    key = asc_api_key
 
     match(
       type: "appstore",
@@ -28,9 +141,9 @@ platform :ios do
       readonly: true
     )
 
-    # build_configurations est limite a Release : sans ce filtre l'action ecrit
-    # aussi dans Debug, ce qui casse les builds sur device depuis Xcode (un profil
-    # AppStore n'autorise pas l'installation directe). Le scheme archive en Release.
+    # build_configurations limité à Release : sans ce filtre l'action écrit aussi dans Debug, ce qui
+    # casse les builds sur device depuis Xcode (un profil AppStore n'autorise pas l'installation
+    # directe). Le scheme archive en Release.
     update_code_signing_settings(
       use_automatic_signing: false,
       targets: ["HolyDay"],
@@ -49,7 +162,7 @@ platform :ios do
     )
 
     increment_build_number(
-      build_number: latest_testflight_build_number(api_key: api_key) + 1
+      build_number: latest_testflight_build_number(api_key: key) + 1
     )
 
     build_app(
@@ -58,107 +171,45 @@ platform :ios do
     )
   end
 
+  # Mémoïsée : sans ça chaque lane recréait la clé deux ou trois fois par exécution.
   def asc_api_key
-    app_store_connect_api_key(
+    @asc_api_key ||= app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
       key_filepath: ENV["ASC_KEY_FILEPATH"]
     )
   end
 
-  # --- Beta interne (inchangée) ---
-  lane :beta do
-    api_key = asc_api_key
-    build_release(api_key: api_key)
-    upload_to_testflight(
-      api_key: api_key,
-      skip_waiting_for_build_processing: true
-    )
+  # « Ce qu'il faut tester », lu depuis un fichier pour ne pas vivre en dur dans le Fastfile —
+  # c'est la partie qui change à chaque version. Repli sur les notes App Store françaises.
+  def testflight_notes
+    path = File.expand_path("../#{TESTFLIGHT_NOTES}", __dir__)
+    return File.read(path).strip if File.exist?(path)
+
+    fallback = File.expand_path("../fastlane/metadata/fr-FR/release_notes.txt", __dir__)
+    return File.read(fallback).strip if File.exist?(fallback)
+
+    UI.important("Aucune note de test trouvée (#{TESTFLIGHT_NOTES}).")
+    nil
   end
 
-  # --- Beta externe ---
-  lane :beta_external do
-    api_key = asc_api_key
-    build_release(api_key: api_key)
+  def beta_app_info(locale)
+    common = {
+      feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
+      marketing_url: "https://holyday-landing.vercel.app/index.html",
+      privacy_policy_url: "https://holyday-landing.vercel.app/privacy.html"
+    }
 
-    upload_to_testflight(
-      api_key: api_key,
-      distribute_external: true,
-      notify_external_testers: true,
-      groups: ["HolyDay Beta"],          # le groupe externe (voir note plus bas)
-      submit_beta_review: true,
-      # IMPORTANT : false, car la review externe exige un build "processed"
-      skip_waiting_for_build_processing: false,
-
-      # Infos de contact pour la Beta App Review
-      beta_app_review_info: {
-        contact_email: "matthias.cadet25+betaholyday@gmail.com",
-        contact_first_name: "Matthias",
-        contact_last_name: "Cadet",
-        contact_phone: "+33613395971",
-        notes: "App de journal de prière. Aucun compte requis, pas de login. " \
-               "Toutes les fonctionnalités sont accessibles directement. " \
-               "Les dons RevenueCat sont optionnels et ne déverrouillent rien."
-      },
-
-      # Métadonnées localisées (FR + EN)
-      localized_app_info: {
-        "default" => {
-          feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
-          marketing_url: "https://holyday-landing.vercel.app/index.html",
-          privacy_policy_url: "https://holyday-landing.vercel.app/privacy.html",
-          description: "Journal de prière quotidien : check-in d'humeur et verset en lien avec l'humeur (Louis Segond 1910), prière guidée ACTS ou libre, et journal de prières."
-        },
-        "fr-FR" => {
-          feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
-          marketing_url: "https://holyday-landing.vercel.app/index.html",
-          privacy_policy_url: "https://holyday-landing.vercel.app/privacy.html",
-          description: "Journal de prière quotidien : check-in d'humeur et verset en lien avec l'humeur (Louis Segond 1910), prière guidée ACTS ou libre, et journal de prières."
-        },
-        "en-US" => {
-          feedback_email: "matthias.cadet25+betaholydayfeedback@gmail.com",
-          marketing_url: "https://holyday-landing.vercel.app/index.html",
-          description: "Daily prayer journal: mood check-in Bible verses (Berean Standard Bible), ACTS guided prayer, and prayersjournal."
-        }
-      },
-
-      # "What to test" par langue
-      localized_build_info: {
-        "default" => { whats_new: "Première beta externe. Merci de tester le check-in d'humeur -> le verset correspondnat s'affiche. La prière guidée, la prière libre" },
-        "fr-FR"   => { whats_new: "Teste le check-in d'humeur, l'affichage des versets, la prière guidée ACTS et la prière libre." },
-        "en-US"   => { whats_new: "Please test the mood check-in, and verse display, ACTS guided prayer and free prayer." }
-      }
-    )
-  end
-
-  # --- Captures d'écran App Store ---
-  # Lance le target UI Test HolyDayUITests via `snapshot` (config : fastlane/Snapfile) et
-  # dépose les PNG dans fastlane/screenshots/<langue>/, prêts pour `upload_to_app_store`.
-  lane :screenshots do
-    capture_screenshots
-  end
-
-  # --- Release App Store ---
-  # Build signé "app-store", puis upload du binaire + métadonnées (fastlane/metadata)
-  # et captures (fastlane/screenshots) vers App Store Connect.
-  # Par sécurité, ne soumet PAS automatiquement à la review : mettre submit_for_review
-  # à true (ou lancer `fastlane release submit:true`) une fois tout vérifié.
-  lane :release do |options|
-    api_key = asc_api_key
-    build_release(api_key: api_key)
-
-    upload_to_app_store(
-      api_key: api_key,
-      submit_for_review: options.fetch(:submit, false),
-      automatic_release: false,
-      force: true,                         # pas d'aperçu HTML interactif (CI-friendly)
-      precheck_include_in_app_purchases: false,
-      metadata_path: "./fastlane/metadata",
-      screenshots_path: "./fastlane/screenshots",
-      submission_information: {
-        # Pas de tracking publicitaire / IDFA
-        add_id_info_uses_idfa: false
-      }
-    )
+    if locale == :en
+      common.merge(
+        description: "Daily prayer journal: mood check-in with a matching Bible verse " \
+                     "(Berean Standard Bible), ACTS guided prayer, free prayer and a prayer journal."
+      )
+    else
+      common.merge(
+        description: "Journal de prière quotidien : check-in d'humeur et verset en lien avec " \
+                     "l'humeur (Louis Segond 1910), prière guidée ACTS ou libre, et journal de prières."
+      )
+    end
   end
 end

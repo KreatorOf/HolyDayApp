@@ -11,6 +11,7 @@ import SwiftUI
 struct MainTabView: View {
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @State private var selectedTab = 0
+  @State private var whatsNew = WhatsNewService.shared
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.modelContext) private var modelContext
 
@@ -42,6 +43,16 @@ struct MainTabView: View {
     .sensoryFeedback(.selection, trigger: selectedTab)
     .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     .preferredColorScheme(preferredScheme)
+    // `sheet(item:)` plutôt que `isPresented` : il conserve son contenu pendant l'animation de
+    // fermeture, alors que `markSeen()` vide `pending` dès le premier geste.
+    .sheet(
+      item: Binding(
+        get: { whatsNew.pending },
+        set: { if $0 == nil { whatsNew.markSeen() } }
+      )
+    ) { presentation in
+      WhatsNewView(releases: presentation.releases) { whatsNew.markSeen() }
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active {
         PrayerRecordService.shared.refresh()

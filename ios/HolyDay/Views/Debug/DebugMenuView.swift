@@ -91,6 +91,10 @@
           DebugActions.resetPrayerRecord()
           flash("Suivi prière remis à zéro")
         }
+        actionRow("Rejouer les nouveautés", systemName: "sparkles") {
+          DebugActions.resetWhatsNew()
+          flash("Nouveautés rejouées au prochain lancement")
+        }
         actionRow("Vider les prières", systemName: "book.closed", role: .destructive) {
           DebugActions.clearPrayers(in: context)
           flash("Prières supprimées")

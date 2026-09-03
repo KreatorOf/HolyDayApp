@@ -136,6 +136,9 @@ struct HolyDayApp: App {
               .transition(.opacity)
           } else {
             OnboardingView {
+              // Une installation neuve ne doit pas se voir annoncer des « nouveautés » : on note la
+              // version courante comme déjà vue avant même d'entrer dans l'app.
+              WhatsNewService.shared.markSeen()
               withAnimation(.easeInOut(duration: 0.5)) {
                 hasCompletedOnboarding = true
               }
@@ -173,6 +176,11 @@ struct HolyDayApp: App {
         // Retire le splash de la hiérarchie une fois le fondu terminé.
         try? await Task.sleep(for: .seconds(0.5))
         showSplash = false
+        // Après le splash seulement : une feuille présentée plus tôt s'ouvrirait derrière lui.
+        // `MainTabView` observe `pending` et se charge de l'affichage.
+        if hasCompletedOnboarding {
+          WhatsNewService.shared.evaluate()
+        }
       }
     }
   }

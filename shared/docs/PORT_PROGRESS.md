@@ -96,6 +96,10 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
 - ✅ VerseWidget — dernier verset reçu, ouvre MainActivity au tap
 - Note : rendu volontairement simple (un seul layout, pas de tailles small/medium/large distinctes comme iOS) — à enrichir si besoin visuel après premier test sur device/émulateur.
 
+### 6 bis. Écran de nouveautés — **iOS seulement pour l'instant**
+- ✅ iOS : `WhatsNewService` + `ReleaseNotesCatalog` + `WhatsNewView`, présenté après le splash depuis `MainTabView`, 12 tests unitaires.
+- ⬜ **Android : non porté.** Écart assumé, à combler avant la prochaine release conjointe. Le portage est direct (pas de dépendance à une API Apple) : `object WhatsNewService` + DataStore pour `lastSeenVersion`, `BuildConfig.VERSION_NAME` comme version courante, et un `ModalBottomSheet` Compose. Les deux invariants à reproduire tels quels : l'onboarding marque la version comme vue (sinon une install neuve verrait les nouveautés), et l'absence de repère signifie « mise à jour depuis un binaire antérieur à la fonctionnalité », pas « install neuve ». Clés `whatsnew.*` à reporter dans `KEYMAP.md` au moment du portage.
+
 ### 7. Localisation
 - ⬜ Extraction complète des clés .xcstrings → strings.xml (fr default + en)
 - **Divergences de valeur volontaires** (même clé, texte différent par plateforme — ne pas « corriger » en recopiant le texte iOS) :

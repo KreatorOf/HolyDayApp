@@ -28,6 +28,12 @@
       try? context.delete(model: PrayerIntention.self)
     }
 
+    /// Rejoue l'écran de nouveautés au prochain lancement, sans avoir à réinstaller une version
+    /// antérieure pour tester la détection de mise à jour.
+    static func resetWhatsNew() {
+      WhatsNewService.shared.reset()
+    }
+
     // MARK: - Seed
 
     private static let freeTexts = [

@@ -59,7 +59,22 @@ Pas de `app/src/androidTest/` : aucun test instrumenté à ce jour.
 
 ### Livraison iOS (fastlane, depuis `ios/`)
 
-`bundle exec fastlane <lane>` — `beta` (TestFlight interne), `beta_external` (beta externe + Beta App Review), `screenshots` (`capture_screenshots`, config `fastlane/Snapfile`), `release` (App Store ; `submit_for_review` à `false` par défaut, `fastlane release submit:true` pour soumettre).
+`bundle exec fastlane <lane>` depuis `ios/`. Quatre lanes, un verbe par destination :
+
+| Lane | Recompile ? | Effet |
+|---|---|---|
+| `beta` | oui | Build signé → TestFlight (testeurs internes) |
+| `beta_external` | oui | Build signé → TestFlight externe + Beta App Review |
+| `release` | **non** | Promeut vers l'App Store le dernier build TestFlight de la version courante |
+| `screenshots` | — | `capture_screenshots` (config `fastlane/Snapfile`) |
+
+**`release` ne construit rien** : il désigne, via `skip_binary_upload`, le build déjà passé par TestFlight, et pousse les métadonnées de `fastlane/metadata/`. C'est ce qui garantit qu'on soumet exactement le binaire testé et non un jumeau recompilé après la recette. Il échoue explicitement si aucun build TestFlight n'existe pour la version courante. `submit_for_review` est à `false` par défaut — `fastlane release submit:true` pour envoyer en review, et la mise en vente reste manuelle (`automatic_release: false`).
+
+Les captures ne sont pas versionnées (`fastlane/screenshots/` est vide) : `release` laisse par défaut intactes celles en ligne. Pour les remplacer : `fastlane screenshots` puis `fastlane release screenshots:true`.
+
+Le « ce qu'il faut tester » envoyé aux testeurs vit dans `fastlane/testflight_whats_new.txt` (distinct des notes App Store, `fastlane/metadata/<langue>/release_notes.txt`).
+
+`setup_ci` est appelé en `before_all` sous `ENV["CI"]` : sans lui, `match` ne peut pas poser la key partition list et `codesign` gèle sur un runner headless.
 
 ## Localisation (obligatoire)
 

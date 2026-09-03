@@ -1,0 +1,8 @@
+Correction de l’attribution de la traduction anglaise des versets.
+
+À tester en priorité :
+• Appareil en anglais : la référence sous le verset doit afficher (BSB), jamais (KJV).
+• Appareil en français : la référence doit toujours afficher (LSG).
+• Réglages > Mentions légales > Contenu biblique : les deux traductions sont créditées.
+• Widget « Mon verset » : après mise à jour depuis la 1.0, il doit passer de (KJV) à (BSB)
+  au premier lancement de l’app, sans retaper d’émotion.
