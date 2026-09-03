@@ -47,6 +47,20 @@ nonisolated enum SharedStore {
     defaults?.set(emotionTag, forKey: lastVerseEmotionKey)
   }
 
+  // MARK: - Reprise de données
+
+  /// Répare les snapshots écrits avant la 1.0.1 : le corpus anglais est la Berean Standard Bible,
+  /// mais la référence était rendue « (KJV) » et stockée ici telle qu'affichée. Sans cette reprise,
+  /// le widget conserverait la mauvaise attribution jusqu'à la prochaine sélection d'émotion.
+  static func repairLegacyTranslationSigil() {
+    let legacy = "(KJV)"
+    guard let reference = defaults?.string(forKey: lastVerseReferenceKey),
+      reference.hasSuffix(legacy)
+    else { return }
+    let repaired = reference.dropLast(legacy.count) + "(BSB)"
+    defaults?.set(String(repaired), forKey: lastVerseReferenceKey)
+  }
+
   // MARK: - Lecture (widgets)
 
   static var lastPrayerDate: Date? {

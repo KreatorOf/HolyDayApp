@@ -68,6 +68,8 @@ struct HolyDayApp: App {
       }
     #endif
 
+    SharedStore.repairLegacyTranslationSigil()
+
     // En mode capture d'écran, on ne configure pas TipKit : les popovers du parcours de
     // découverte ne doivent pas venir masquer les écrans capturés.
     if !ScreenshotMode.isActive {

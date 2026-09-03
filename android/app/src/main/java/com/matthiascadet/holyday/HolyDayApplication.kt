@@ -18,6 +18,7 @@ class HolyDayApplication : Application() {
 
         AppPreferences.init(this)
         WidgetSyncService.init(this)
+        WidgetSyncService.repairLegacyTranslationSigil()
 
         Purchases.logLevel = if (BuildConfig.DEBUG) LogLevel.DEBUG else LogLevel.ERROR
         Purchases.configure(PurchasesConfiguration.Builder(this, RevenueCatConfig.API_KEY).build())

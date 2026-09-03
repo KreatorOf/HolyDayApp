@@ -1,1 +1,2 @@
-The very first version of HolyDay. Thanks for praying with us 🙏
+• Fixed the translation credit shown with English verses (Berean Standard Bible).
+• Updated the legal notice to credit both translations used.
