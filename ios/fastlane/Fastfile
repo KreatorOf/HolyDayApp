@@ -5,6 +5,15 @@ WIDGET_ID = "com.matthiascadet.HolyDay.HolyDayWidget"
 
 platform :ios do
 
+  # Sur CI, match importe le certificat dans le trousseau de session sans pouvoir poser la
+  # « key partition list » (pas de mot de passe de trousseau). codesign lève alors une demande
+  # d'autorisation graphique que personne ne peut valider sur un runner headless, et le build
+  # gèle indéfiniment à la signature (observé sur HolyDayWidgetExtension.appex).
+  # `setup_ci` crée un trousseau temporaire dédié et évite ce blocage.
+  before_all do
+    setup_ci if ENV["CI"]
+  end
+
   # --- Partie commune : signing + incrément + build ---
   private_lane :build_release do |options|
     api_key = app_store_connect_api_key(
