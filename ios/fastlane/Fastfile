@@ -121,6 +121,32 @@ platform :ios do
     end
   end
 
+  desc "Met à jour le « ce qu'il faut tester » du dernier build TestFlight, sans recompiler"
+  lane :testflight_notes do
+    key = asc_api_key
+    version = get_version_number(xcodeproj: XCODEPROJ, target: "HolyDay")
+    build = latest_testflight_build_number(api_key: key, app_identifier: APP_ID, version: version)
+
+    if build.to_i.zero?
+      UI.user_error!("Aucun build TestFlight pour la version #{version}.")
+    end
+
+    # App Store Connect refuse certains caractères dans ce champ (les filets « ━ » notamment) :
+    # une faute ici faisait échouer toute la lane `beta` APRÈS l'upload du binaire. Cette lane
+    # permet de corriger le texte seul, sans reconstruire ni renuméroter quoi que ce soit.
+    upload_to_testflight(
+      api_key: key,
+      app_identifier: APP_ID,
+      app_version: version,
+      build_number: build.to_s,
+      skip_binary_upload: true,
+      skip_waiting_for_build_processing: false,
+      changelog: testflight_notes_text
+    )
+
+    UI.success("Notes de test mises à jour sur le build #{build} (version #{version}).")
+  end
+
   desc "Captures d'écran App Store (cible HolyDayUITests, config fastlane/Snapfile)"
   lane :screenshots do
     capture_screenshots
@@ -182,7 +208,7 @@ platform :ios do
 
   # « Ce qu'il faut tester », lu depuis un fichier pour ne pas vivre en dur dans le Fastfile —
   # c'est la partie qui change à chaque version. Repli sur les notes App Store françaises.
-  def testflight_notes
+  def testflight_notes_text
     path = File.expand_path("../#{TESTFLIGHT_NOTES}", __dir__)
     return File.read(path).strip if File.exist?(path)
 

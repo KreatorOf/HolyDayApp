@@ -1,42 +1,42 @@
-Version 1.1 — écran de nouveautés + correction de l’attribution des versets anglais.
+Version 1.1 - ecran de nouveautes + correction de l'attribution des versets anglais.
 
-━━ 1. L’écran de nouveautés (la vraie nouveauté à éprouver) ━━
+1. L'ECRAN DE NOUVEAUTES (la vraie nouveaute a eprouver)
 
-Il ne s’affiche qu’une fois, après une mise à jour. Pour le revoir autant de
-fois que nécessaire : Réglages > section Développeur > « Rejouer les
-nouveautés », puis relancer l’app.
+Il ne s'affiche qu'une fois, apres une mise a jour. Pour le revoir autant de fois
+que necessaire : Reglages > section Developpeur > "Rejouer les nouveautes", puis
+relancer l'app.
 
-• Il apparaît APRÈS l’écran de lancement, jamais derrière lui.
-• Le bouton « Continuer » le referme.
-• Il ne revient PAS au lancement suivant.
-• Si vous installez l’app à neuf et faites tout l’onboarding, il ne doit PAS
-  apparaître : vous venez de tout découvrir, il n’y a rien à annoncer.
-• Lisibilité en très grande taille de texte (Réglages iOS > Affichage et
-  luminosité > Taille du texte) : rien ne doit être tronqué.
-• VoiceOver : chaque nouveauté doit être lue d’un bloc, titre puis description.
+- Il apparait APRES l'ecran de lancement, jamais derriere lui.
+- Le bouton "Continuer" le referme.
+- Il ne revient PAS au lancement suivant.
+- Si vous installez l'app a neuf et faites tout l'onboarding, il ne doit PAS
+  apparaitre : vous venez de tout decouvrir, il n'y a rien a annoncer.
+- Lisibilite en tres grande taille de texte (Reglages iOS > Affichage et
+  luminosite > Taille du texte) : rien ne doit etre tronque.
+- VoiceOver : chaque nouveaute doit etre lue d'un bloc, titre puis description.
 
-━━ 2. L’attribution des versets ━━
+2. L'ATTRIBUTION DES VERSETS
 
-• Appareil en anglais : la référence sous le verset se termine par (BSB),
-  jamais par (KJV).
-• Appareil en français : elle se termine toujours par (LSG).
-• Retapez plusieurs fois la même émotion : le verset change, le sigle reste bon.
-• Réglages > Mentions légales > Contenu biblique : les deux traductions
-  (Louis Segond 1910 et Berean Standard Bible) doivent y être créditées,
-  dans les deux langues.
+- Appareil en anglais : la reference sous le verset se termine par (BSB), jamais
+  par (KJV).
+- Appareil en francais : elle se termine toujours par (LSG).
+- Retapez plusieurs fois la meme emotion : le verset change, le sigle reste bon.
+- Reglages > Mentions legales > Contenu biblique : les deux traductions (Louis
+  Segond 1910 et Berean Standard Bible) doivent y etre creditees, dans les deux
+  langues.
 
-━━ 3. Le widget, si vous aviez déjà l’app ━━
+3. LE WIDGET, SI VOUS AVIEZ DEJA L'APP
 
-• Si le widget « Mon verset » affichait (KJV) avant la mise à jour, il doit
-  passer à (BSB) dès le premier lancement de l’app — sans que vous ayez à
-  retoucher au ruban d’émotions.
-• Vérifiez-le dans toutes les tailles de widget que vous utilisez.
+- Si le widget "Mon verset" affichait (KJV) avant la mise a jour, il doit passer
+  a (BSB) des le premier lancement de l'app, sans que vous ayez a retoucher au
+  ruban d'emotions.
+- Verifiez-le dans toutes les tailles de widget que vous utilisez.
 
-━━ 4. Le reste ━━
+4. LE RESTE
 
-Ce build sort d’une chaîne de production entièrement refaite. Un coup d’œil
-au parcours habituel est utile : choisir une émotion, prier (libre et guidée),
-retrouver la prière dans le journal, créer une intention, et vérifier que
-l’écran de soutien affiche bien ses prix.
+Ce build sort d'une chaine de production entierement refaite. Un coup d'oeil au
+parcours habituel est utile : choisir une emotion, prier (libre et guidee),
+retrouver la priere dans le journal, creer une intention, et verifier que l'ecran
+de soutien affiche bien ses prix.
 
-Merci 🙏
+Merci !
