@@ -1,2 +1,3 @@
+• Nouvel écran de nouveautés : après chaque mise à jour, un résumé de ce qui a changé.
 • Correction de l’attribution de la traduction anglaise des versets (Berean Standard Bible).
 • Mentions légales mises à jour pour créditer les deux traductions utilisées.

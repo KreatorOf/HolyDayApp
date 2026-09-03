@@ -1,8 +1,42 @@
-Correction de l’attribution de la traduction anglaise des versets.
+Version 1.1 — écran de nouveautés + correction de l’attribution des versets anglais.
 
-À tester en priorité :
-• Appareil en anglais : la référence sous le verset doit afficher (BSB), jamais (KJV).
-• Appareil en français : la référence doit toujours afficher (LSG).
-• Réglages > Mentions légales > Contenu biblique : les deux traductions sont créditées.
-• Widget « Mon verset » : après mise à jour depuis la 1.0, il doit passer de (KJV) à (BSB)
-  au premier lancement de l’app, sans retaper d’émotion.
+━━ 1. L’écran de nouveautés (la vraie nouveauté à éprouver) ━━
+
+Il ne s’affiche qu’une fois, après une mise à jour. Pour le revoir autant de
+fois que nécessaire : Réglages > section Développeur > « Rejouer les
+nouveautés », puis relancer l’app.
+
+• Il apparaît APRÈS l’écran de lancement, jamais derrière lui.
+• Le bouton « Continuer » le referme.
+• Il ne revient PAS au lancement suivant.
+• Si vous installez l’app à neuf et faites tout l’onboarding, il ne doit PAS
+  apparaître : vous venez de tout découvrir, il n’y a rien à annoncer.
+• Lisibilité en très grande taille de texte (Réglages iOS > Affichage et
+  luminosité > Taille du texte) : rien ne doit être tronqué.
+• VoiceOver : chaque nouveauté doit être lue d’un bloc, titre puis description.
+
+━━ 2. L’attribution des versets ━━
+
+• Appareil en anglais : la référence sous le verset se termine par (BSB),
+  jamais par (KJV).
+• Appareil en français : elle se termine toujours par (LSG).
+• Retapez plusieurs fois la même émotion : le verset change, le sigle reste bon.
+• Réglages > Mentions légales > Contenu biblique : les deux traductions
+  (Louis Segond 1910 et Berean Standard Bible) doivent y être créditées,
+  dans les deux langues.
+
+━━ 3. Le widget, si vous aviez déjà l’app ━━
+
+• Si le widget « Mon verset » affichait (KJV) avant la mise à jour, il doit
+  passer à (BSB) dès le premier lancement de l’app — sans que vous ayez à
+  retoucher au ruban d’émotions.
+• Vérifiez-le dans toutes les tailles de widget que vous utilisez.
+
+━━ 4. Le reste ━━
+
+Ce build sort d’une chaîne de production entièrement refaite. Un coup d’œil
+au parcours habituel est utile : choisir une émotion, prier (libre et guidée),
+retrouver la prière dans le journal, créer une intention, et vérifier que
+l’écran de soutien affiche bien ses prix.
+
+Merci 🙏

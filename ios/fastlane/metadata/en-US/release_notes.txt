@@ -1,2 +1,3 @@
+• New What’s New screen: a summary of what changed after each update.
 • Fixed the translation credit shown with English verses (Berean Standard Bible).
 • Updated the legal notice to credit both translations used.
