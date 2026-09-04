@@ -13,6 +13,9 @@ import SwiftUI
 /// « sparkles » du journal.
 struct JournalStatsView: View {
   let entries: [PrayerEntry]
+  // Non filtrées par période : voir `AnsweredIntentionsStats`, un bilan cumulatif plutôt qu'une
+  // tendance récente.
+  let intentions: [PrayerIntention]
 
   @State private var period: StatsPeriod = .month
 
@@ -20,6 +23,7 @@ struct JournalStatsView: View {
     // Agrégations O(n) calculées une seule fois par rendu.
     let activity = PrayerStats.activity(entries, period: period)
     let emotions = PrayerStats.emotionTotals(entries, period: period)
+    let answered = PrayerStats.answeredIntentions(intentions)
     return VStack(spacing: 20) {
       periodPicker
 
@@ -30,6 +34,10 @@ struct JournalStatsView: View {
         if !emotions.isEmpty {
           chartCard("stats.emotions.title") { emotionsChart(emotions) }
         }
+      }
+
+      if answered.totalCount > 0 {
+        chartCard("stats.answered.title") { answeredCard(answered) }
       }
     }
   }
@@ -104,6 +112,42 @@ struct JournalStatsView: View {
     .frame(height: 240)
   }
 
+  // Pas un graphique : un bilan chiffré (le grand nombre porte l'émotion), aligné visuellement sur
+  // `checkmark.seal.fill` déjà utilisé dans le journal pour marquer une prière exaucée.
+  private func answeredCard(_ stats: AnsweredIntentionsStats) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack(alignment: .firstTextBaseline, spacing: 6) {
+        Image(systemName: "checkmark.seal.fill")
+          .font(.title3)
+          .foregroundStyle(AppTheme.supplicationGreen)
+        Text("\(stats.answeredCount)")
+          .font(.system(.largeTitle, design: .serif, weight: .bold))
+          .foregroundStyle(AppTheme.textPrimary)
+        Text(String(format: String(localized: "stats.answered.ratio"), stats.totalCount))
+          .font(.subheadline)
+          .foregroundStyle(AppTheme.textSecondary)
+      }
+      if let median = stats.medianDelayDays {
+        Text(String(format: String(localized: "stats.answered.delay"), median))
+          .font(.caption)
+          .foregroundStyle(AppTheme.textTertiary)
+      }
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text("stats.answered.title"))
+    .accessibilityValue(Text(answeredAccessibilityValue(stats)))
+  }
+
+  private func answeredAccessibilityValue(_ stats: AnsweredIntentionsStats) -> String {
+    var value =
+      "\(stats.answeredCount) "
+      + String(format: String(localized: "stats.answered.ratio"), stats.totalCount)
+    if let median = stats.medianDelayDays {
+      value += ", " + String(format: String(localized: "stats.answered.delay"), median)
+    }
+    return value
+  }
+
   // MARK: - Building blocks
 
   private func chartCard(
@@ -149,7 +193,25 @@ struct JournalStatsView: View {
 #Preview {
   ZStack {
     AppBackground()
-    ScrollView { JournalStatsView(entries: []).padding(20) }
+    ScrollView { JournalStatsView(entries: [], intentions: []).padding(20) }
+  }
+  .preferredColorScheme(.dark)
+}
+
+#Preview("With answered intentions") {
+  let calendar = Calendar.current
+  let intentions: [PrayerIntention] = [
+    PrayerIntention(
+      text: "Guérison", createdAt: calendar.date(byAdding: .day, value: -40, to: .now)!,
+      isAnswered: true, answeredAt: calendar.date(byAdding: .day, value: -12, to: .now)!),
+    PrayerIntention(
+      text: "Sagesse", createdAt: calendar.date(byAdding: .day, value: -20, to: .now)!,
+      isAnswered: true, answeredAt: calendar.date(byAdding: .day, value: -18, to: .now)!),
+    PrayerIntention(text: "Paix intérieure"),
+  ]
+  return ZStack {
+    AppBackground()
+    ScrollView { JournalStatsView(entries: [], intentions: intentions).padding(20) }
   }
   .preferredColorScheme(.dark)
 }

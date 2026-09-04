@@ -55,8 +55,43 @@ struct EmotionTotal: Identifiable {
   let count: Int
 }
 
+/// Bilan des intentions exaucées : cumulatif et non filtré par période (contrairement à
+/// `activity`/`emotionTotals`), car c'est un compteur d'encouragement dans la durée — restreindre à
+/// « cette semaine » viderait l'essentiel de son sens (une intention peut être exaucée des mois après).
+struct AnsweredIntentionsStats {
+  let answeredCount: Int
+  let totalCount: Int
+  /// Délai médian, en jours, entre la création de l'intention et sa réponse. `nil` si aucune
+  /// intention exaucée n'a de date de réponse exploitable.
+  let medianDelayDays: Int?
+}
+
 /// Agrégateur pur (sans UI) : transforme une liste de `PrayerEntry` en séries prêtes à tracer.
 enum PrayerStats {
+  /// Compte les intentions exaucées et le délai médian de réponse.
+  static func answeredIntentions(_ intentions: [PrayerIntention]) -> AnsweredIntentionsStats {
+    let calendar = Calendar.current
+    let delays = intentions.filter(\.isAnswered).compactMap { intention -> Int? in
+      guard let answeredAt = intention.answeredAt else { return nil }
+      return calendar.dateComponents(
+        [.day],
+        from: calendar.startOfDay(for: intention.createdAt),
+        to: calendar.startOfDay(for: answeredAt)
+      ).day
+    }
+    .sorted()
+    let median: Int? =
+      switch delays.count {
+      case 0: nil
+      default: delays[delays.count / 2]
+      }
+    return AnsweredIntentionsStats(
+      answeredCount: intentions.filter(\.isAnswered).count,
+      totalCount: intentions.count,
+      medianDelayDays: median
+    )
+  }
+
   /// Nombre de prières par bucket.
   static func activity(_ entries: [PrayerEntry], period: StatsPeriod) -> [StatPoint] {
     let calendar = Calendar.current

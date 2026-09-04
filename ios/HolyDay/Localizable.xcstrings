@@ -3561,6 +3561,54 @@
         }
       }
     },
+    "stats.answered.delay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Median time to answer: %d days"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Délai médian de réponse : %d jours"
+          }
+        }
+      }
+    },
+    "stats.answered.ratio": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "out of %d intentions"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sur %d intentions"
+          }
+        }
+      }
+    },
+    "stats.answered.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answered prayers"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prières exaucées"
+          }
+        }
+      }
+    },
     "stats.emotions.title": {
       "localizations": {
         "en": {

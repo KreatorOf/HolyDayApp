@@ -11,6 +11,7 @@ import TipKit
 
 struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
+  @Query private var intentions: [PrayerIntention]
   @Environment(\.modelContext) private var modelContext
   private let journalTip = JournalTip()
   // Recherche sémantique on-device (FoundationModels) : indisponible sur la majorité des appareils
@@ -137,7 +138,7 @@ struct PrayerHistoryView: View {
     .sheet(isPresented: $showInsight) {
       NavigationStack {
         ScrollView {
-          JournalStatsView(entries: entries)
+          JournalStatsView(entries: entries, intentions: intentions)
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 32)
@@ -943,7 +944,8 @@ struct JournalPrayerDeck: View {
 // swiftlint:disable force_try
 #Preview {
   let config = ModelConfiguration(isStoredInMemoryOnly: true)
-  let container = try! ModelContainer(for: PrayerEntry.self, configurations: config)
+  let container = try! ModelContainer(
+    for: PrayerEntry.self, PrayerIntention.self, configurations: config)
 
   let calendar = Calendar.current
   let today = Date()
