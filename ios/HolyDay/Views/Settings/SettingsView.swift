@@ -286,6 +286,7 @@ struct SettingsView: View {
             .foregroundStyle(AppTheme.textTertiary)
         }
         .padding(16)
+        .contentShape(Rectangle())
       }
       .buttonStyle(.plain)
       .sensoryFeedback(.selection, trigger: showTipView)
@@ -352,6 +353,7 @@ struct SettingsView: View {
               .foregroundStyle(.red.opacity(0.4))
           }
           .padding(16)
+          .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.warning, trigger: resetFeedbackToken)
@@ -384,6 +386,7 @@ struct SettingsView: View {
                 .foregroundStyle(AppTheme.textTertiary)
             }
             .padding(16)
+            .contentShape(Rectangle())
           }
           .buttonStyle(.plain)
         }
@@ -637,6 +640,10 @@ struct SettingsView: View {
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 14)
+    // Sans forme explicite, seuls le texte, la pastille et le chevron sont testés au toucher :
+    // le `Spacer` et le padding ne le sont pas, et le milieu de la rangée ne répond à rien.
+    // La cible tactile doit couvrir toute la rangée (HIG : 44 pt minimum, sur toute la largeur).
+    .contentShape(Rectangle())
   }
 }
 

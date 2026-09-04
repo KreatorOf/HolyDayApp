@@ -17,3 +17,14 @@ repos:
         entry: /opt/homebrew/bin/swiftlint lint --config ios/.swiftlint.yml
         language: system
         types: [swift]
+
+      # Le Fastfile et les notes de test ne sont ni compilés ni testés : une faute purement
+      # textuelle n'y était découverte qu'après huit minutes de build sur un runner macOS.
+      # Reproduit les deux pannes réellement vécues (caractère refusé par App Store Connect,
+      # collision lane/helper) en moins d'une seconde.
+      - id: check-fastlane
+        name: Fastlane (syntaxe, collisions, notes ASCII)
+        entry: scripts/check-fastlane.sh
+        language: system
+        pass_filenames: false
+        files: '^ios/fastlane/'
