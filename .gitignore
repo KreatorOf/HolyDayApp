@@ -29,3 +29,10 @@ android/.kotlin/
 android/build/
 android/app/build/
 android/local.properties
+
+# Content Agent
+scripts/content-agent/.venv/
+marketing/content-agent.log
+__pycache__/
+*.pyc
+.pytest_cache/

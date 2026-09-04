@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Lanceur : `./scripts/content-agent/content-agent draft HEAD`
+cd "$(dirname "$0")"
+set -euo pipefail
+exec python3 -m content_agent "$@"
