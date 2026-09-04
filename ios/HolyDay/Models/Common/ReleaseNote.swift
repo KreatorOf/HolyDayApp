@@ -60,6 +60,13 @@ enum ReleaseNotesCatalog {
           accessibilityTitle: String(localized: "whatsnew.11.legal.title")
         ),
         ReleaseNote.Item(
+          icon: "bubble.left.and.text.bubble.right",
+          titleKey: "whatsnew.11.language.title",
+          bodyKey: "whatsnew.11.language.body",
+          colorName: "thanksgivingGold",
+          accessibilityTitle: String(localized: "whatsnew.11.language.title")
+        ),
+        ReleaseNote.Item(
           icon: "square.grid.2x2",
           titleKey: "whatsnew.11.widget.title",
           bodyKey: "whatsnew.11.widget.body",

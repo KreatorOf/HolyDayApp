@@ -23,7 +23,7 @@ import Foundation
   struct ReflectionQuestions {
     @Guide(
       description:
-        "3 short open-ended questions in French to help the user reflect personally before writing their prayer for this specific step",
+        "3 short, open-ended questions helping the user reflect personally before writing their prayer for this step. Write them in the language required by the instructions.",
       .count(3)
     )
     var questions: [String]
@@ -34,8 +34,8 @@ import Foundation
   struct SearchMatches {
     @Guide(
       description: """
-        Les numéros des prières dont le sens correspond à la recherche de l'utilisateur, \
-        même sans mots identiques. Liste vide si aucune ne correspond.
+        The numbers of the prayers whose meaning matches the user's query, even without \
+        identical words. Empty list if none match.
         """)
     var indices: [Int]
   }
@@ -45,9 +45,9 @@ import Foundation
   struct PrayerTitle {
     @Guide(
       description: """
-        Un titre court de 2 à 5 mots en français qui résume le thème de la prière, \
-        neutre et factuel, sans jugement ni interprétation spirituelle, \
-        sans guillemets et sans ponctuation finale.
+        A short 2-to-5-word title summarising the prayer's theme: neutral, factual, no judgement, \
+        no spiritual interpretation, no quotes, no trailing punctuation. Write it in the language \
+        required by the instructions.
         """)
     var title: String
   }
@@ -82,11 +82,13 @@ final class AIAssistantService {
     #if canImport(FoundationModels)
       guard #available(iOS 26.0, *) else { return nil }
       guard case .available = SystemLanguageModel.default.availability else { return nil }
+      let french = AppLanguage.isFrench
       do {
-        let session = LanguageModelSession(instructions: Self.titleSystemPrompt)
+        let session = LanguageModelSession(instructions: Self.titleSystemPrompt(french: french))
         let options = GenerationOptions(temperature: 0.3, maximumResponseTokens: 24)
         let response = try await session.respond(
-          to: Self.titlePrompt(for: text), generating: PrayerTitle.self, options: options)
+          to: Self.titlePrompt(for: text, french: french), generating: PrayerTitle.self,
+          options: options)
         let title = response.content.title.trimmingCharacters(in: .whitespacesAndNewlines)
         return title.isEmpty ? nil : title
       } catch {
@@ -107,8 +109,10 @@ final class AIAssistantService {
       // question plutôt que d'exposer une erreur pour une fonctionnalité d'appoint.
       guard #available(iOS 26.0, *) else { return [] }
       guard case .available = SystemLanguageModel.default.availability else { return [] }
-      let session = LanguageModelSession(instructions: Self.reflectionSystemPrompt)
-      let prompt = Self.reflectionPrompt(for: step, recentEntries: recentEntries)
+      let french = AppLanguage.isFrench
+      let session = LanguageModelSession(instructions: Self.reflectionSystemPrompt(french: french))
+      let prompt = Self.reflectionPrompt(
+        for: step, recentEntries: recentEntries, french: french)
       let response = try await session.respond(to: prompt, generating: ReflectionQuestions.self)
       return response.content.questions
     #else
@@ -130,9 +134,11 @@ final class AIAssistantService {
       guard #available(iOS 26.0, *) else { return [] }
       guard case .available = SystemLanguageModel.default.availability else { return [] }
       let pool = Array(entries.prefix(50))
-      let session = LanguageModelSession(instructions: Self.searchSystemPrompt)
+      let french = AppLanguage.isFrench
+      let session = LanguageModelSession(instructions: Self.searchSystemPrompt(french: french))
       let response = try await session.respond(
-        to: Self.searchPrompt(query: trimmed, entries: pool), generating: SearchMatches.self)
+        to: Self.searchPrompt(query: trimmed, entries: pool, french: french),
+        generating: SearchMatches.self)
       return response.content.indices
         .filter { $0 >= 0 && $0 < pool.count }
         .map { pool[$0] }
@@ -144,54 +150,100 @@ final class AIAssistantService {
   }
 
   // MARK: Prompts
-  // Statiques et hors `#if` : ce ne sont que des chaînes, les garder compilées sur toutes les
-  // versions évite de dupliquer les gardes de disponibilité autour de simples accès mémoire.
+  // Paramétrés par la langue plutôt que figés : l'app parle français ou anglais, et le modèle doit
+  // suivre. Ce sont de simples chaînes, gardées hors des `#if` de disponibilité — les compiler sur
+  // toutes les versions évite de dupliquer les gardes autour de simples accès mémoire.
+  // `internal` (et non `private`) pour être vérifiables par les tests : c'est précisément l'absence
+  // de couverture ici qui a laissé passer des réponses françaises sur une app en anglais.
 
-  private static let reflectionSystemPrompt = """
-    Tu es un assistant spirituel discret dans une application de prière chrétienne. \
-    Tu aides l'utilisateur à réfléchir avant de prier en posant des questions ouvertes, \
-    courtes et personnelles — jamais des prières toutes faites. \
-    Tes questions invitent à l'introspection sincère et, quand des prières passées \
-    sont disponibles, s'appuient sur ce que l'utilisateur a déjà confié. \
-    Tu n'enseignes rien, tu ne cites jamais l'Écriture et tu n'apportes aucune \
-    interprétation ou précision théologique : tu te limites à des questions ouvertes. \
-    Réponds uniquement en français.
-    """
-
-  private static let titleSystemPrompt = """
-    Tu titres des prières personnelles dans une application de prière chrétienne. \
-    À partir du texte d'une prière, tu proposes un titre court (2 à 5 mots), neutre et \
-    factuel, qui en résume le thème. Tu ne juges pas, tu n'interprètes pas spirituellement, \
-    tu ne cites pas l'Écriture. Pas de guillemets, pas de ponctuation finale. \
-    Réponds uniquement en français.
-    """
-
-  private static let searchSystemPrompt = """
-    Tu es un moteur de recherche sémantique sur le journal de prière de l'utilisateur. \
-    À partir d'une requête en langage naturel, tu identifies les prières dont le sens \
-    correspond, même sans mots identiques. Tu ne juges pas, tu n'interprètes pas \
-    spirituellement, tu ne cites pas l'Écriture : tu te limites à retrouver les prières \
-    pertinentes par leur sens. Réponds uniquement avec leurs numéros. Réponds en français.
-    """
-
-  private static func titlePrompt(for text: String) -> String {
-    "Prière :\n\(text.prefix(800))\n\nDonne un titre court résumant le thème."
+  static func reflectionSystemPrompt(french: Bool) -> String {
+    french
+      ? """
+      Tu es un assistant spirituel discret dans une application de prière chrétienne. \
+      Tu aides l'utilisateur à réfléchir avant de prier en posant des questions ouvertes, \
+      courtes et personnelles — jamais des prières toutes faites. \
+      Tes questions invitent à l'introspection sincère et, quand des prières passées \
+      sont disponibles, s'appuient sur ce que l'utilisateur a déjà confié. \
+      Tu n'enseignes rien, tu ne cites jamais l'Écriture et tu n'apportes aucune \
+      interprétation ou précision théologique : tu te limites à des questions ouvertes. \
+      Réponds uniquement en français.
+      """
+      : """
+      You are a discreet spiritual assistant inside a Christian prayer app. \
+      You help the user reflect before praying by asking short, open-ended, personal \
+      questions — never ready-made prayers. \
+      Your questions invite honest introspection and, when past prayers are available, \
+      draw on what the user has already confided. \
+      You teach nothing, you never quote Scripture and you offer no theological \
+      interpretation or clarification: you limit yourself to open questions. \
+      Answer in English only.
+      """
   }
 
-  private static func searchPrompt(query: String, entries: [PrayerEntry]) -> String {
-    var prompt = "Requête : \(query)\n\nPrières :\n"
+  static func titleSystemPrompt(french: Bool) -> String {
+    french
+      ? """
+      Tu titres des prières personnelles dans une application de prière chrétienne. \
+      À partir du texte d'une prière, tu proposes un titre court (2 à 5 mots), neutre et \
+      factuel, qui en résume le thème. Tu ne juges pas, tu n'interprètes pas spirituellement, \
+      tu ne cites pas l'Écriture. Pas de guillemets, pas de ponctuation finale. \
+      Réponds uniquement en français.
+      """
+      : """
+      You title personal prayers inside a Christian prayer app. \
+      From the text of a prayer, you propose a short title (2 to 5 words), neutral and \
+      factual, summarising its theme. You do not judge, you do not interpret spiritually, \
+      you do not quote Scripture. No quotation marks, no trailing punctuation. \
+      Answer in English only.
+      """
+  }
+
+  static func searchSystemPrompt(french: Bool) -> String {
+    french
+      ? """
+      Tu es un moteur de recherche sémantique sur le journal de prière de l'utilisateur. \
+      À partir d'une requête en langage naturel, tu identifies les prières dont le sens \
+      correspond, même sans mots identiques. Tu ne juges pas, tu n'interprètes pas \
+      spirituellement, tu ne cites pas l'Écriture : tu te limites à retrouver les prières \
+      pertinentes par leur sens. Réponds uniquement avec leurs numéros.
+      """
+      : """
+      You are a semantic search engine over the user's prayer journal. \
+      From a natural-language query, you identify the prayers whose meaning matches, \
+      even without identical words. You do not judge, you do not interpret spiritually, \
+      you do not quote Scripture: you limit yourself to finding the relevant prayers by \
+      meaning. Answer with their numbers only.
+      """
+  }
+
+  static func titlePrompt(for text: String, french: Bool) -> String {
+    let body = text.prefix(800)
+    return french
+      ? "Prière :\n\(body)\n\nDonne un titre court résumant le thème."
+      : "Prayer:\n\(body)\n\nGive a short title summarising the theme."
+  }
+
+  static func searchPrompt(query: String, entries: [PrayerEntry], french: Bool) -> String {
+    var prompt = french ? "Requête : \(query)\n\nPrières :\n" : "Query: \(query)\n\nPrayers:\n"
     for (index, entry) in entries.enumerated() {
       let dateStr = entry.date.formatted(.dateTime.day().month().year())
       let snippet = entry.text.prefix(200)
       prompt += "[\(index)] \(dateStr) — \(entry.displayTitle) : \(snippet)\n"
     }
-    prompt += "\nRenvoie les numéros des prières qui correspondent au sens de la requête."
+    prompt +=
+      french
+      ? "\nRenvoie les numéros des prières qui correspondent au sens de la requête."
+      : "\nReturn the numbers of the prayers matching the meaning of the query."
     return prompt
   }
 
-  private static func reflectionPrompt(for step: PrayerStep, recentEntries: [PrayerEntry]) -> String
+  static func reflectionPrompt(for step: PrayerStep, recentEntries: [PrayerEntry], french: Bool)
+    -> String
   {
-    var prompt = "Étape « \(step.title) » : \(step.description)\n\n"
+    var prompt =
+      french
+      ? "Étape « \(step.title) » : \(step.description)\n\n"
+      : "Step “\(step.title)”: \(step.description)\n\n"
 
     let pastEntries =
       recentEntries
@@ -199,7 +251,10 @@ final class AIAssistantService {
       .prefix(3)
 
     if !pastEntries.isEmpty {
-      prompt += "Prières passées de cet utilisateur pour cette étape :\n"
+      prompt +=
+        french
+        ? "Prières passées de cet utilisateur pour cette étape :\n"
+        : "This user's past prayers for this step:\n"
       for entry in pastEntries {
         let dateStr = entry.date.formatted(.dateTime.day().month().year())
         prompt += "- [\(dateStr)] \(entry.text.prefix(300))\n"
@@ -208,7 +263,9 @@ final class AIAssistantService {
     }
 
     prompt +=
-      "Pose 3 courtes questions de réflexion personnelle (pas des prières) pour aider l'utilisateur à descendre en lui-même avant de prier. Si des prières passées sont disponibles, laisse-les résonner dans tes questions."
+      french
+      ? "Pose 3 courtes questions de réflexion personnelle (pas des prières) pour aider l'utilisateur à descendre en lui-même avant de prier. Si des prières passées sont disponibles, laisse-les résonner dans tes questions."
+      : "Ask 3 short personal reflection questions (not prayers) to help the user look inward before praying. If past prayers are available, let them echo in your questions."
     return prompt
   }
 }

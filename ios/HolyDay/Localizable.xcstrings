@@ -4205,6 +4205,38 @@
         }
       }
     },
+    "whatsnew.11.language.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reflection questions, prayer titles and search now follow the app's language instead of staying in French."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questions de réflexion, titres de prière et recherche suivent désormais la langue de l'application, au lieu de rester en français."
+          }
+        }
+      }
+    },
+    "whatsnew.11.language.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The assistant finally speaks your language"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'assistant parle enfin votre langue"
+          }
+        }
+      }
+    },
     "whatsnew.11.legal.body": {
       "localizations": {
         "en": {

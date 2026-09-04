@@ -1,4 +1,4 @@
-Version 1.1 - ecran de nouveautes + correction de l'attribution des versets anglais.
+Version 1.1 - ecran de nouveautes, langue de l'assistant, attribution des versets anglais.
 
 1. L'ECRAN DE NOUVEAUTES (la vraie nouveaute a eprouver)
 
@@ -25,14 +25,27 @@ relancer l'app.
   Segond 1910 et Berean Standard Bible) doivent y etre creditees, dans les deux
   langues.
 
-3. LE WIDGET, SI VOUS AVIEZ DEJA L'APP
+3. LA LANGUE DE L'ASSISTANT (nouveau dans ce build)
+
+Sur un appareil en anglais, avec Apple Intelligence actif, tout ce que le modele
+ecrit doit desormais etre en anglais. C'etait du francais jusqu'ici.
+
+- Priere guidee, section "To help me reflect" : les questions doivent etre en
+  anglais.
+- Priere libre : enregistrez-en une d'au moins deux lignes, puis ouvrez le
+  journal. Le titre suggere quelques secondes plus tard doit etre en anglais.
+- Journal, recherche par le sens : les resultats doivent rester coherents.
+- Sur un appareil en francais, tout doit rester en francais : c'est la
+  non-regression a verifier absolument.
+
+4. LE WIDGET, SI VOUS AVIEZ DEJA L'APP
 
 - Si le widget "Mon verset" affichait (KJV) avant la mise a jour, il doit passer
   a (BSB) des le premier lancement de l'app, sans que vous ayez a retoucher au
   ruban d'emotions.
 - Verifiez-le dans toutes les tailles de widget que vous utilisez.
 
-4. LE RESTE
+5. LE RESTE
 
 Ce build sort d'une chaine de production entierement refaite. Un coup d'oeil au
 parcours habituel est utile : choisir une emotion, prier (libre et guidee),

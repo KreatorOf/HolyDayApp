@@ -18,10 +18,8 @@ final class VerseService {
   @ObservationIgnored private var decks: [Emotion: [Int]] = [:]
   @ObservationIgnored private var lastServed: [Emotion: Int] = [:]
 
-  private var isFrench: Bool {
-    let lang = Locale.current.language.languageCode?.identifier ?? "fr"
-    return !lang.hasPrefix("en")
-  }
+  // Règle partagée avec `AIAssistantService` : voir `AppLanguage`.
+  private var isFrench: Bool { AppLanguage.isFrench }
 
   // Le corpus vit dans `VerseCorpus` (dossier HolyDayShared), partagé avec l'extension widget.
   // Le sigle de version (LSG/BSB) est ajouté à la référence ici, côté app uniquement. Il doit
