@@ -66,7 +66,7 @@ Pas de `app/src/androidTest/` : aucun test instrumenté à ce jour.
 | `beta` | oui | Build signé → TestFlight (testeurs internes) |
 | `beta_external` | oui | Build signé → TestFlight externe + Beta App Review |
 | `release` | **non** | Promeut vers l'App Store le dernier build TestFlight de la version courante |
-| `testflight_notes` | **non** | Met à jour le « ce qu'il faut tester » du dernier build TestFlight |
+| `update_testflight_notes` | **non** | Met à jour le « ce qu'il faut tester » du dernier build TestFlight |
 | `screenshots` | — | `capture_screenshots` (config `fastlane/Snapfile`) |
 
 **`release` ne construit rien** : il désigne, via `skip_binary_upload`, le build déjà passé par TestFlight, et pousse les métadonnées de `fastlane/metadata/`. C'est ce qui garantit qu'on soumet exactement le binaire testé et non un jumeau recompilé après la recette. Il échoue explicitement si aucun build TestFlight n'existe pour la version courante. `submit_for_review` est à `false` par défaut — `fastlane release submit:true` pour envoyer en review, et la mise en vente reste manuelle (`automatic_release: false`).
@@ -75,7 +75,7 @@ Les captures ne sont pas versionnées (`fastlane/screenshots/` est vide) : `rele
 
 Le « ce qu'il faut tester » envoyé aux testeurs vit dans `fastlane/testflight_whats_new.txt` (distinct des notes App Store, `fastlane/metadata/<langue>/release_notes.txt`).
 
-App Store Connect refuse certains caractères dans le champ « what to test » (les filets `━` par exemple) : une faute y faisait échouer `beta` **après** l'upload du binaire, laissant un build correct sans notes. `fastlane testflight_notes` corrige le texte seul, sans reconstruire ni renuméroter. Garder ce fichier en ASCII est le plus sûr.
+App Store Connect refuse certains caractères dans le champ « what to test » (les filets `━` par exemple) : une faute y faisait échouer `beta` **après** l'upload du binaire, laissant un build correct sans notes. `fastlane update_testflight_notes` corrige le texte seul, sans reconstruire ni renuméroter. Convention de nommage dans le Fastfile : les lanes portent un verbe, les helpers portent la valeur qu'ils renvoient — une lane et un helper homonymes se confondent silencieusement à l'appel. Garder ce fichier en ASCII est le plus sûr.
 
 `setup_ci` est appelé en `before_all` sous `ENV["CI"]` : sans lui, `match` ne peut pas poser la key partition list et `codesign` gèle sur un runner headless.
 
