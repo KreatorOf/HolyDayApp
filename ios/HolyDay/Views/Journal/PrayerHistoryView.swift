@@ -208,13 +208,19 @@ struct PrayerHistoryView: View {
 
   // MARK: Calendar card
 
+  /// Empreinte d'un jour dans la grille : combien de prières, et la teinte qui domine ce jour-là.
+  private struct DayDigest {
+    let count: Int
+    let accent: Color
+  }
+
   private func calendarCard(byDay: [Date: [PrayerEntry]]) -> some View {
-    let prayedDays = prayedDays(in: byDay)
+    let digests = dayDigests(in: byDay)
     return VStack(spacing: 0) {
       monthNavigationHeader
-      monthInsightStrip(dayCount: prayedDays.count)
+      monthInsightStrip(dayCount: digests.count)
       weekDayLabels
-      calendarDayGrid(prayedDays: prayedDays)
+      calendarDayGrid(digests: digests)
     }
     .background {
       RoundedRectangle(cornerRadius: 20, style: .continuous)
@@ -296,10 +302,10 @@ struct PrayerHistoryView: View {
   }
 
   private var weekDayLabels: some View {
-    let labels = String(localized: "calendar.weekday.labels").components(separatedBy: ",")
+    let symbols = weekDaySymbols
     return HStack(spacing: 0) {
-      ForEach(labels.indices, id: \.self) { i in
-        Text(labels[i])
+      ForEach(symbols.indices, id: \.self) { i in
+        Text(symbols[i])
           .font(.system(size: 11, weight: .medium))
           .foregroundStyle(AppTheme.textTertiary)
           .frame(maxWidth: .infinity)
@@ -309,14 +315,14 @@ struct PrayerHistoryView: View {
     .padding(.bottom, 10)
   }
 
-  private func calendarDayGrid(prayedDays: [Date: Int]) -> some View {
+  private func calendarDayGrid(digests: [Date: DayDigest]) -> some View {
     LazyVGrid(
       columns: Array(repeating: GridItem(.flexible(), spacing: 0), count: 7),
       spacing: 6
     ) {
       ForEach(calendarDays.indices, id: \.self) { i in
         if let date = calendarDays[i] {
-          calendarDayView(date, prayedDays: prayedDays)
+          calendarDayView(date, digests: digests)
         } else {
           Color.clear.frame(height: 44)
         }
@@ -326,46 +332,61 @@ struct PrayerHistoryView: View {
     .padding(.bottom, 14)
   }
 
-  private func calendarDayView(_ date: Date, prayedDays: [Date: Int]) -> some View {
+  private func calendarDayView(_ date: Date, digests: [Date: DayDigest]) -> some View {
     let calendar = Calendar.current
     let isToday = calendar.isDateInToday(date)
     let startOfDay = calendar.startOfDay(for: date)
     let isSelected = selectedDate == startOfDay
-    let count = prayedDays[startOfDay, default: 0]
-    let hasPrayer = count > 0
-    let dotIntensity = min(Double(count), 3.0) / 3.0
+    let digest = digests[startOfDay]
     let isFuture = startOfDay > calendar.startOfDay(for: Date())
     return Button {
       withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
         selectedDate = startOfDay
       }
     } label: {
-      VStack(spacing: 3) {
+      ZStack {
+        // Anneau de sélection posé autour du disque, et non par-dessus : sélectionner un jour
+        // effaçait jusqu'ici la teinte et l'intensité, soit exactement ce qu'on vient y lire.
+        if isSelected {
+          Circle()
+            .strokeBorder(AppTheme.adorationPurple, lineWidth: 2)
+            .frame(width: 40, height: 40)
+        }
         ZStack {
-          if isSelected {
-            Circle().fill(AppTheme.adorationPurple)
-          } else if isToday {
+          if let digest {
+            Circle().fill(digest.accent.opacity(fillOpacity(for: digest.count)))
+          }
+          // Dessiné en plus de la sélection et non à sa place : `selectedDate` vaut aujourd'hui à
+          // l'ouverture, donc l'anneau doré n'était jamais visible au premier rendu.
+          if isToday {
             Circle().strokeBorder(AppTheme.thanksgivingGold.opacity(0.7), lineWidth: 1.5)
           }
           Text("\(calendar.component(.day, from: date))")
             .font(.system(size: 14, weight: isToday || isSelected ? .bold : .regular))
-            .foregroundStyle(
-              isSelected ? Color.white : isFuture ? AppTheme.textTertiary : AppTheme.textPrimary
-            )
+            .foregroundStyle(isFuture ? AppTheme.textTertiary : AppTheme.textPrimary)
         }
         .frame(width: 34, height: 34)
-
-        Circle()
-          .fill(
-            hasPrayer
-              ? (isSelected
-                ? Color.white : AppTheme.thanksgivingGold.opacity(0.3 + 0.7 * dotIntensity))
-              : Color.clear
-          )
-          .frame(width: 5, height: 5)
       }
+      .frame(width: 44, height: 44)
+      .contentShape(.rect)
     }
     .disabled(isFuture)
+    .accessibilityLabel(dayAccessibilityLabel(date, count: digest?.count ?? 0))
+  }
+
+  // Trois paliers (1, 2, 3+) nettement séparés sur un disque de 34pt — les mêmes paliers portés par
+  // un point de 5pt étaient indiscernables. Plafond bas pour garder le chiffre du jour lisible
+  // par-dessus, dans les deux thèmes.
+  private func fillOpacity(for count: Int) -> Double {
+    0.18 + 0.30 * (min(Double(count), 3.0) / 3.0)
+  }
+
+  // La teinte seule ne dit rien à VoiceOver : le libellé porte la date et le nombre de prières.
+  private func dayAccessibilityLabel(_ date: Date, count: Int) -> String {
+    let day = date.formatted(.dateTime.weekday(.wide).day().month(.wide))
+    guard count > 0 else { return day }
+    return day + ", "
+      + String(format: String(localized: "accessibility.calendar.day.prayers"), count)
   }
 
   // MARK: Selected day section
@@ -664,12 +685,23 @@ struct PrayerHistoryView: View {
     return s.prefix(1).uppercased() + s.dropFirst()
   }
 
+  // Initiales dérivées du calendrier système plutôt que d'une clé figée « L,M,M,J,V,S,D » : la
+  // semaine commence là où la locale le veut (dimanche aux États-Unis, lundi en France).
+  private var weekDaySymbols: [String] {
+    let calendar = Calendar.current
+    let symbols = calendar.veryShortStandaloneWeekdaySymbols
+    // `firstWeekday` est 1-indexé sur dimanche, comme `symbols`.
+    let offset = calendar.firstWeekday - 1
+    guard symbols.count == 7, (1...6).contains(offset) else { return symbols }
+    return Array(symbols[offset...] + symbols[..<offset])
+  }
+
   private var calendarDays: [Date?] {
     let calendar = Calendar.current
     let weekday = calendar.component(.weekday, from: displayedMonth)
-    let daysFromMonday = (weekday + 5) % 7
+    let leadingBlanks = (weekday - calendar.firstWeekday + 7) % 7
     guard let range = calendar.range(of: .day, in: .month, for: displayedMonth) else { return [] }
-    var days: [Date?] = Array(repeating: nil, count: daysFromMonday)
+    var days: [Date?] = Array(repeating: nil, count: leadingBlanks)
     for day in 0..<range.count {
       if let date = calendar.date(byAdding: .day, value: day, to: displayedMonth) {
         days.append(date)
@@ -679,13 +711,32 @@ struct PrayerHistoryView: View {
     return days
   }
 
-  private func prayedDays(in byDay: [Date: [PrayerEntry]]) -> [Date: Int] {
+  // Index restreint au mois affiché. La teinte reprend `PrayerEntry.accentColor` (émotion déclarée,
+  // sinon couleur de l'étape ACTS) : le mois se lit alors comme la palette de ce qu'on a traversé,
+  // au lieu d'un point doré uniforme qui ne disait que « il s'est passé quelque chose ».
+  private func dayDigests(in byDay: [Date: [PrayerEntry]]) -> [Date: DayDigest] {
     let calendar = Calendar.current
-    return byDay.reduce(into: [Date: Int]()) { result, pair in
-      if calendar.isDate(pair.key, equalTo: displayedMonth, toGranularity: .month) {
-        result[pair.key] = pair.value.count
-      }
+    return byDay.reduce(into: [Date: DayDigest]()) { result, pair in
+      guard calendar.isDate(pair.key, equalTo: displayedMonth, toGranularity: .month),
+        let dominant = dominantEntry(pair.value)
+      else { return }
+      result[pair.key] = DayDigest(count: pair.value.count, accent: dominant.accentColor)
     }
+  }
+
+  // Le groupe de prières le plus représenté donne le ton du jour ; à égalité, la plus récente tranche.
+  private func dominantEntry(_ dayEntries: [PrayerEntry]) -> PrayerEntry? {
+    let counts = dayEntries.reduce(into: [String: Int]()) { $0[colorKey($1), default: 0] += 1 }
+    return dayEntries.max { first, second in
+      let firstCount = counts[colorKey(first)] ?? 0
+      let secondCount = counts[colorKey(second)] ?? 0
+      return firstCount == secondCount ? first.date < second.date : firstCount < secondCount
+    }
+  }
+
+  // Même règle que `PrayerEntry.accentColor`, réduite à une clé regroupable.
+  private func colorKey(_ entry: PrayerEntry) -> String {
+    entry.emotion?.rawValue ?? entry.stepColorName
   }
 
   private var isCurrentMonth: Bool {

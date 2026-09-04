@@ -4,6 +4,7 @@ Cette table ne mappe que les **noms** de clés : quelques valeurs divergent volo
 
 | Catalogue | Clé iOS (.xcstrings) | Nom ressource Android |
 |---|---|---|
+| app | `accessibility.calendar.day.prayers` | *(à créer)* |
 | app | `accessibility.reflection.hint.hide` | `accessibility_reflection_hint_hide` |
 | app | `accessibility.reflection.hint.show` | `accessibility_reflection_hint_show` |
 | app | `accessibility.reflection.toggle` | `accessibility_reflection_toggle` |
@@ -20,7 +21,6 @@ Cette table ne mappe que les **noms** de clés : quelques valeurs divergent volo
 | app | `badge.name.ami` | `badge_name_ami` |
 | app | `badge.name.bienfaiteur` | `badge_name_bienfaiteur` |
 | app | `badge.name.genereux` | `badge_name_genereux` |
-| app | `calendar.weekday.labels` | `calendar_weekday_labels` |
 | app | `common.cancel` | `common_cancel` |
 | app | `common.close` | `common_close` |
 | app | `common.delete` | `common_delete` |

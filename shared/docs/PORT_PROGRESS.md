@@ -104,6 +104,10 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
 - ✅ iOS : `AppLinks.writeReview` (`?action=write-review`) remplace `requestReview` dans les Réglages, et une invitation discrète est posée sur l'écran de remerciement après un don.
 - ⬜ **Android : non porté.** Même défaut à corriger : le Play In-App Review (`ReviewManagerFactory`) est bridé exactement comme `requestReview` et peut ne rien afficher. Remplacer par une intention vers `market://details?id=com.matthiascadet.holyday`, avec repli sur `https://play.google.com/store/apps/details?id=...` si le Play Store est absent.
 
+### 6 quater. Journal enrichi — **iOS seulement pour l'instant**
+- ✅ iOS : bilan des intentions exaucées dans `JournalStatsView` (compteur cumulatif + délai médian de réponse, via `PrayerStats.answeredIntentions`), et refonte visuelle du calendrier de `PrayerHistoryView` — disque du jour teinté par `PrayerEntry.accentColor` dominant avec l'opacité pour l'intensité (à la place du point doré de 5pt), anneau « aujourd'hui » désormais dessiné en plus de la sélection, et semaine ordonnée par `Calendar.firstWeekday`.
+- ⬜ **Android : non porté.** `StatsCharts.kt` n'affiche pas le bilan des exaucements, et le calendrier de `PrayerHistoryScreen` garde le point d'activité monochrome. Le portage est direct (aucune API Apple en jeu) : la teinte dominante du jour se dérive de la même règle que `accentColor` (émotion déclarée, sinon couleur de l'étape ACTS), et `WeekFields.of(Locale.getDefault()).firstDayOfWeek` remplace `Calendar.firstWeekday`. Deux conséquences côté ressources : `calendar_weekday_labels` reste utilisé par Android alors que la clé iOS a été supprimée (les initiales viennent maintenant du calendrier système), et `accessibility.calendar.day.prayers` est à créer au portage.
+
 ### 7. Localisation
 - ⬜ Extraction complète des clés .xcstrings → strings.xml (fr default + en)
 - **Divergences de valeur volontaires** (même clé, texte différent par plateforme — ne pas « corriger » en recopiant le texte iOS) :

@@ -199,14 +199,14 @@ struct JournalStatsView: View {
 }
 
 #Preview("With answered intentions") {
-  let calendar = Calendar.current
+  let day: TimeInterval = 86_400
   let intentions: [PrayerIntention] = [
     PrayerIntention(
-      text: "Guérison", createdAt: calendar.date(byAdding: .day, value: -40, to: .now)!,
-      isAnswered: true, answeredAt: calendar.date(byAdding: .day, value: -12, to: .now)!),
+      text: "Guérison", createdAt: Date(timeIntervalSinceNow: -40 * day),
+      isAnswered: true, answeredAt: Date(timeIntervalSinceNow: -12 * day)),
     PrayerIntention(
-      text: "Sagesse", createdAt: calendar.date(byAdding: .day, value: -20, to: .now)!,
-      isAnswered: true, answeredAt: calendar.date(byAdding: .day, value: -18, to: .now)!),
+      text: "Sagesse", createdAt: Date(timeIntervalSinceNow: -20 * day),
+      isAnswered: true, answeredAt: Date(timeIntervalSinceNow: -18 * day)),
     PrayerIntention(text: "Paix intérieure"),
   ]
   return ZStack {

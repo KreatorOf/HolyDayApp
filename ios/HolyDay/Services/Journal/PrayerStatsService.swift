@@ -80,11 +80,7 @@ enum PrayerStats {
       ).day
     }
     .sorted()
-    let median: Int? =
-      switch delays.count {
-      case 0: nil
-      default: delays[delays.count / 2]
-      }
+    let median: Int? = delays.isEmpty ? nil : delays[delays.count / 2]
     return AnsweredIntentionsStats(
       answeredCount: intentions.filter(\.isAnswered).count,
       totalCount: intentions.count,
