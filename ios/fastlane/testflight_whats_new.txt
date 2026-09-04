@@ -55,7 +55,16 @@ ecrit doit desormais etre en anglais. C'etait du francais jusqu'ici.
   referme plus tout seul au bout de 3 secondes : c'est "Continuer" qui le ferme.
   Verifiez que le bouton ferme bien l'ecran et qu'on retombe sur le paywall.
 
-6. LE RESTE
+6. REGLAGES : RANGEES ENTIEREMENT TAPABLES
+
+Dans les Reglages, tapez au MILIEU d'une rangee, sur la zone vide entre le
+libelle et le chevron. Avant, seuls le texte, l'icone et le chevron reagissaient
+et cette zone ne faisait rien. Toute la largeur doit desormais repondre.
+
+- A verifier sur : Partager, Noter l'application, Soutenir, Confidentialite,
+  Conditions, Mentions legales, et la zone rouge.
+
+7. LE RESTE
 
 Ce build sort d'une chaine de production entierement refaite. Un coup d'oeil au
 parcours habituel est utile : choisir une emotion, prier (libre et guidee),
