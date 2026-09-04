@@ -45,7 +45,17 @@ ecrit doit desormais etre en anglais. C'etait du francais jusqu'ici.
   ruban d'emotions.
 - Verifiez-le dans toutes les tailles de widget que vous utilisez.
 
-5. LE RESTE
+5. NOTER L'APPLICATION (nouveau dans ce build)
+
+- Reglages > Communaute > "Noter l'application" doit ouvrir la fiche App Store
+  sur le formulaire d'avis, a chaque fois. Avant, ce bouton s'appuyait sur la
+  fenetre systeme d'Apple, bridee a 3 fois par an : il pouvait ne rien faire du
+  tout, sans le moindre retour.
+- Apres un don, l'ecran de remerciement propose desormais le meme lien. Il ne se
+  referme plus tout seul au bout de 3 secondes : c'est "Continuer" qui le ferme.
+  Verifiez que le bouton ferme bien l'ecran et qu'on retombe sur le paywall.
+
+6. LE RESTE
 
 Ce build sort d'une chaine de production entierement refaite. Un coup d'oeil au
 parcours habituel est utile : choisir une emotion, prier (libre et guidee),

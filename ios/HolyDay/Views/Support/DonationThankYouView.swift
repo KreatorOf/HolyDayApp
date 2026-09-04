@@ -8,14 +8,16 @@
 import SwiftUI
 
 /// Célébration plein écran affichée après un don : remercie avec des éléments de joie (étincelles,
-/// symbole rebondissant, badge gagné) puis se referme seule au bout de 3 secondes. Aucun bouton —
-/// remplace la notification de remerciement.
+/// symbole rebondissant, badge gagné).
+///
+/// L'écran ne se referme plus tout seul depuis qu'il porte l'invitation à noter l'app : un lien
+/// qui disparaît au bout de trois secondes n'est pas une cible tapable, et l'utilisateur n'aurait
+/// pas le temps de lire le remerciement avant de décider. La célébration reste néanmoins la seule
+/// chose mise en avant — l'invitation est secondaire et sans insistance, et « Continuer » suffit
+/// à sortir sans la voir.
 struct DonationThankYouView: View {
   let tier: SupporterTier?
   var onComplete: () -> Void
-
-  // Durée d'affichage avant fermeture automatique.
-  private static let displayDuration: Duration = .seconds(3)
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var appeared = false
@@ -46,9 +48,10 @@ struct DonationThankYouView: View {
       .padding(.horizontal, 40)
       .scaleEffect(appeared ? 1 : 0.85)
       .opacity(appeared ? 1 : 0)
+      .accessibilityElement(children: .combine)
+      .accessibilityAddTraits(.isStaticText)
     }
-    .accessibilityElement(children: .combine)
-    .accessibilityAddTraits(.isStaticText)
+    .safeAreaInset(edge: .bottom) { actions }
     .sensoryFeedback(.success, trigger: appeared)
     .task {
       if reduceMotion {
@@ -56,9 +59,33 @@ struct DonationThankYouView: View {
       } else {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) { appeared = true }
       }
-      try? await Task.sleep(for: Self.displayDuration)
-      onComplete()
     }
+  }
+
+  // MARK: - Actions
+
+  private var actions: some View {
+    VStack(spacing: 14) {
+      Button(action: onComplete) {
+        Text("common.continue")
+          .font(.headline)
+          .foregroundStyle(.white)
+          .frame(maxWidth: .infinity)
+          .padding(.vertical, 15)
+          .background(AppTheme.adorationPurple, in: RoundedRectangle(cornerRadius: 16))
+      }
+      .buttonStyle(.plain)
+
+      Link(destination: AppLinks.writeReview) {
+        Text("donation.thankyou.rate")
+          .font(.subheadline.weight(.medium))
+          .foregroundStyle(AppTheme.textSecondary)
+      }
+      .buttonStyle(.plain)
+    }
+    .padding(.horizontal, 32)
+    .padding(.bottom, 28)
+    .opacity(appeared ? 1 : 0)
   }
 
   // MARK: - Icon

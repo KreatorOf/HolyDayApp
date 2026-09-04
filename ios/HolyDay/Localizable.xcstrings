@@ -364,6 +364,22 @@
         }
       }
     },
+    "common.continue": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
+          }
+        }
+      }
+    },
     "common.delete": {
       "localizations": {
         "en": {
@@ -448,6 +464,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Hier"
+          }
+        }
+      }
+    },
+    "donation.thankyou.rate": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rate the app"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noter l'application"
           }
         }
       }

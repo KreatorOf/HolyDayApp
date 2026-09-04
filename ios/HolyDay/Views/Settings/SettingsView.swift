@@ -12,7 +12,6 @@ import SwiftUI
 
 struct SettingsView: View {
   @Environment(\.modelContext) private var modelContext
-  @Environment(\.requestReview) private var requestReview
   @State private var notifications = NotificationService.shared
   @State private var tipService = TipService.shared
   @State private var showTipView = false
@@ -311,18 +310,17 @@ struct SettingsView: View {
 
           cardDivider
 
-          Button {
-            rateFeedbackToken.toggle()
-            requestReview()
-          } label: {
+          // `Link` et non `requestReview` : la fenêtre système est bridée par Apple et peut ne
+          // rien afficher du tout. Quand c'est l'utilisateur qui demande à noter, ça doit marcher.
+          Link(destination: AppLinks.writeReview) {
             externalLinkRow(
               icon: "star.fill",
               label: String(localized: "settings.community.rate"),
-              color: AppTheme.thanksgivingGold,
-              isExternal: false
+              color: AppTheme.thanksgivingGold
             )
           }
           .buttonStyle(.plain)
+          .simultaneousGesture(TapGesture().onEnded { rateFeedbackToken.toggle() })
           .sensoryFeedback(.selection, trigger: rateFeedbackToken)
         }
       }

@@ -100,6 +100,10 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
 - ✅ iOS : `WhatsNewService` + `ReleaseNotesCatalog` + `WhatsNewView`, présenté après le splash depuis `MainTabView`, 12 tests unitaires.
 - ⬜ **Android : non porté.** Conséquence de numérotation : iOS passe en **1.1** avec cette fonctionnalité, Android reste en **1.0.1** — l'étiqueter 1.1 sans l'écran de nouveautés serait faux. Les deux se rejoindront au portage. Écart assumé, à combler avant la prochaine release conjointe. Le portage est direct (pas de dépendance à une API Apple) : `object WhatsNewService` + DataStore pour `lastSeenVersion`, `BuildConfig.VERSION_NAME` comme version courante, et un `ModalBottomSheet` Compose. Les deux invariants à reproduire tels quels : l'onboarding marque la version comme vue (sinon une install neuve verrait les nouveautés), et l'absence de repère signifie « mise à jour depuis un binaire antérieur à la fonctionnalité », pas « install neuve ». Clés `whatsnew.*` à reporter dans `KEYMAP.md` au moment du portage.
 
+### 6 ter. Lien « noter l'application » — **iOS seulement pour l'instant**
+- ✅ iOS : `AppLinks.writeReview` (`?action=write-review`) remplace `requestReview` dans les Réglages, et une invitation discrète est posée sur l'écran de remerciement après un don.
+- ⬜ **Android : non porté.** Même défaut à corriger : le Play In-App Review (`ReviewManagerFactory`) est bridé exactement comme `requestReview` et peut ne rien afficher. Remplacer par une intention vers `market://details?id=com.matthiascadet.holyday`, avec repli sur `https://play.google.com/store/apps/details?id=...` si le Play Store est absent.
+
 ### 7. Localisation
 - ⬜ Extraction complète des clés .xcstrings → strings.xml (fr default + en)
 - **Divergences de valeur volontaires** (même clé, texte différent par plateforme — ne pas « corriger » en recopiant le texte iOS) :
