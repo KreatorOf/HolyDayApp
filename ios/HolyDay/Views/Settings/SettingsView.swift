@@ -26,6 +26,8 @@ struct SettingsView: View {
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @AppStorage("holyday.userName") private var userName = ""
   @State private var rateFeedbackToken = false
+  @State private var buildEnvironment = BuildEnvironment.shared
+  @State private var showWhatsNewReplayConfirmation = false
   @State private var resetFeedbackToken = false
   // Date de la toute première prière (min PrayerEntry.date) ; nil tant qu'aucune prière n'existe.
   @State private var firstPrayerDate: Date?
@@ -58,6 +60,9 @@ struct SettingsView: View {
           legalCard
           aboutCard
           dangerZoneSection
+          if buildEnvironment.isTestFlight {
+            betaSection
+          }
           #if DEBUG
             debugSection
           #endif
@@ -359,6 +364,51 @@ struct SettingsView: View {
         .sensoryFeedback(.warning, trigger: resetFeedbackToken)
 
       }
+    }
+  }
+
+  // MARK: Bêta
+
+  // Visible uniquement sur une installation TestFlight. `debugSection` est sous `#if DEBUG` et
+  // n'existe donc pas dans le binaire que reçoivent les testeurs : sans cette section, l'écran de
+  // nouveautés — qui ne s'affiche qu'une fois par version — était intestable après le premier
+  // lancement.
+  private var betaSection: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      sectionLabel(String(localized: "settings.beta.section"))
+      settingsCard {
+        Button {
+          WhatsNewService.shared.reset()
+          showWhatsNewReplayConfirmation = true
+        } label: {
+          HStack(spacing: 14) {
+            iconBadge(systemName: "sparkles", color: AppTheme.thanksgivingGold)
+            VStack(alignment: .leading, spacing: 2) {
+              Text("settings.beta.replayWhatsNew")
+                .font(.body)
+                .foregroundStyle(AppTheme.textPrimary)
+              Text("settings.beta.replayWhatsNew.subtitle")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+            }
+            Spacer()
+            Image(systemName: "arrow.counterclockwise")
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(AppTheme.textTertiary)
+          }
+          .padding(16)
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+      }
+    }
+    .alert(
+      "settings.beta.replayWhatsNew.done",
+      isPresented: $showWhatsNewReplayConfirmation
+    ) {
+      Button("common.close", role: .cancel) {}
+    } message: {
+      Text("settings.beta.replayWhatsNew.done.message")
     }
   }
 

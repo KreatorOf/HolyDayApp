@@ -169,6 +169,12 @@ struct HolyDayApp: App {
         }
       }
       .animation(.easeInOut(duration: 0.3), value: showStoreBanner)
+      // Tâche distincte de celle du splash : la transaction est signée par l'App Store, donc sa
+      // lecture passe par le réseau et peut traîner. La joindre au splash retarderait l'entrée
+      // dans l'app pour une information qui ne sert qu'aux réglages.
+      .task {
+        await BuildEnvironment.shared.resolve()
+      }
       .task {
         // Splash affiché au lancement, puis fondu d'opacité vers le contenu.
         try? await Task.sleep(for: .seconds(2.5))

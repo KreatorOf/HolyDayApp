@@ -3048,6 +3048,86 @@
         }
       }
     },
+    "settings.beta.replayWhatsNew": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay What's New"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejouer les nouveautés"
+          }
+        }
+      }
+    },
+    "settings.beta.replayWhatsNew.done": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All set"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "C'est prêt"
+          }
+        }
+      }
+    },
+    "settings.beta.replayWhatsNew.done.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relaunch the app to see What's New again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Relancez l'application pour revoir les nouveautés."
+          }
+        }
+      }
+    },
+    "settings.beta.replayWhatsNew.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The screen only shows once per version"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L'écran ne s'affiche qu'une fois par version"
+          }
+        }
+      }
+    },
+    "settings.beta.section": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beta"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bêta"
+          }
+        }
+      }
+    },
     "settings.community.rate": {
       "localizations": {
         "en": {

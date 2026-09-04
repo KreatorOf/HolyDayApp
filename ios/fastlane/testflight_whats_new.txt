@@ -3,8 +3,11 @@ Version 1.1 - ecran de nouveautes, langue de l'assistant, attribution des verset
 1. L'ECRAN DE NOUVEAUTES (la vraie nouveaute a eprouver)
 
 Il ne s'affiche qu'une fois, apres une mise a jour. Pour le revoir autant de fois
-que necessaire : Reglages > section Developpeur > "Rejouer les nouveautes", puis
-relancer l'app.
+que necessaire : Reglages > section Beta > "Rejouer les nouveautes", puis relancer
+l'app.
+
+(Les builds precedents renvoyaient vers une section "Developpeur" qui n'existe pas
+sur TestFlight : c'etait une erreur de ces notes, corrigee ici.)
 
 - Il apparait APRES l'ecran de lancement, jamais derriere lui.
 - Le bouton "Continuer" le referme.
