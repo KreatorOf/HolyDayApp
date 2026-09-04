@@ -134,13 +134,16 @@ platform :ios do
     # App Store Connect refuse certains caractères dans ce champ (les filets « ━ » notamment) :
     # une faute ici faisait échouer toute la lane `beta` APRÈS l'upload du binaire. Cette lane
     # permet de corriger le texte seul, sans reconstruire ni renuméroter quoi que ce soit.
+    #
+    # `distribute_only` est l'option de pilot pour agir sur un build déjà en ligne — l'équivalent
+    # de `skip_binary_upload` côté deliver, qui n'existe pas ici (erreur facile à faire : les deux
+    # actions ont des jeux d'options distincts).
     upload_to_testflight(
       api_key: key,
       app_identifier: APP_ID,
       app_version: version,
       build_number: build.to_s,
-      skip_binary_upload: true,
-      skip_waiting_for_build_processing: false,
+      distribute_only: true,
       changelog: testflight_notes_text
     )
 

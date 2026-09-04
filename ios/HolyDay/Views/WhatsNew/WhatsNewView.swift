@@ -6,7 +6,11 @@
 import SwiftUI
 
 /// Nouveautés présentées une fois après chaque mise à jour. Volontairement sans action secondaire :
-/// l'écran informe, il ne demande rien. Une seule sortie, plus le geste de fermeture système.
+/// l'écran informe, il ne demande rien.
+///
+/// Présenté en plein écran (`fullScreenCover`) : un plein écran n'offre aucun geste de fermeture
+/// système, contrairement à une feuille. La croix de la barre d'outils est donc obligatoire, et non
+/// décorative — sans elle, seul le bouton du bas permettrait de sortir.
 struct WhatsNewView: View {
   let releases: [ReleaseNote]
   var onDismiss: () -> Void
@@ -16,6 +20,21 @@ struct WhatsNewView: View {
   private var showsVersionHeaders: Bool { releases.count > 1 }
 
   var body: some View {
+    NavigationStack {
+      content
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+          ToolbarItem(placement: .topBarTrailing) {
+            AppCloseButton(action: onDismiss)
+          }
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
+    }
+  }
+
+  // MARK: - Content
+
+  private var content: some View {
     ZStack {
       AppBackground()
 
@@ -40,7 +59,7 @@ struct WhatsNewView: View {
           }
         }
         .padding(.horizontal, 28)
-        .padding(.top, 34)
+        .padding(.top, 12)
         .padding(.bottom, 24)
       }
       .scrollIndicators(.hidden)
@@ -48,11 +67,6 @@ struct WhatsNewView: View {
     .safeAreaInset(edge: .bottom) {
       continueButton
     }
-    .presentationDetents([.medium, .large])
-    .presentationDragIndicator(.visible)
-    // Le contenu défile avant que la feuille ne s'agrandisse : sur une liste courte, l'utilisateur
-    // lit sans que le geste ne redimensionne la feuille sous son doigt.
-    .presentationContentInteraction(.scrolls)
   }
 
   // MARK: - Header
@@ -129,7 +143,7 @@ struct WhatsNewView: View {
 
 #Preview("Une version") {
   Color.black
-    .sheet(isPresented: .constant(true)) {
+    .fullScreenCover(isPresented: .constant(true)) {
       WhatsNewView(releases: ReleaseNotesCatalog.all, onDismiss: {})
     }
 }

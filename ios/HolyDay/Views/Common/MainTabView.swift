@@ -43,9 +43,9 @@ struct MainTabView: View {
     .sensoryFeedback(.selection, trigger: selectedTab)
     .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     .preferredColorScheme(preferredScheme)
-    // `sheet(item:)` plutôt que `isPresented` : il conserve son contenu pendant l'animation de
-    // fermeture, alors que `markSeen()` vide `pending` dès le premier geste.
-    .sheet(
+    // `fullScreenCover(item:)` plutôt que `isPresented` : la variante `item` conserve son contenu
+    // pendant l'animation de fermeture, alors que `markSeen()` vide `pending` dès le premier geste.
+    .fullScreenCover(
       item: Binding(
         get: { whatsNew.pending },
         set: { if $0 == nil { whatsNew.markSeen() } }
