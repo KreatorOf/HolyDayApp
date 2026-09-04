@@ -99,7 +99,7 @@ marketing/
 .venv/bin/python -m pytest tests -q
 ```
 
-33 tests, sans réseau ni clé API. Ils couvrent l'analyse d'un vrai commit dans un
+34 tests, sans réseau ni clé API. Ils couvrent l'analyse d'un vrai commit dans un
 dépôt git jetable, le rejet des métriques et témoignages inventés, les limites de
 longueur, la non-fuite de secrets, le dry-run, et le cycle d'approbation.
 
