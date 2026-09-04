@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "fr",
   "strings" : {
-    "%lld" : {
-
-    },
     "widget.heatmap.description" : {
       "extractionState" : "manual",
       "localizations" : {
