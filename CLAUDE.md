@@ -204,3 +204,102 @@ Ne pas monter AGP en 9.x : la compatibilité KSP/`kotlin-android` y est cassée 
 - `private` par défaut sur toutes les propriétés et méthodes non exposées
 - Sections MARK pour organiser les vues (`// MARK: - Body`, `// MARK: - Helpers`, etc.)
 - Pas de commentaires qui décrivent ce que fait le code — uniquement pourquoi (invariants non évidents, contournements)
+
+## Build in public — documentation du travail (obligatoire)
+
+Après l'implémentation réussie d'une feature significative, d'une amélioration produit importante ou d'un changement particulièrement intéressant, générer du contenu documentant le travail de développement.
+
+L'objectif n'est **pas** de faire de la publicité. C'est de documenter authentiquement ce qui a été construit, pourquoi, quel problème était visé, quelles décisions ont été prises, quelles difficultés ont surgi, ce qui a été appris, et les petites victoires du parcours.
+
+Matthias développe seul. La voix doit donc être humaine, personnelle, authentique et humble — jamais corporate.
+
+### Quand générer
+
+Générer uniquement quand les trois conditions sont réunies :
+
+1. la feature est **réellement implémentée** ;
+2. les tests pertinents **passent** ;
+3. le changement est **assez significatif** pour être intéressant à raconter.
+
+Ne jamais générer automatiquement pour : un changement de formatage, un refactoring mineur, un renommage, une mise à jour triviale de dépendance, une correction minuscule sans intérêt, ou un changement purement interne sans histoire.
+
+**En cas de doute, ne rien produire.** L'absence de post vaut mieux qu'un post inutile.
+
+### Analyser avant de rédiger
+
+Analyser le travail réellement effectué et identifier : ce qui a été construit, pourquoi, le bénéfice pour l'utilisateur, les décisions ou difficultés techniques intéressantes, les choix UX/design, ce qui a été appris, et ce qui pourrait intéresser d'autres développeurs.
+
+**Interdits absolus.** Ne jamais inventer une information, une statistique, un nombre d'utilisateurs ou un témoignage. Ne jamais prétendre qu'un problème a été rencontré s'il n'apparaît pas dans le travail effectué. Ne jamais exagérer l'importance d'une feature. N'utiliser que ce qui est réellement disponible dans le dépôt, les changements effectués et le contexte de la tâche.
+
+### Les trois formats
+
+| Plateforme | Attendu |
+|---|---|
+| **X** | Court, direct, naturel, conversationnel. Peut porter sur la feature, le problème, une décision, une difficulté, une leçon ou une petite victoire. Pas d'emoji ni de hashtag systématiques. |
+| **Threads** | Plus personnel, plus conversationnel, un peu plus développé, centré sur l'histoire derrière la feature. **Jamais une copie du post X.** |
+| **Substack** | **Article complet**, format long : le contexte, ce qui a été tenté, ce qui a raté, ce qui a été appris. Précédé de son titre, son angle et ses cinq points clés, qui en sont le plan. Le lecteur doit repartir avec quelque chose d'utile. |
+
+### Journal — `marketing/changelog.md`
+
+Après chaque feature significative, ajouter une entrée. **Ne jamais supprimer une entrée existante** : ce fichier est aussi la base de contexte des contenus futurs.
+
+```
+## [DATE] — [FEATURE]
+
+**What I built** — description factuelle.
+**Why** — pourquoi cette fonctionnalité a été développée.
+**User benefit** — ce que ça apporte à l'utilisateur.
+**Technical notes** — éléments techniques intéressants, seulement s'ils sont pertinents.
+**Lessons learned** — seulement si déductible du travail effectué.
+**Generated content** — les versions proposées ou finales.
+```
+
+### Format de sortie
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📣 BUILD IN PUBLIC — FEATURE COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Feature:
+[nom]
+
+What changed:
+[résumé factuel court]
+
+Why:
+[pourquoi ça compte]
+
+X
+[post]
+
+Threads
+[post]
+
+Substack
+Title: [titre]
+Angle: [angle]
+Key points:
+1. …  2. …  3. …  4. …  5. …
+
+Article:
+[article complet en Markdown]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Publication — interdite sans instruction
+
+**Ne jamais publier sur X, Threads, Substack ou ailleurs.** Génération et publication sont deux étapes distinctes. Après génération, attendre l'instruction : « Publie sur X », « Rends-le plus personnel », « Fais une version plus courte », « Transforme ça en article Substack ».
+
+### Rapport avec le Content Agent
+
+`scripts/content-agent/` est le chemin **scripté** : il part d'un commit, produit une fiche factuelle et génère les brouillons hors session. Les règles ci-dessus régissent la génération **en session**, juste après avoir terminé une feature, quand le contexte du travail est encore disponible — ce que l'agent ne peut pas reconstituer depuis git seul.
+
+Les deux produisent la même chose — les trois formats, article Substack complet inclus — et partagent `marketing/brand.md` comme source de vérité du ton ainsi que la même interdiction d'inventer. Ils écrivent en revanche dans deux fichiers distincts, volontairement :
+
+- `marketing/changelog.md` — journal de développement lisible, tenu en session ;
+- `marketing/content-history.md` — index des angles déjà publiés, lu par l'agent pour ne pas se répéter.
+
+### Principe général
+
+Documenter le parcours plutôt que vendre le produit. Chaque post doit répondre implicitement à : « qu'est-ce qui rend cette étape intéressante dans la construction de ce produit ? »
