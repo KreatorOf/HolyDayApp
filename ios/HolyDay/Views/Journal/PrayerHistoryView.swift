@@ -62,6 +62,7 @@ struct PrayerHistoryView: View {
         .padding(.bottom, 24)
       }
       .scrollIndicators(.hidden)
+      .appTopScrollEdgeEffectHidden()
       .ignoresSafeArea(.all, edges: .top)
       .onScrollGeometryChange(for: CGFloat.self) {
         $0.contentOffset.y

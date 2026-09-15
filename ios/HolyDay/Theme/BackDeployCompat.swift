@@ -81,6 +81,26 @@ struct AppBackButton: View {
   }
 }
 
+// MARK: - Scroll edge effect
+
+extension View {
+  /// Retire le voile translucide qu'iOS 26 pose au bord haut des vues défilantes.
+  ///
+  /// À partir d'iOS 26, `ScrollView`/`List` estompent automatiquement leur contenu sous la barre de
+  /// navigation. Les écrans de l'app passent leur contenu sous une barre déjà transparente
+  /// (`toolbarBackground(.hidden)`) : ce voile venait donc masquer les grands titres de page au lieu
+  /// de séparer deux plans. En dessous d'iOS 26 l'effet n'existe pas, la vue est renvoyée telle
+  /// quelle.
+  @ViewBuilder
+  func appTopScrollEdgeEffectHidden() -> some View {
+    if #available(iOS 26.0, *) {
+      scrollEdgeEffectHidden(true, for: .top)
+    } else {
+      self
+    }
+  }
+}
+
 // MARK: - Tips
 
 extension View {

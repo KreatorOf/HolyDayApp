@@ -173,6 +173,7 @@ struct ContentView: View {
         .animation(.spring(response: 0.45, dampingFraction: 0.85), value: emotionVerse?.id)
       }
       .scrollIndicators(.hidden)
+      .appTopScrollEdgeEffectHidden()
     }
     .safeAreaInset(edge: .bottom) {
       prayButton

@@ -75,6 +75,7 @@ struct SettingsView: View {
         .padding(.bottom, 32)
       }
       .scrollIndicators(.hidden)
+      .appTopScrollEdgeEffectHidden()
       .ignoresSafeArea(.all, edges: .top)
       .onScrollGeometryChange(for: CGFloat.self) {
         $0.contentOffset.y
