@@ -15,8 +15,6 @@ struct SettingsView: View {
   @State private var notifications = NotificationService.shared
   @State private var tipService = TipService.shared
   @State private var showTipView = false
-  @State private var topInset: CGFloat = 100
-  @State private var showNavTitle = false
   @State private var showResetConfirmation = false
   @State private var isEditingName = false
   @State private var pendingName = ""
@@ -51,7 +49,6 @@ struct SettingsView: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 24) {
-          pageHeader
           profileCard
           supportCard
           appearanceCard
@@ -72,25 +69,20 @@ struct SettingsView: View {
           }
         }
         .padding(.horizontal, 16)
+        .padding(.top, AppTheme.pageContentTopSpacing)
         .padding(.bottom, 32)
       }
       .scrollIndicators(.hidden)
-      .ignoresSafeArea(.all, edges: .top)
-      .onScrollGeometryChange(for: CGFloat.self) {
-        $0.contentOffset.y
-      } action: { _, y in
-        let shouldShow = y > 80
-        guard shouldShow != showNavTitle else { return }
-        withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
-      }
+      // Pas d'`ignoresSafeArea` : le système place le contenu sous la barre dès le premier rendu,
+      // et il défile quand même sous le flou. Des `safeAreaInsets` lus au `onAppear` sont faux à
+      // la première ouverture d'un onglet.
       .background { AppBackground() }
-      .toolbarBackground(.hidden, for: .navigationBar)
+      .appNavigationBarBackground()
       .toolbar {
         ToolbarItem(placement: .principal) {
           Text("tab.settings")
-            .font(.system(.callout, design: .serif, weight: .bold))
+            .font(AppTheme.tabTitleFont)
             .foregroundStyle(AppTheme.textPrimary)
-            .opacity(showNavTitle ? 1 : 0)
         }
       }
       .onAppear { notifications.checkStatus() }
@@ -106,21 +98,6 @@ struct SettingsView: View {
         Text("settings.danger.reset.confirm.message")
       }
     }
-    .background(
-      GeometryReader { geo in
-        Color.clear.onAppear { topInset = geo.safeAreaInsets.top }
-      }
-      .ignoresSafeArea()
-    )
-  }
-
-  // MARK: Header
-
-  private var pageHeader: some View {
-    Text("tab.settings")
-      .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
-      .foregroundStyle(AppTheme.textPrimary)
-      .padding(.top, topInset + 44 + 50)
   }
 
   // MARK: Profile card

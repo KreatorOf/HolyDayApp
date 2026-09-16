@@ -41,7 +41,7 @@ struct MainTabView: View {
     // mode clair/sombre (noir/blanc).
     .tint(AppTheme.textPrimary)
     .sensoryFeedback(.selection, trigger: selectedTab)
-    .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+    .appTabBarBackground()
     .preferredColorScheme(preferredScheme)
     // `fullScreenCover(item:)` plutôt que `isPresented` : la variante `item` conserve son contenu
     // pendant l'animation de fermeture, alors que `markSeen()` vide `pending` dès le premier geste.

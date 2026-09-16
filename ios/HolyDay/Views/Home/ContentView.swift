@@ -52,7 +52,7 @@ struct ContentView: View {
       // Sélection d'une émotion : retour haptique léger (API SwiftUI moderne, cohérente avec le
       // reste de l'app, plutôt qu'un UISelectionFeedbackGenerator impératif).
       .sensoryFeedback(.selection, trigger: selectedEmotion)
-      .toolbarBackground(.hidden, for: .navigationBar)
+      .appNavigationBarBackground()
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
         ToolbarItem(placement: .topBarTrailing) {
@@ -245,10 +245,10 @@ struct ContentView: View {
   private var brandingTitle: some View {
     HStack(spacing: 0) {
       Text("Holy")
-        .font(.system(.title, design: .serif, weight: .bold).italic())
+        .font(AppTheme.tabTitleFont)
         .foregroundStyle(AppTheme.textPrimary)
       Text("Day")
-        .font(.system(.title, design: .serif, weight: .thin))
+        .font(.system(AppTheme.tabTitleStyle, design: .serif, weight: .thin))
         .foregroundStyle(AppTheme.textPrimary)
     }
   }

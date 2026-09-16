@@ -65,7 +65,7 @@ struct IntentionsView: View {
             .foregroundStyle(AppTheme.textPrimary)
         }
       }
-      .toolbarBackground(.hidden, for: .navigationBar)
+      .appNavigationBarBackground()
       .alert("intentions.edit.title", isPresented: editAlertBinding) {
         TextField("intentions.add.placeholder", text: $editText)
         Button("intentions.edit.save") { commitEdit() }

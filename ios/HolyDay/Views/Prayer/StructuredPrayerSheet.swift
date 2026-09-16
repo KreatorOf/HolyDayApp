@@ -61,7 +61,7 @@ struct StructuredPrayerSheet: View {
             .foregroundStyle(AppTheme.textPrimary)
         }
       }
-      .toolbarBackground(.hidden, for: .navigationBar)
+      .appNavigationBarBackground()
     }
   }
 

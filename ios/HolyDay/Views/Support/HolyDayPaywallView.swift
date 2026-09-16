@@ -38,7 +38,7 @@ struct HolyDayPaywallView: View {
             .foregroundStyle(AppTheme.textPrimary)
         }
       }
-      .toolbarBackground(.hidden, for: .navigationBar)
+      .appNavigationBarBackground()
     }
     // Recharge l'offering à l'ouverture : le prix affiché suit alors toujours le storefront courant
     // (sinon il reste figé sur celui du lancement de l'app — décalage visible si le storefront a

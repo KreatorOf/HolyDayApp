@@ -81,6 +81,41 @@ struct AppBackButton: View {
   }
 }
 
+// MARK: - Bar backgrounds
+
+// À partir d'iOS 26, les barres sont déjà transparentes et le système estompe le contenu qui défile
+// dessous (flou progressif, « scroll edge effect »). Leur imposer un fond — `.hidden` comme un
+// matériau — retire cet effet : on laisse donc le système faire, et on ne force le fond qu'en
+// dessous.
+extension View {
+  /// Barre de navigation transparente au-dessus de `AppBackground`. Avant iOS 26, elle se couvrirait
+  /// sinon d'un matériau opaque dès que le contenu défile.
+  ///
+  /// iOS 27 pose à nouveau un fond de barre par-dessus le flou quand le contenu défile : on le masque
+  /// et on fixe explicitement le style doux, pour ne garder que le dégradé.
+  @ViewBuilder
+  func appNavigationBarBackground() -> some View {
+    if #available(iOS 27.0, *) {
+      toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+        .scrollEdgeEffectStyle(.soft, for: .top)
+    } else if #available(iOS 26.0, *) {
+      self
+    } else {
+      toolbarBackground(.hidden, for: .navigationBar)
+    }
+  }
+
+  /// Barre d'onglets translucide : avant iOS 26, le matériau tient lieu de flou progressif.
+  @ViewBuilder
+  func appTabBarBackground() -> some View {
+    if #available(iOS 26.0, *) {
+      self
+    } else {
+      toolbarBackground(.ultraThinMaterial, for: .tabBar)
+    }
+  }
+}
+
 // MARK: - Tips
 
 extension View {

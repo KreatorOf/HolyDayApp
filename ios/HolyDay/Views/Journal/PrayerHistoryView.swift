@@ -19,8 +19,6 @@ struct PrayerHistoryView: View {
   private let aiAvailable = AIAssistantService.shared.isAvailable
   @State private var displayedMonth: Date = Self.firstOfCurrentMonth()
   @State private var selectedDate: Date? = Calendar.current.startOfDay(for: Date())
-  @State private var topInset: CGFloat = 100
-  @State private var showNavTitle = false
   @State private var searchText = ""
   @State private var isSearching = false
   @State private var cachedSearchResults: [(date: Date, entries: [PrayerEntry])] = []
@@ -45,8 +43,8 @@ struct PrayerHistoryView: View {
     NavigationStack {
       ScrollView {
         VStack(alignment: .leading, spacing: 20) {
-          pageHeader
           if isSearching {
+            searchField
             searchPanelSection
               .padding(.horizontal, 16)
           } else {
@@ -58,25 +56,21 @@ struct PrayerHistoryView: View {
               .padding(.horizontal, 16)
           }
         }
+        .padding(.top, AppTheme.pageContentTopSpacing)
         .padding(.bottom, 24)
       }
       .scrollIndicators(.hidden)
-      .ignoresSafeArea(.all, edges: .top)
-      .onScrollGeometryChange(for: CGFloat.self) {
-        $0.contentOffset.y
-      } action: { _, y in
-        let shouldShow = y > 80
-        guard shouldShow != showNavTitle else { return }
-        withAnimation(.easeInOut(duration: 0.2)) { showNavTitle = shouldShow }
-      }
+      // Pas d'`ignoresSafeArea` : le système place le contenu sous la barre dès le premier rendu,
+      // et il défile quand même sous le flou. Des `safeAreaInsets` lus au `onAppear` sont faux à
+      // la première ouverture d'un onglet.
       .background { AppBackground() }
-      .toolbarBackground(.hidden, for: .navigationBar)
+      .appNavigationBarBackground()
       .toolbar {
         ToolbarItem(placement: .principal) {
           Text("tab.journal")
-            .font(.system(.callout, design: .serif, weight: .bold))
+            .font(AppTheme.tabTitleFont)
             .foregroundStyle(AppTheme.textPrimary)
-            .opacity(showNavTitle ? 1 : 0)
+            .popoverTip(journalTip, arrowEdge: .top)
         }
         ToolbarItem(placement: .topBarTrailing) {
           HStack(spacing: 4) {
@@ -152,56 +146,41 @@ struct PrayerHistoryView: View {
       }
       .presentationDragIndicator(.visible)
     }
-    .background(
-      GeometryReader { geo in
-        Color.clear.onAppear { topInset = geo.safeAreaInsets.top }
-      }
-      .ignoresSafeArea()
-    )
   }
 
-  // MARK: Page header
+  // MARK: Search field
 
-  private var pageHeader: some View {
-    VStack(alignment: .leading, spacing: isSearching ? 12 : 4) {
-      Text("tab.journal")
-        .font(.system(.largeTitle, design: .serif).weight(.bold).italic())
+  private var searchField: some View {
+    HStack(spacing: 10) {
+      Image(systemName: "magnifyingglass")
+        .font(.subheadline)
+        .foregroundStyle(AppTheme.textTertiary)
+      TextField(String(localized: "journal.search.placeholder"), text: $searchText)
+        .font(.subheadline)
         .foregroundStyle(AppTheme.textPrimary)
-        .popoverTip(journalTip, arrowEdge: .top)
-      if isSearching {
-        HStack(spacing: 10) {
-          Image(systemName: "magnifyingglass")
-            .font(.subheadline)
+        .autocorrectionDisabled()
+        .textInputAutocapitalization(.never)
+        .submitLabel(.search)
+      if !searchText.isEmpty {
+        Button {
+          searchText = ""
+        } label: {
+          Image(systemName: "xmark.circle.fill")
             .foregroundStyle(AppTheme.textTertiary)
-          TextField(String(localized: "journal.search.placeholder"), text: $searchText)
-            .font(.subheadline)
-            .foregroundStyle(AppTheme.textPrimary)
-            .autocorrectionDisabled()
-            .textInputAutocapitalization(.never)
-            .submitLabel(.search)
-          if !searchText.isEmpty {
-            Button {
-              searchText = ""
-            } label: {
-              Image(systemName: "xmark.circle.fill")
-                .foregroundStyle(AppTheme.textTertiary)
-            }
-          }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background {
-          RoundedRectangle(cornerRadius: 12, style: .continuous)
-            .fill(AppTheme.cardSurface)
-            .overlay {
-              RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
-            }
-        }
-        .transition(.opacity.combined(with: .move(edge: .top)))
       }
     }
-    .padding(.top, topInset + 44 + 50)
+    .padding(.horizontal, 14)
+    .padding(.vertical, 10)
+    .background {
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .fill(AppTheme.cardSurface)
+        .overlay {
+          RoundedRectangle(cornerRadius: 12, style: .continuous)
+            .strokeBorder(AppTheme.cardStroke, lineWidth: 1)
+        }
+    }
+    .transition(.opacity.combined(with: .move(edge: .top)))
     .padding(.horizontal, 16)
   }
 

@@ -56,6 +56,17 @@ struct AppTheme {
   static let divider = Color("divider")
   static let buttonFillSubtle = Color("buttonFillSubtle")
 
+  // MARK: - Layout
+
+  // Titres des trois onglets (HolyDay, Journal, Réglages), fixés dans la barre au-dessus du flou
+  // progressif. Une seule taille pour que le titre ne change pas d'échelle d'un onglet à l'autre.
+  static let tabTitleStyle: Font.TextStyle = .title
+  static let tabTitleFont = Font.system(tabTitleStyle, design: .serif, weight: .bold).italic()
+
+  // Espace entre la barre de navigation et le premier contenu : le flou progressif déborde un peu
+  // sous la barre, le contenu doit commencer après lui.
+  static let pageContentTopSpacing: CGFloat = 18
+
   // MARK: - Helpers
 
   static func color(for name: String) -> Color {

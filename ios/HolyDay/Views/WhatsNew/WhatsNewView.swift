@@ -28,7 +28,7 @@ struct WhatsNewView: View {
             AppCloseButton(action: onDismiss)
           }
         }
-        .toolbarBackground(.hidden, for: .navigationBar)
+        .appNavigationBarBackground()
     }
   }
 
