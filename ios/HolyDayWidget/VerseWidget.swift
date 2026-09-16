@@ -8,24 +8,31 @@ import WidgetKit
 
 // MARK: - Timeline
 
-/// « Mon verset » : le dernier verset reçu via le ruban d'émotions (cf. `SharedStore.lastVerse`).
-/// Le `kind` reste "VerseWidget" (ex-verset du jour) pour que les widgets déjà posés migrent en
-/// place au lieu de disparaître de l'écran d'accueil.
+/// « Mon verset » : le verset reçu aujourd'hui via le ruban d'émotions, sinon un verset du jour
+/// (cf. `WidgetVerseResolver`) — jamais vide, jamais figé. Le `kind` reste "VerseWidget" pour que
+/// les widgets déjà posés migrent en place au lieu de disparaître de l'écran d'accueil.
 struct VerseEntry: TimelineEntry, Sendable {
   let date: Date
-  let verse: SharedVerse?
+  let verse: WidgetVerse
 
   var accentColor: Color {
-    WidgetTheme.accent(forEmotionTag: verse?.emotionTag ?? "")
+    WidgetTheme.accent(forEmotionTag: verse.emotionTag)
   }
 
   var emotionIcon: String {
-    WidgetTheme.icon(forEmotionTag: verse?.emotionTag ?? "")
+    WidgetTheme.icon(forEmotionTag: verse.emotionTag)
+  }
+
+  var kicker: LocalizedStringKey {
+    verse.source == .emotion ? "widget.verse.kicker" : "widget.verse.kicker.daily"
+  }
+
+  var largeKicker: LocalizedStringKey {
+    verse.source == .emotion ? "widget.verse.kicker.large" : "widget.verse.kicker.large.daily"
   }
 
   var accessibilityText: String {
-    guard let verse else { return String(localized: "widget.verse.empty") }
-    return "\(verse.text) — \(verse.reference)"
+    "\(verse.text) — \(verse.reference)"
   }
 }
 
@@ -35,19 +42,16 @@ struct VerseTimelineProvider: TimelineProvider {
   }
 
   func getSnapshot(in context: Context, completion: @escaping @Sendable (VerseEntry) -> Void) {
-    // Galerie de widgets : montrer un verset d'exemple plutôt que l'état vide.
-    let verse =
-      SharedStore.lastVerse ?? (context.isPreview ? WidgetPreviewData.sampleVerse() : nil)
-    completion(VerseEntry(date: .now, verse: verse))
+    completion(VerseEntry(date: .now, verse: SharedStore.widgetVerse()))
   }
 
   func getTimeline(
     in context: Context, completion: @escaping @Sendable (Timeline<VerseEntry>) -> Void
   ) {
-    // Pas d'échéance calendaire : le contenu ne change que lorsque l'app publie un nouveau
-    // verset, et elle recharge alors les timelines (WidgetSyncService.updateLastVerse).
-    let entry = VerseEntry(date: .now, verse: SharedStore.lastVerse)
-    completion(Timeline(entries: [entry], policy: .never))
+    // Échéance à minuit : le verset d'émotion ne vaut que pour son jour, puis le verset du jour
+    // prend le relais. Dans la journée, l'app (nouveau ressenti) et `NextVerseIntent` rechargent.
+    let entry = VerseEntry(date: .now, verse: SharedStore.widgetVerse())
+    completion(Timeline(entries: [entry], policy: .after(WidgetTheme.nextMidnight())))
   }
 }
 
@@ -56,7 +60,7 @@ struct VerseTimelineProvider: TimelineProvider {
 private struct VerseHeader: View {
   @Environment(\.widgetRenderingMode) private var renderingMode
   let entry: VerseEntry
-  var kicker: LocalizedStringKey?
+  let kicker: LocalizedStringKey
 
   var body: some View {
     let palette = WidgetTheme.Palette(renderingMode)
@@ -65,20 +69,18 @@ private struct VerseHeader: View {
         .font(.caption2)
         .foregroundStyle(entry.accentColor)
         .widgetAccentable()
-      if let kicker {
-        Text(kicker)
-          .font(.caption2.weight(.semibold))
-          .foregroundStyle(palette.tertiary)
-          .textCase(.uppercase)
-          .tracking(1)
-      } else {
-        Text(verbatim: "HolyDay")
-          .font(.caption2.weight(.semibold))
-          .fontDesign(.serif)
-          .foregroundStyle(palette.tertiary)
-      }
+      Text(kicker)
+        .font(.caption2.weight(.semibold))
+        .foregroundStyle(palette.tertiary)
+        .textCase(.uppercase)
+        .tracking(1)
+        .lineLimit(1)
+        .minimumScaleFactor(0.8)
       Spacer(minLength: 0)
     }
+    // Place réservée au bouton « Un autre verset », posé en overlay hors de l'élément
+    // d'accessibilité du verset (sinon VoiceOver ne l'atteint pas).
+    .padding(.trailing, 30)
   }
 }
 
@@ -101,28 +103,6 @@ private struct VerseReferenceRow: View {
   }
 }
 
-/// Invitation douce, jamais une injonction : cohérent avec la philosophie de l'app.
-private struct VerseEmptyView: View {
-  @Environment(\.widgetRenderingMode) private var renderingMode
-  var compact = false
-
-  var body: some View {
-    let palette = WidgetTheme.Palette(renderingMode)
-    VStack(alignment: .leading, spacing: 8) {
-      Image(systemName: "hands.sparkles.fill")
-        .font(compact ? .footnote : .body)
-        .foregroundStyle(WidgetTheme.violet)
-        .widgetAccentable()
-      Text("widget.verse.empty")
-        .font((compact ? Font.caption : .footnote).weight(.medium))
-        .fontDesign(.serif)
-        .foregroundStyle(palette.secondary)
-        .lineSpacing(3)
-    }
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-  }
-}
-
 // MARK: - Small view
 
 private struct VerseWidgetSmallView: View {
@@ -132,29 +112,26 @@ private struct VerseWidgetSmallView: View {
   var body: some View {
     let palette = WidgetTheme.Palette(renderingMode)
     VStack(alignment: .leading, spacing: 0) {
-      VerseHeader(entry: entry)
+      VerseHeader(entry: entry, kicker: entry.kicker)
 
-      if let verse = entry.verse {
-        Spacer(minLength: 6)
+      Spacer(minLength: 6)
 
-        // Deux compositions plutôt qu'un minimumScaleFactor : les versets courts gardent une
-        // taille confortable, les longs passent en caption au lieu d'être tronqués.
-        ViewThatFits(in: .vertical) {
-          verseText(verse.text, font: .footnote, palette: palette)
-          verseText(verse.text, font: .caption, palette: palette)
-        }
-        .contentTransition(.opacity)
-
-        Spacer(minLength: 6)
-
-        VerseReferenceRow(reference: verse.reference, accent: entry.accentColor)
-      } else {
-        VerseEmptyView(compact: true)
-          .padding(.top, 8)
+      // Deux compositions plutôt qu'un minimumScaleFactor : les versets courts gardent une
+      // taille confortable, les longs passent en caption au lieu d'être tronqués.
+      ViewThatFits(in: .vertical) {
+        verseText(entry.verse.text, font: .footnote, palette: palette)
+        verseText(entry.verse.text, font: .caption, palette: palette)
       }
+      .contentTransition(.opacity)
+      .invalidatableContent()
+
+      Spacer(minLength: 6)
+
+      VerseReferenceRow(reference: entry.verse.reference, accent: entry.accentColor)
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(entry.accessibilityText)
+    .overlay(alignment: .topTrailing) { NextVerseButton() }
     .containerBackground(for: .widget) {
       WidgetTheme.nightBackground(accent: entry.accentColor)
     }
@@ -185,21 +162,18 @@ private struct VerseWidgetMediumView: View {
         .widgetAccentable()
 
       VStack(alignment: .leading, spacing: 10) {
-        VerseHeader(entry: entry, kicker: "widget.verse.kicker")
+        VerseHeader(entry: entry, kicker: entry.kicker)
 
-        if let verse = entry.verse {
-          Text(verse.text)
-            .font(.footnote.weight(.medium))
-            .fontDesign(.serif)
-            .foregroundStyle(palette.primary)
-            .lineSpacing(4)
-            .lineLimit(3)
-            .contentTransition(.opacity)
+        Text(entry.verse.text)
+          .font(.footnote.weight(.medium))
+          .fontDesign(.serif)
+          .foregroundStyle(palette.primary)
+          .lineSpacing(4)
+          .lineLimit(3)
+          .contentTransition(.opacity)
+          .invalidatableContent()
 
-          VerseReferenceRow(reference: verse.reference, accent: entry.accentColor)
-        } else {
-          VerseEmptyView(compact: true)
-        }
+        VerseReferenceRow(reference: entry.verse.reference, accent: entry.accentColor)
       }
       .padding(.leading, 12)
 
@@ -207,6 +181,7 @@ private struct VerseWidgetMediumView: View {
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(entry.accessibilityText)
+    .overlay(alignment: .topTrailing) { NextVerseButton() }
     .containerBackground(for: .widget) {
       WidgetTheme.nightBackground(accent: entry.accentColor, intensity: 0.12)
     }
@@ -222,45 +197,30 @@ private struct VerseWidgetLargeView: View {
   var body: some View {
     let palette = WidgetTheme.Palette(renderingMode)
     VStack(alignment: .leading, spacing: 0) {
-      VerseHeader(entry: entry, kicker: "widget.verse.kicker.large")
+      VerseHeader(entry: entry, kicker: entry.largeKicker)
 
-      if let verse = entry.verse {
+      Spacer()
+
+      Text(String(format: String(localized: "widget.verse.quote"), entry.verse.text))
+        .font(.title3.weight(.medium).italic())
+        .fontDesign(.serif)
+        .foregroundStyle(palette.primary)
+        .lineSpacing(8)
+        .multilineTextAlignment(.leading)
+        .contentTransition(.opacity)
+        .invalidatableContent()
+
+      Spacer()
+
+      HStack {
         Spacer()
-
-        Text(String(format: String(localized: "widget.verse.quote"), verse.text))
-          .font(.title3.weight(.medium).italic())
-          .fontDesign(.serif)
-          .foregroundStyle(palette.primary)
-          .lineSpacing(8)
-          .multilineTextAlignment(.leading)
-          .contentTransition(.opacity)
-
-        Spacer()
-
-        HStack {
-          Spacer()
-          VerseReferenceRow(
-            reference: verse.reference, accent: entry.accentColor, prominent: true)
-        }
-      } else {
-        Spacer()
-
-        // L'état vide du large montre la promesse : l'invitation + un verset d'exemple grisé.
-        VStack(alignment: .leading, spacing: 16) {
-          VerseEmptyView()
-            .frame(maxHeight: 80)
-          Text(String(format: String(localized: "widget.verse.quote"), sampleText))
-            .font(.footnote.weight(.medium).italic())
-            .fontDesign(.serif)
-            .foregroundStyle(palette.tertiary)
-            .lineSpacing(5)
-        }
-
-        Spacer()
+        VerseReferenceRow(
+          reference: entry.verse.reference, accent: entry.accentColor, prominent: true)
       }
     }
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(entry.accessibilityText)
+    .overlay(alignment: .topTrailing) { NextVerseButton() }
     .containerBackground(for: .widget) {
       ZStack {
         WidgetTheme.night
@@ -276,10 +236,6 @@ private struct VerseWidgetLargeView: View {
       }
     }
   }
-
-  private var sampleText: String {
-    WidgetPreviewData.sampleVerse().text
-  }
 }
 
 // MARK: - Lock screen views
@@ -288,21 +244,13 @@ private struct VerseWidgetRectangularView: View {
   let entry: VerseEntry
 
   var body: some View {
-    Group {
-      if let verse = entry.verse {
-        VStack(alignment: .leading, spacing: 2) {
-          Text(verse.reference)
-            .font(.headline)
-            .widgetAccentable()
-          Text(verse.text)
-            .font(.caption2)
-            .lineLimit(2)
-        }
-      } else {
-        Text("widget.verse.empty")
-          .font(.caption2)
-          .lineLimit(3)
-      }
+    VStack(alignment: .leading, spacing: 2) {
+      Text(entry.verse.reference)
+        .font(.headline)
+        .widgetAccentable()
+      Text(entry.verse.text)
+        .font(.caption2)
+        .lineLimit(2)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .accessibilityElement(children: .ignore)
@@ -315,18 +263,8 @@ private struct VerseWidgetInlineView: View {
   let entry: VerseEntry
 
   var body: some View {
-    Group {
-      if let verse = entry.verse {
-        Label(verse.reference, systemImage: entry.emotionIcon)
-      } else {
-        Label {
-          Text(verbatim: "HolyDay")
-        } icon: {
-          Image(systemName: "book.closed.fill")
-        }
-      }
-    }
-    .containerBackground(for: .widget) { Color.clear }
+    Label(entry.verse.reference, systemImage: entry.emotionIcon)
+      .containerBackground(for: .widget) { Color.clear }
   }
 }
 
@@ -346,7 +284,7 @@ struct VerseWidgetEntryView: View {
       default: VerseWidgetMediumView(entry: entry)
       }
     }
-    .widgetURL(URL(string: "holyday://verse"))
+    .widgetURL(AppRoute.pray.url)
   }
 }
 
@@ -370,16 +308,16 @@ struct VerseWidget: Widget {
 
 // MARK: - Previews
 
-#Preview("Small", as: .systemSmall) {
+#Preview("Small — émotion", as: .systemSmall) {
   VerseWidget()
 } timeline: {
   VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
 }
 
-#Preview("Small — vide", as: .systemSmall) {
+#Preview("Small — du jour", as: .systemSmall) {
   VerseWidget()
 } timeline: {
-  VerseEntry(date: .now, verse: nil)
+  VerseEntry(date: .now, verse: WidgetPreviewData.dailyVerse())
 }
 
 #Preview("Medium", as: .systemMedium) {
@@ -388,16 +326,10 @@ struct VerseWidget: Widget {
   VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
 }
 
-#Preview("Large", as: .systemLarge) {
+#Preview("Large — du jour", as: .systemLarge) {
   VerseWidget()
 } timeline: {
-  VerseEntry(date: .now, verse: WidgetPreviewData.sampleVerse())
-}
-
-#Preview("Large — vide", as: .systemLarge) {
-  VerseWidget()
-} timeline: {
-  VerseEntry(date: .now, verse: nil)
+  VerseEntry(date: .now, verse: WidgetPreviewData.dailyVerse())
 }
 
 #Preview("Rectangular", as: .accessoryRectangular) {

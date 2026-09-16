@@ -30,6 +30,7 @@ struct ContentView: View {
   @State private var recordTokenBeforeFree: UUID?
 
   @AppStorage("holyday.userName") private var userName = ""
+  @State private var router = AppRouter.shared
 
   // Parcours de découverte (TipKit) : étape par étape, chaque tip fermé déclenche le suivant.
   private let emotionsTip = EmotionsTip()
@@ -102,6 +103,21 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showIntentions) {
       IntentionsView()
+    }
+    // Routes venues d'une notification, d'un widget ou de la commande « Prier ». `initial: true` :
+    // au lancement à froid, la route est posée avant que la vue n'existe.
+    .onChange(of: router.pending, initial: true) { _, route in
+      switch route {
+      case .freePrayer:
+        router.pending = nil
+        recordTokenBeforeFree = prayerRecord.lastRecordToken
+        showFreePrayer = true
+      case .intentions:
+        router.pending = nil
+        showIntentions = true
+      default:
+        break
+      }
     }
     .sheet(
       isPresented: $showSupportPrompt,
@@ -300,6 +316,8 @@ struct ContentView: View {
     modelContext.insert(entry)
     PrayerRecordService.shared.recordPrayer()
     WidgetSyncService.sync()
+    // Retire le rappel d'aujourd'hui et oriente les suivants vers l'émotion déclarée.
+    NotificationService.shared.refreshScheduledReminders()
     resetSelection()
 
     // Enrichissement asynchrone : le titre suggéré par le modèle on-device remplace le repli quand il

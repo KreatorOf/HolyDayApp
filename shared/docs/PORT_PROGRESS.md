@@ -94,6 +94,11 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
 ### 6. Widgets Glance
 - ✅ PrayNowWidget — état invite/prié aujourd'hui, ouvre MainActivity au tap
 - ✅ VerseWidget — dernier verset reçu, ouvre MainActivity au tap
+- ⏳ **Gap de parité assumé (refonte widgets iOS, 2026-09-17)** — non porté volontairement tant que les modifs Glance en cours ne sont pas stabilisées :
+  - verset du jour de repli (`WidgetVerseResolver` : le verset d'émotion ne vaut que pour son jour, puis rotation déterministe du corpus) — à porter à l'identique, mêmes tests ;
+  - bouton « Un autre verset » (`NextVerseIntent`, compteur du jour dans l'App Group) → équivalent Glance `actionRunCallback` ;
+  - routes ciblées (`AppRoute` : `holyday://pray`, `pray/free`, `intentions`, `journal`) → `HolyDayNavHost` ne gère aujourd'hui que `journal` et `intentions` ;
+  - commande « Prier » (`ControlWidget`, iOS 18) → pas d'équivalent direct ; la tuile Quick Settings (`TileService`) serait la plus proche.
 - Note : rendu volontairement simple (un seul layout, pas de tailles small/medium/large distinctes comme iOS) — à enrichir si besoin visuel après premier test sur device/émulateur.
 
 ### 6 bis. Écran de nouveautés — **iOS seulement pour l'instant**

@@ -26,6 +26,9 @@ nonisolated enum SharedStore {
   private static let lastVerseTextKey = "holyday.shared.lastVerse.text"
   private static let lastVerseReferenceKey = "holyday.shared.lastVerse.reference"
   private static let lastVerseEmotionKey = "holyday.shared.lastVerse.emotion"
+  private static let lastVerseDateKey = "holyday.shared.lastVerse.date"
+  private static let verseSkipCountKey = "holyday.shared.verseSkip.count"
+  private static let verseSkipDateKey = "holyday.shared.verseSkip.date"
 
   private static var defaults: UserDefaults? {
     UserDefaults(suiteName: appGroupID)
@@ -45,6 +48,23 @@ nonisolated enum SharedStore {
     defaults?.set(text, forKey: lastVerseTextKey)
     defaults?.set(reference, forKey: lastVerseReferenceKey)
     defaults?.set(emotionTag, forKey: lastVerseEmotionKey)
+    defaults?.set(Date(), forKey: lastVerseDateKey)
+    // Un nouveau ressenti remplace ce que le bouton « Un autre verset » avait fait défiler.
+    resetVerseSkips()
+  }
+
+  // MARK: - Écriture (widget)
+
+  /// Bouton « Un autre verset » : le compteur ne vaut que pour le jour où il a été incrémenté.
+  static func incrementVerseSkip(now: Date = Date()) {
+    let next = verseSkips(on: now) + 1
+    defaults?.set(next, forKey: verseSkipCountKey)
+    defaults?.set(now, forKey: verseSkipDateKey)
+  }
+
+  private static func resetVerseSkips() {
+    defaults?.removeObject(forKey: verseSkipCountKey)
+    defaults?.removeObject(forKey: verseSkipDateKey)
   }
 
   // MARK: - Reprise de données
@@ -80,5 +100,27 @@ nonisolated enum SharedStore {
       text: text,
       reference: reference,
       emotionTag: defaults?.string(forKey: lastVerseEmotionKey) ?? "")
+  }
+
+  /// `nil` pour les snapshots écrits avant la date : traités comme d'un jour passé.
+  static var lastVerseDate: Date? {
+    defaults?.object(forKey: lastVerseDateKey) as? Date
+  }
+
+  static func verseSkips(on date: Date = Date()) -> Int {
+    guard let skipDate = defaults?.object(forKey: verseSkipDateKey) as? Date,
+      Calendar.current.isDate(skipDate, inSameDayAs: date)
+    else { return 0 }
+    return defaults?.integer(forKey: verseSkipCountKey) ?? 0
+  }
+
+  /// Verset à afficher dans les widgets aujourd'hui (cf. `WidgetVerseResolver`).
+  static func widgetVerse(on date: Date = Date()) -> WidgetVerse {
+    WidgetVerseResolver.resolve(
+      on: date,
+      lastVerse: lastVerse,
+      lastVerseDate: lastVerseDate,
+      skips: verseSkips(on: date),
+      french: AppLanguage.isFrench)
   }
 }

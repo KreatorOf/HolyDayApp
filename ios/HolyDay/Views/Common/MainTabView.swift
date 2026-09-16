@@ -12,6 +12,7 @@ struct MainTabView: View {
   @AppStorage("holyday.colorScheme") private var colorSchemePreference = "system"
   @State private var selectedTab = 0
   @State private var whatsNew = WhatsNewService.shared
+  @State private var router = AppRouter.shared
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.modelContext) private var modelContext
 
@@ -53,6 +54,22 @@ struct MainTabView: View {
     ) { presentation in
       WhatsNewView(releases: presentation.releases) { whatsNew.markSeen() }
     }
+    // Choisit l'onglet ; les feuilles de l'onglet Prière sont ouvertes par `ContentView`, qui
+    // consomme la route. `initial: true` pour un lancement à froid depuis un widget ou une commande.
+    .onChange(of: router.pending, initial: true) { _, route in
+      switch route {
+      case .journal:
+        selectedTab = 1
+        router.pending = nil
+      case .pray:
+        selectedTab = 0
+        router.pending = nil
+      case .freePrayer, .intentions:
+        selectedTab = 0
+      case nil:
+        break
+      }
+    }
     .onChange(of: scenePhase) { _, phase in
       if phase == .active {
         PrayerRecordService.shared.refresh()
@@ -61,15 +78,9 @@ struct MainTabView: View {
         WidgetSyncService.sync()
       }
     }
-    // Cibles des `widgetURL` de l'extension : holyday://pray|verse → onglet prière,
-    // holyday://journal → onglet journal.
+    // Cibles des `widgetURL` de l'extension, cf. `AppRoute(url:)`.
     .onOpenURL { url in
-      switch url.host() {
-      case "journal":
-        selectedTab = 1
-      default:
-        selectedTab = 0
-      }
+      router.open(AppRoute(url: url))
     }
   }
 }

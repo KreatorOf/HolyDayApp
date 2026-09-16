@@ -14,15 +14,12 @@ import WidgetKit
 struct PrayNowEntry: TimelineEntry, Sendable {
   let date: Date
   let hasPrayed: Bool
-  let verse: SharedVerse?
+  let verse: WidgetVerse
 
   var accessibilityText: String {
-    var label = String(
+    let label = String(
       localized: hasPrayed ? "widget.pray.a11y.done" : "widget.pray.a11y.invite")
-    if let verse {
-      label += ". \(verse.reference)"
-    }
-    return label
+    return "\(label). \(verse.reference)"
   }
 }
 
@@ -32,22 +29,19 @@ struct PrayNowTimelineProvider: TimelineProvider {
   }
 
   func getSnapshot(in context: Context, completion: @escaping @Sendable (PrayNowEntry) -> Void) {
-    // Galerie de widgets : montrer le volet verset rempli plutôt que l'état vide.
-    let verse =
-      SharedStore.lastVerse ?? (context.isPreview ? WidgetPreviewData.sampleVerse() : nil)
-    completion(PrayNowEntry(date: .now, hasPrayed: SharedStore.hasPrayed(), verse: verse))
+    completion(
+      PrayNowEntry(
+        date: .now, hasPrayed: SharedStore.hasPrayed(), verse: SharedStore.widgetVerse()))
   }
 
   func getTimeline(
     in context: Context, completion: @escaping @Sendable (Timeline<PrayNowEntry>) -> Void
   ) {
     // L'app recharge les timelines dès qu'une prière est enregistrée (WidgetSyncService) ;
-    // l'échéance à minuit ne sert qu'à revenir à l'état « invitation » au changement de jour.
+    // l'échéance à minuit ramène l'état « invitation » et le verset du jour.
     let entry = PrayNowEntry(
-      date: .now, hasPrayed: SharedStore.hasPrayed(), verse: SharedStore.lastVerse)
-    let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .distantFuture
-    let nextMidnight = Calendar.current.startOfDay(for: tomorrow)
-    completion(Timeline(entries: [entry], policy: .after(nextMidnight)))
+      date: .now, hasPrayed: SharedStore.hasPrayed(), verse: SharedStore.widgetVerse())
+    completion(Timeline(entries: [entry], policy: .after(WidgetTheme.nextMidnight())))
   }
 }
 
@@ -96,10 +90,8 @@ private struct PrayNowInviteBlock: View {
 
 private struct PrayNowDoneBlock: View {
   @Environment(\.widgetRenderingMode) private var renderingMode
-  /// Référence du dernier verset reçu : après l'Amen, une invitation à la méditation — pas un
-  /// score.
-  var verseReference: String?
-  var emotionTag: String = ""
+  /// Référence du verset du jour : après l'Amen, une invitation à la méditation — pas un score.
+  let verse: WidgetVerse
 
   var body: some View {
     let palette = WidgetTheme.Palette(renderingMode)
@@ -114,18 +106,11 @@ private struct PrayNowDoneBlock: View {
         .fontDesign(.serif)
         .foregroundStyle(palette.primary)
 
-      if let verseReference {
-        Text(verseReference)
-          .font(.caption.weight(.bold))
-          .fontDesign(.serif)
-          .foregroundStyle(WidgetTheme.accent(forEmotionTag: emotionTag))
-          .widgetAccentable()
-      } else {
-        Text("widget.pray.done.subtitle")
-          .font(.caption2)
-          .foregroundStyle(palette.tertiary)
-          .lineSpacing(2)
-      }
+      Text(verse.reference)
+        .font(.caption.weight(.bold))
+        .fontDesign(.serif)
+        .foregroundStyle(WidgetTheme.accent(forEmotionTag: verse.emotionTag))
+        .widgetAccentable()
     }
   }
 }
@@ -140,9 +125,7 @@ private struct PrayNowWidgetSmallView: View {
       PrayNowHeader()
       Spacer()
       if entry.hasPrayed {
-        PrayNowDoneBlock(
-          verseReference: entry.verse?.reference,
-          emotionTag: entry.verse?.emotionTag ?? "")
+        PrayNowDoneBlock(verse: entry.verse)
       } else {
         PrayNowInviteBlock()
       }
@@ -169,9 +152,7 @@ private struct PrayNowWidgetMediumView: View {
         PrayNowHeader()
         Spacer()
         if entry.hasPrayed {
-          PrayNowDoneBlock(
-            verseReference: entry.verse?.reference,
-            emotionTag: entry.verse?.emotionTag ?? "")
+          PrayNowDoneBlock(verse: entry.verse)
         } else {
           PrayNowInviteBlock()
         }
@@ -184,31 +165,23 @@ private struct PrayNowWidgetMediumView: View {
         .padding(.vertical, 6)
 
       VStack(alignment: .leading, spacing: 8) {
-        Text("widget.verse.kicker")
+        Text(entry.verse.source == .emotion ? "widget.verse.kicker" : "widget.verse.kicker.daily")
           .font(.caption2.weight(.semibold))
           .foregroundStyle(palette.tertiary)
           .textCase(.uppercase)
           .tracking(1)
-        if let verse = entry.verse {
-          Text(verse.text)
-            .font(.caption.weight(.medium))
-            .fontDesign(.serif)
-            .foregroundStyle(palette.secondary)
-            .lineLimit(4)
-            .lineSpacing(3)
-            .contentTransition(.opacity)
-          Text(verse.reference)
-            .font(.caption2.weight(.bold))
-            .fontDesign(.serif)
-            .foregroundStyle(WidgetTheme.accent(forEmotionTag: verse.emotionTag))
-            .widgetAccentable()
-        } else {
-          Text("widget.verse.empty")
-            .font(.caption.weight(.medium))
-            .fontDesign(.serif)
-            .foregroundStyle(palette.tertiary)
-            .lineSpacing(3)
-        }
+        Text(entry.verse.text)
+          .font(.caption.weight(.medium))
+          .fontDesign(.serif)
+          .foregroundStyle(palette.secondary)
+          .lineLimit(4)
+          .lineSpacing(3)
+          .contentTransition(.opacity)
+        Text(entry.verse.reference)
+          .font(.caption2.weight(.bold))
+          .fontDesign(.serif)
+          .foregroundStyle(WidgetTheme.accent(forEmotionTag: entry.verse.emotionTag))
+          .widgetAccentable()
       }
       .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -272,7 +245,7 @@ struct PrayNowWidgetEntryView: View {
       default: PrayNowWidgetSmallView(entry: entry)
       }
     }
-    .widgetURL(URL(string: "holyday://pray"))
+    .widgetURL(AppRoute.pray.url)
   }
 }
 
@@ -299,7 +272,7 @@ struct PrayNowWidget: Widget {
 #Preview("Small — invitation", as: .systemSmall) {
   PrayNowWidget()
 } timeline: {
-  PrayNowEntry(date: .now, hasPrayed: false, verse: nil)
+  PrayNowEntry(date: .now, hasPrayed: false, verse: WidgetPreviewData.dailyVerse())
 }
 
 #Preview("Small — prié", as: .systemSmall) {
@@ -317,5 +290,5 @@ struct PrayNowWidget: Widget {
 #Preview("Circular", as: .accessoryCircular) {
   PrayNowWidget()
 } timeline: {
-  PrayNowEntry(date: .now, hasPrayed: false, verse: nil)
+  PrayNowEntry(date: .now, hasPrayed: false, verse: WidgetPreviewData.dailyVerse())
 }

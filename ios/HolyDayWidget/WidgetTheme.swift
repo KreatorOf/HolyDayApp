@@ -72,6 +72,13 @@ enum WidgetTheme {
     }
   }
 
+  /// Prochaine échéance de timeline pour les contenus qui changent avec le jour.
+  static func nextMidnight(after date: Date = .now) -> Date {
+    let calendar = Calendar.current
+    let tomorrow = calendar.date(byAdding: .day, value: 1, to: date) ?? .distantFuture
+    return calendar.startOfDay(for: tomorrow)
+  }
+
   /// Fond nuit avec un voile dégradé de la couleur d'accent, commun aux trois widgets.
   static func nightBackground(accent: Color, intensity: Double = 0.15) -> some View {
     ZStack {

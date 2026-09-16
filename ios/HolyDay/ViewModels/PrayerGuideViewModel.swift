@@ -51,6 +51,7 @@ final class PrayerGuideViewModel {
     markCompleted(step)
     if isAllCompleted {
       PrayerRecordService.shared.recordPrayer()
+      NotificationService.shared.refreshScheduledReminders()
     }
     WidgetSyncService.sync()
   }

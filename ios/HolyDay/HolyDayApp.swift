@@ -58,6 +58,7 @@ struct HolyDayApp: App {
       storeFailed = true
     }
     container = resolvedContainer
+    NotificationService.shared.attach(resolvedContainer)
     _showStoreBanner = State(initialValue: storeFailed)
     #if DEBUG
       SeedService.seedIfNeeded(in: container.mainContext)

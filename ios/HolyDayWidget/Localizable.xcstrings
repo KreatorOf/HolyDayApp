@@ -1,8 +1,73 @@
 {
   "sourceLanguage" : "fr",
   "strings" : {
-    "%lld" : {
-
+    "control.pray.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a free prayer in one tap."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencez une prière libre en un geste."
+          }
+        }
+      }
+    },
+    "control.pray.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pray"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prier"
+          }
+        }
+      }
+    },
+    "intent.freePrayer.description" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens HolyDay on a free prayer."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvre HolyDay sur une prière libre."
+          }
+        }
+      }
+    },
+    "intent.freePrayer.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a Free Prayer"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencer une prière libre"
+          }
+        }
+      }
     },
     "widget.heatmap.description" : {
       "extractionState" : "manual",
@@ -198,23 +263,6 @@
         }
       }
     },
-    "widget.pray.done.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You prayed today. Come back whenever your heart wishes."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez prié aujourd'hui. Revenez quand votre cœur le souhaite."
-          }
-        }
-      }
-    },
     "widget.pray.done.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -289,30 +337,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The verse you received for how you feel."
+            "value" : "The verse you received for how you feel, or a verse of the day."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Le verset reçu selon ce que vous ressentez."
-          }
-        }
-      }
-    },
-    "widget.verse.empty" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Share how you feel in the app — a verse will accompany you here."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Partagez ce que vous ressentez dans l'app : un verset vous accompagnera ici."
+            "value" : "Le verset reçu selon ce que vous ressentez, ou un verset du jour."
           }
         }
       }
@@ -334,6 +365,23 @@
         }
       }
     },
+    "widget.verse.kicker.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verse of the day"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verset du jour"
+          }
+        }
+      }
+    },
     "widget.verse.kicker.large" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -351,6 +399,23 @@
         }
       }
     },
+    "widget.verse.kicker.large.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HolyDay · Verse of the day"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HolyDay · Verset du jour"
+          }
+        }
+      }
+    },
     "widget.verse.name" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -364,6 +429,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mon verset"
+          }
+        }
+      }
+    },
+    "widget.verse.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Another verse"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un autre verset"
           }
         }
       }

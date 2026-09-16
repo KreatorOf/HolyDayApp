@@ -11,5 +11,6 @@ struct HolyDayWidgetBundle: WidgetBundle {
   var body: some Widget {
     PrayNowWidget()
     VerseWidget()
+    PrayControl()
   }
 }

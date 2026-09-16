@@ -16,7 +16,10 @@ import Foundation
 /// système a réellement retenue pour ce bundle après repli, donc exactement ce que l'utilisateur
 /// lit à l'écran. `Locale.current` décrit l'appareil, pas l'app — sur un appareil en espagnol,
 /// l'app affiche du français, et seule la première réponse est la bonne.
-enum AppLanguage {
+///
+/// Partagé avec l'extension widget, qui a les mêmes localisations : le verset du jour doit y être
+/// rendu dans la langue de l'interface, pas dans celle de l'appareil.
+nonisolated enum AppLanguage {
   static var isFrench: Bool {
     !current.hasPrefix("en")
   }

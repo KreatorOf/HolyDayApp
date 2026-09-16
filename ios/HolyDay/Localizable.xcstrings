@@ -792,6 +792,40 @@
         }
       }
     },
+    "intent.freePrayer.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opens HolyDay on a free prayer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvre HolyDay sur une prière libre."
+          }
+        }
+      }
+    },
+    "intent.freePrayer.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a Free Prayer"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commencer une prière libre"
+          }
+        }
+      }
+    },
     "intentions.action.edit": {
       "localizations": {
         "en": {
@@ -1768,6 +1802,22 @@
         }
       }
     },
+    "notification.intentions.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "One of your intentions may have moved forward. Would you like to bring it back to prayer?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une de tes intentions a peut-être évolué. Veux-tu la reprendre dans la prière ?"
+          }
+        }
+      }
+    },
     "notification.invite.0": {
       "localizations": {
         "en": {
@@ -2084,6 +2134,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "Quelle promesse veux-tu te rappeler aujourd'hui ?"
+          }
+        }
+      }
+    },
+    "notification.verse.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%1$@” — %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "« %1$@ » — %2$@"
           }
         }
       }
