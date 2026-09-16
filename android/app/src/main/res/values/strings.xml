@@ -115,6 +115,8 @@
     <string name="notification_question_7">Quel pas de foi t\'attend aujourd\'hui ?</string>
     <string name="notification_question_8">Prends un instant : que veux-tu Lui dire ?</string>
     <string name="notification_question_9">Quelle promesse veux-tu te rappeler aujourd\'hui ?</string>
+    <string name="notification_intentions_body">Une de tes intentions a peut-être évolué. Veux-tu la reprendre dans la prière ?</string>
+    <string name="notification_verse_body">« %1$s » — %2$s</string>
     <string name="onboarding_back">Retour</string>
     <string name="onboarding_intention_placeholder">Je prie pour…</string>
     <string name="onboarding_intention_subtitle">Note le ici. Tu pourras en ajouter d’autres.</string>

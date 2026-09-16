@@ -116,6 +116,8 @@ Cette table ne mappe que les **noms** de clés : quelques valeurs divergent volo
 | app | `notification.question.7` | `notification_question_7` |
 | app | `notification.question.8` | `notification_question_8` |
 | app | `notification.question.9` | `notification_question_9` |
+| app | `notification.intentions.body` | `notification_intentions_body` |
+| app | `notification.verse.body` | `notification_verse_body` |
 | app | `onboarding.back` | `onboarding_back` |
 | app | `onboarding.intention.placeholder` | `onboarding_intention_placeholder` |
 | app | `onboarding.intention.subtitle` | `onboarding_intention_subtitle` |

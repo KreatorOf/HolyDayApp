@@ -31,6 +31,9 @@ interface PrayerEntryDao {
     @Query("DELETE FROM prayer_entries")
     suspend fun deleteAll()
 
+    @Query("SELECT * FROM prayer_entries WHERE emotionRaw IS NOT NULL ORDER BY date DESC LIMIT 1")
+    suspend fun latestWithEmotion(): PrayerEntryEntity?
+
     @Query("SELECT COUNT(*) FROM prayer_entries")
     suspend fun count(): Int
 }

@@ -115,6 +115,8 @@
     <string name="notification_question_7">What step of faith awaits you today?</string>
     <string name="notification_question_8">Take a moment — what do you want to tell Him?</string>
     <string name="notification_question_9">What promise do you want to remember today?</string>
+    <string name="notification_intentions_body">One of your intentions may have moved forward. Would you like to bring it back to prayer?</string>
+    <string name="notification_verse_body">“%1$s” — %2$s</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_intention_placeholder">Your intention…</string>
     <string name="onboarding_intention_subtitle">Entrust a first intention. You can add more later.</string>

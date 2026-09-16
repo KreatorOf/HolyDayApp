@@ -13,6 +13,9 @@ interface PrayerIntentionDao {
     @Query("SELECT * FROM prayer_intentions ORDER BY createdAt DESC")
     fun observeAll(): Flow<List<PrayerIntentionEntity>>
 
+    @Query("SELECT * FROM prayer_intentions WHERE isAnswered = 0 ORDER BY createdAt ASC LIMIT 1")
+    suspend fun oldestOpen(): PrayerIntentionEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(intention: PrayerIntentionEntity)
 

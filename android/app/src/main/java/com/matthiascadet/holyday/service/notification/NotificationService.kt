@@ -7,14 +7,18 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationManagerCompat
 import com.matthiascadet.holyday.R
+import com.matthiascadet.holyday.data.db.AppDatabase
+import com.matthiascadet.holyday.data.model.VerseCorpus
 import com.matthiascadet.holyday.data.prefs.AppPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
+import java.util.Locale
 
 /**
  * Équivalent de `NotificationService` iOS, adapté à Android : au lieu de pré-planifier une
@@ -31,6 +35,7 @@ object NotificationService {
     private const val MINUTE_KEY = "holyday.reminderMinute"
     private const val ENABLED_KEY = "holyday.reminderEnabled"
     const val USER_NAME_KEY = "holyday.userName"
+    private const val LAST_PRAYER_DATE_KEY = "holyday.lastPrayerDate"
 
     const val CHANNEL_ID = "daily_prayer_reminder"
     const val NOTIFICATION_ID = 1001
@@ -129,9 +134,15 @@ object NotificationService {
     /**
      * Titre + corps déterministes par jour de l'année : un jour donné mappe toujours sur le même
      * couple, et deux jours consécutifs diffèrent toujours (titre mod 5, question mod 10). Le
-     * titre est personnalisé avec le prénom s'il est connu, sinon repli générique.
+     * titre est personnalisé avec le prénom s'il est connu, sinon repli générique. Le corps
+     * dépend du `kind` choisi par `ReminderPlanner`.
      */
-    fun reminderContent(context: Context, date: LocalDate, name: String): Pair<String, String> {
+    fun reminderContent(
+        context: Context,
+        date: LocalDate,
+        name: String,
+        kind: ReminderKind = ReminderKind.Question,
+    ): Pair<String, String> {
         val dayIndex = date.dayOfYear
         val titleIndex = dayIndex % TITLES_GENERIC.size
 
@@ -140,9 +151,33 @@ object NotificationService {
         } else {
             context.getString(TITLES_NAMED[titleIndex], name)
         }
-        val body = context.getString(QUESTIONS[dayIndex % QUESTIONS.size])
+        val body = when (kind) {
+            ReminderKind.Question -> context.getString(QUESTIONS[dayIndex % QUESTIONS.size])
+            is ReminderKind.Verse -> {
+                val entry = VerseCorpus.all[kind.corpusIndex]
+                val french = !Locale.getDefault().language.startsWith("en")
+                val reference = "${entry.reference(french)} (${if (french) "LSG" else "BSB"})"
+                context.getString(R.string.notification_verse_body, entry.text(french), reference)
+            }
+            ReminderKind.Intentions -> context.getString(R.string.notification_intentions_body)
+        }
         return title to body
     }
+
+    /** Lit l'état courant de la vie de prière (préférences + Room) pour `ReminderPlanner`. */
+    suspend fun currentContext(context: Context): ReminderContext {
+        val db = AppDatabase.getInstance(context)
+        val lastPrayerMillis = AppPreferences.raw.getLong(LAST_PRAYER_DATE_KEY, -1L)
+        val emotionEntry = db.prayerEntryDao().latestWithEmotion()
+        return ReminderContext(
+            lastPrayerDate = lastPrayerMillis.takeIf { it >= 0 }?.let(::toLocalDate),
+            lastEmotion = emotionEntry?.emotion,
+            lastEmotionDate = emotionEntry?.date?.let(::toLocalDate),
+            oldestOpenIntentionDate = db.prayerIntentionDao().oldestOpen()?.createdAt?.let(::toLocalDate),
+        )
+    }
+
+    private fun toLocalDate(millis: Long): LocalDate = Instant.ofEpochMilli(millis).atZone(zone).toLocalDate()
 
     private fun persist(time: LocalTime) {
         AppPreferences.raw.edit()

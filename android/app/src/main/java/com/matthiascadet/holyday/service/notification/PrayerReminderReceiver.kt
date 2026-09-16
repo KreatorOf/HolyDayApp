@@ -13,16 +13,44 @@ import androidx.core.content.ContextCompat
 import com.matthiascadet.holyday.MainActivity
 import com.matthiascadet.holyday.R
 import com.matthiascadet.holyday.data.prefs.AppPreferences
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /** Poste le rappel quotidien puis replanifie celui de demain (voir `NotificationService`). */
 class PrayerReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        // `goAsync` : le contenu dépend de Room, lu hors du thread principal.
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                handle(context)
+            } finally {
+                pending.finish()
+            }
+        }
+    }
+
+    private suspend fun handle(context: Context) {
         ensureChannel(context)
 
+        val today = LocalDate.now()
+        val kind = runCatching { NotificationService.currentContext(context) }
+            .map { ReminderPlanner.kindFor(today, it) }
+            // Base illisible : on retombe sur la question du jour plutôt que de se taire.
+            .getOrDefault(ReminderKind.Question)
+
+        // `null` : déjà prié aujourd'hui — pas de relance, mais la chaîne d'alarmes continue.
+        if (kind == null) {
+            NotificationService.scheduleNext(context, NotificationService.reminderTime.value)
+            return
+        }
+
         val userName = AppPreferences.raw.getString(NotificationService.USER_NAME_KEY, "")?.trim() ?: ""
-        val (title, body) = NotificationService.reminderContent(context, LocalDate.now(), userName)
+        val (title, body) = NotificationService.reminderContent(context, today, userName, kind)
+        val route = if (kind == ReminderKind.Intentions) "intentions" else "pray"
 
         val hasPermission = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) ==
@@ -30,7 +58,7 @@ class PrayerReminderReceiver : BroadcastReceiver() {
 
         if (hasPermission) {
             val openIntent = Intent(context, MainActivity::class.java).apply {
-                data = android.net.Uri.parse("holyday://pray")
+                data = android.net.Uri.parse("holyday://$route")
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
             val pendingIntent = android.app.PendingIntent.getActivity(
