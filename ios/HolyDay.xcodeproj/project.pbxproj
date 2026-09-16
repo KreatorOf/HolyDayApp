@@ -55,12 +55,12 @@
 
 /* Begin PBXFileReference section */
 		064A9DF645927DEB23F2108B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
-		C9C0F1A02FE0000100000001 /* Config.shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Config.shared.xcconfig; path = Config/Config.shared.xcconfig; sourceTree = "<group>"; };
 		C92BFF112FB7F619001C9BB0 /* HolyDayWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HolyDayWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		C92BFF132FB7F619001C9BB0 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		C92BFF152FB7F619001C9BB0 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		C96621D32FC33FE000BF73B8 /* HolyDayTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HolyDayTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C99CE6BB2FB5267700B06836 /* HolyDay.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HolyDay.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C9C0F1A02FE0000100000001 /* Config.shared.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Config.shared.xcconfig; path = Config/Config.shared.xcconfig; sourceTree = "<group>"; };
 		D1780EB1E23628AF2D49AF87 /* HolyDayUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HolyDayUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -85,29 +85,21 @@
 		};
 		C96621D42FC33FE000BF73B8 /* HolyDayTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = HolyDayTests;
 			sourceTree = "<group>";
 		};
 		C99CE6BD2FB5267700B06836 /* HolyDay */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = HolyDay;
 			sourceTree = "<group>";
 		};
 		C9F0000A2FD9112200000001 /* HolyDayShared */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = HolyDayShared;
 			sourceTree = "<group>";
 		};
 		FC62F533F15A158C1C84DBAC /* HolyDayUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = HolyDayUITests;
 			sourceTree = "<group>";
 		};
@@ -182,14 +174,6 @@
 			);
 			sourceTree = "<group>";
 		};
-		C9C0F1A02FE0000100000002 /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				C9C0F1A02FE0000100000001 /* Config.shared.xcconfig */,
-			);
-			name = Config;
-			sourceTree = "<group>";
-		};
 		C99CE6BC2FB5267700B06836 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -199,6 +183,14 @@
 				D1780EB1E23628AF2D49AF87 /* HolyDayUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		C9C0F1A02FE0000100000002 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C9C0F1A02FE0000100000001 /* Config.shared.xcconfig */,
+			);
+			name = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -456,7 +448,7 @@
 				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDayUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -479,7 +471,7 @@
 				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDayUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -512,7 +504,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay.HolyDayWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -545,7 +537,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay.HolyDayWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.matthiascadet.HolyDay.HolyDayWidget";
@@ -567,7 +559,7 @@
 				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDayTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -588,7 +580,7 @@
 				CURRENT_PROJECT_VERSION = 16;
 				DEVELOPMENT_TEAM = 4N5T33BN66;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDayTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = NO;
@@ -749,7 +741,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -788,7 +780,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.matthiascadet.HolyDay;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "match AppStore com.matthiascadet.HolyDay";

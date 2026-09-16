@@ -1,77 +1,31 @@
-Version 1.1 - ecran de nouveautes, langue de l'assistant, attribution des versets anglais.
+Version 1.1.1 - correctif visuel : flou sous les barres et titres des onglets.
 
-1. L'ECRAN DE NOUVEAUTES (la vraie nouveaute a eprouver)
+1. LE FLOU PROGRESSIF
 
-Il ne s'affiche qu'une fois, apres une mise a jour. Pour le revoir autant de fois
-que necessaire : Reglages > section Beta > "Rejouer les nouveautes", puis relancer
-l'app.
+En faisant defiler le contenu, il doit s'estomper progressivement sous la barre
+du haut et sous la barre d'onglets, sans bande opaque ni aplat de couleur.
 
-(Les builds precedents renvoyaient vers une section "Developpeur" qui n'existe pas
-sur TestFlight : c'etait une erreur de ces notes, corrigee ici.)
+- A verifier sur : Priere, Journal, Reglages, Intentions, ecran de soutien,
+  priere guidee et ecran de nouveautes.
+- iOS 26 et iOS 27 : seul le degrade doit etre visible, aucune barre pleine
+  par-dessus.
+- iOS 18 : les barres restent transparentes sur le fond de l'app, comme avant.
 
-- Il apparait APRES l'ecran de lancement, jamais derriere lui.
-- Le bouton "Continuer" le referme.
-- Il ne revient PAS au lancement suivant.
-- Si vous installez l'app a neuf et faites tout l'onboarding, il ne doit PAS
-  apparaitre : vous venez de tout decouvrir, il n'y a rien a annoncer.
-- Lisibilite en tres grande taille de texte (Reglages iOS > Affichage et
-  luminosite > Taille du texte) : rien ne doit etre tronque.
-- VoiceOver : chaque nouveaute doit etre lue d'un bloc, titre puis description.
+2. LES TITRES DES ONGLETS
 
-2. L'ATTRIBUTION DES VERSETS
+- Au tout premier passage sur Journal puis Reglages apres le lancement, le titre
+  est fixe dans la barre du haut et le contenu commence juste en dessous, rien
+  n'est cache sous le flou.
+- Le titre reste en place pendant le defilement.
+- "HolyDay", "Journal" et "Reglages" ont la meme taille.
+- En tres grande taille de texte (Reglages iOS > Affichage et luminosite >
+  Taille du texte) : le titre ne doit ni etre tronque ni chevaucher les boutons
+  du Journal.
+- Journal : l'astuce de decouverte doit pointer vers le titre et rester lisible.
 
-- Appareil en anglais : la reference sous le verset se termine par (BSB), jamais
-  par (KJV).
-- Appareil en francais : elle se termine toujours par (LSG).
-- Retapez plusieurs fois la meme emotion : le verset change, le sigle reste bon.
-- Reglages > Mentions legales > Contenu biblique : les deux traductions (Louis
-  Segond 1910 et Berean Standard Bible) doivent y etre creditees, dans les deux
-  langues.
+3. LA RECHERCHE DU JOURNAL
 
-3. LA LANGUE DE L'ASSISTANT (nouveau dans ce build)
-
-Sur un appareil en anglais, avec Apple Intelligence actif, tout ce que le modele
-ecrit doit desormais etre en anglais. C'etait du francais jusqu'ici.
-
-- Priere guidee, section "To help me reflect" : les questions doivent etre en
-  anglais.
-- Priere libre : enregistrez-en une d'au moins deux lignes, puis ouvrez le
-  journal. Le titre suggere quelques secondes plus tard doit etre en anglais.
-- Journal, recherche par le sens : les resultats doivent rester coherents.
-- Sur un appareil en francais, tout doit rester en francais : c'est la
-  non-regression a verifier absolument.
-
-4. LE WIDGET, SI VOUS AVIEZ DEJA L'APP
-
-- Si le widget "Mon verset" affichait (KJV) avant la mise a jour, il doit passer
-  a (BSB) des le premier lancement de l'app, sans que vous ayez a retoucher au
-  ruban d'emotions.
-- Verifiez-le dans toutes les tailles de widget que vous utilisez.
-
-5. NOTER L'APPLICATION (nouveau dans ce build)
-
-- Reglages > Communaute > "Noter l'application" doit ouvrir la fiche App Store
-  sur le formulaire d'avis, a chaque fois. Avant, ce bouton s'appuyait sur la
-  fenetre systeme d'Apple, bridee a 3 fois par an : il pouvait ne rien faire du
-  tout, sans le moindre retour.
-- Apres un don, l'ecran de remerciement propose desormais le meme lien. Il ne se
-  referme plus tout seul au bout de 3 secondes : c'est "Continuer" qui le ferme.
-  Verifiez que le bouton ferme bien l'ecran et qu'on retombe sur le paywall.
-
-6. REGLAGES : RANGEES ENTIEREMENT TAPABLES
-
-Dans les Reglages, tapez au MILIEU d'une rangee, sur la zone vide entre le
-libelle et le chevron. Avant, seuls le texte, l'icone et le chevron reagissaient
-et cette zone ne faisait rien. Toute la largeur doit desormais repondre.
-
-- A verifier sur : Partager, Noter l'application, Soutenir, Confidentialite,
-  Conditions, Mentions legales, et la zone rouge.
-
-7. LE RESTE
-
-Ce build sort d'une chaine de production entierement refaite. Un coup d'oeil au
-parcours habituel est utile : choisir une emotion, prier (libre et guidee),
-retrouver la priere dans le journal, creer une intention, et verifier que l'ecran
-de soutien affiche bien ses prix.
+Loupe en haut a droite : le champ apparait en tete de page, les resultats en
+dessous. La croix le referme.
 
 Merci !

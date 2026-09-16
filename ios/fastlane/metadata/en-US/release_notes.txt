@@ -1,4 +1,3 @@
-• New What’s New screen: a summary of what changed after each update.
-• The assistant now follows the app’s language: reflection questions, prayer titles and search no longer stay in French.
-• Fixed the translation credit shown with English verses (Berean Standard Bible).
-• Updated the legal notice to credit both translations used.
+• The progressive blur under the navigation and tab bars is back.
+• Journal and Settings titles now stay pinned at the top and no longer slip under the blur the first time you open them.
+• The three tab titles now share the same size.
