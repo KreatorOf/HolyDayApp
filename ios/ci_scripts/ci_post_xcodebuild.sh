@@ -6,11 +6,14 @@
 
 set -e
 
-REPO_IOS="${CI_PRIMARY_REPOSITORY_PATH}/ios"
-cd "${REPO_IOS}"
-
+# Comme dans ci_pre_xcodebuild.sh : filtrer l'action avant de toucher aux chemins. Les phases
+# de test tournent sur une autre machine, où CI_PRIMARY_REPOSITORY_PATH est vide.
 [ "${CI_XCODEBUILD_ACTION}" = "build-for-testing" ] || exit 0
 [ "${CI_XCODEBUILD_EXIT_CODE}" = "0" ] || exit 0
+
+REPO_IOS="${CI_PRIMARY_REPOSITORY_PATH}/ios"
+[ -d "${REPO_IOS}" ] || { echo "warning: ${REPO_IOS} introuvable — scan ignoré."; exit 0; }
+cd "${REPO_IOS}"
 
 INDEX_STORE="${CI_DERIVED_DATA_PATH}/Index.noindex/DataStore"
 

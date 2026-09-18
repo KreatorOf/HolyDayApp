@@ -135,8 +135,15 @@ La CI iOS est **Xcode Cloud** (workflows définis dans App Store Connect, pas da
 
 | Chaîne | Déclencheur | Contenu |
 |---|---|---|
-| Xcode Cloud | push/PR sur `ios/**`, `shared/**` | `ci_post_clone` (SwiftLint), `ci_pre_xcodebuild` (SwiftLint + swift-format `--strict`), Test (`HolyDay Dev`), `ci_post_xcodebuild` (Periphery `--strict`), Archive (`HolyDay`) → TestFlight sur `main` |
+| Xcode Cloud, workflow **CI** | PR (toutes branches) + push sur `feature/*`, filtre `ios/`, `shared/` | `ci_pre_xcodebuild` (SwiftLint + swift-format `--strict`), Test `HolyDay Dev`, `ci_post_xcodebuild` (Periphery `--strict`). N'archive rien |
+| Xcode Cloud, workflow **TestFlight** | push `main`, filtre `ios/`, `shared/` | Archive `HolyDay`, *Deployment Preparation* = TestFlight and App Store → dépôt TestFlight |
 | `.github/workflows/android-ci.yml` | push/PR `main`, `feature/*` sur `android/**`, `shared/**` | wrapper validation, Android Lint, tests unitaires, `assembleDebug` + `assembleRelease` |
+
+Deux workflows et pas un seul : la distribution TestFlight est une propriété de l'action Archive, pas de la branche. Un workflow unique couvrant `main` et `feature/*` enverrait un build aux testeurs à chaque push de branche de feature.
+
+Le filtre Files & Folders (`START_IF_ANY_FILE_MATCHES` sur les dossiers `ios` et `shared`) joue le rôle du `paths:` de GitHub Actions : un commit Android-only ne consomme pas de minutes Xcode Cloud.
+
+L'action Test épingle un couple simulateur/runtime précis (`iPhone 17 Pro` / `iOS 27.0`) : l'API exige un `testDestinations` explicite, il n'y a pas de « dernier runtime disponible ». Quand Apple retire ce runtime des images, le workflow échoue au démarrage — c'est là qu'il faut aller le changer, pas dans le dépôt.
 
 Le parseur de workflows GitHub ne gère pas les ancres YAML : les listes `paths:` d'`android-ci.yml` sont dupliquées volontairement entre `push` et `pull_request`.
 
@@ -147,12 +154,16 @@ Xcode Cloud ne cherche ses scripts **que** dans un dossier `ci_scripts/` situé 
 | Script | Rôle |
 |---|---|
 | `ci_post_clone.sh` | Installe SwiftLint (absent de l'image ; swift-format est fourni par Xcode via `xcrun`), approfondit le clone superficiel |
-| `ci_pre_xcodebuild.sh` | Porte de qualité : SwiftLint + swift-format `--strict`. Court-circuité sur `archive`/`analyze`, déjà joué pour `build-for-testing` dans le même build |
+| `ci_pre_xcodebuild.sh` | Porte de qualité : SwiftLint + swift-format `--strict`. Ne s'exécute que sur `build` et `build-for-testing` |
 | `ci_post_xcodebuild.sh` | Periphery `--strict` sur l'index-store de `build-for-testing` — pas de seconde compilation. Avertit sans bloquer si l'index-store a bougé |
+
+Les trois scripts filtrent `CI_XCODEBUILD_ACTION` **avant** de toucher au moindre chemin. Xcode Cloud rejoue les scripts sur une seconde machine pour `test-without-building`, et `CI_PRIMARY_REPOSITORY_PATH` y est vide : un `cd "${CI_PRIMARY_REPOSITORY_PATH}/ios"` placé en tête devient `cd /ios` et fait échouer l'action alors que le lint est déjà passé sur la machine de build.
 
 La build phase SwiftLint du projet sort immédiatement sous `CI_XCODE_CLOUD` : sinon chaque cible relinterait l'arbre déjà validé par `ci_pre_xcodebuild.sh`.
 
-Côté App Store Connect, deux réglages ne vivent pas dans le dépôt et doivent être posés à la main : le **numéro de build de départ** du produit Xcode Cloud (la numérotation repart de 1 alors que fastlane en était à 16 — un build inférieur est rejeté à l'upload), et la **Deployment Preparation** de l'action Archive, à `TestFlight and App Store` (avec `None`, l'archive n'est pas signée pour la distribution).
+Xcode Cloud résout le projet par le `containerFilePath` du workflow, enregistré à sa création : il est resté sur `HolyDay.xcodeproj` après le passage en monorepo (`6d2530f`) et a fait échouer treize runs d'affilée sur `Project HolyDay.xcodeproj does not exist at the root of the repository`. Tout déplacement du `.xcodeproj` doit être reporté dans les deux workflows.
+
+Le **numéro de build de départ** ne vit pas non plus dans le dépôt : App Store Connect → Xcode Cloud → Settings → Build Number. La numérotation Xcode Cloud est indépendante de `CURRENT_PROJECT_VERSION` et doit rester supérieure au dernier build déjà en ligne.
 
 ## Documentation & références (obligatoire)
 

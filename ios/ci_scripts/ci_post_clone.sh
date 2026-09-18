@@ -3,11 +3,8 @@
 # Xcode Cloud — exécuté après le clone, avant toute résolution de dépendances.
 # Le dossier `ci_scripts` doit vivre à côté de HolyDay.xcodeproj : Xcode Cloud ne le
 # cherche nulle part ailleurs (le dépôt est un monorepo, la racine clonée est au-dessus).
-# Le cwd du script EST ci_scripts/ — d'où les chemins relatifs via REPO_IOS.
 
 set -e
-
-REPO_IOS="${CI_PRIMARY_REPOSITORY_PATH}/ios"
 
 echo "Xcode Cloud : workflow ${CI_WORKFLOW}, action ${CI_XCODEBUILD_ACTION:-<aucune>}, commit ${CI_COMMIT}"
 
@@ -18,8 +15,10 @@ if ! command -v swiftlint >/dev/null 2>&1; then
   brew install swiftlint
 fi
 
-# Le clone d'Xcode Cloud est superficiel (depth 1). `git log` sert aux notes de test et au
-# diagnostic : on approfondit une fois ici plutôt que dans chaque script en aval.
-git -C "${CI_PRIMARY_REPOSITORY_PATH}" fetch --deepen 10 || true
+# Le clone d'Xcode Cloud est superficiel (depth 1). `git log` sert au diagnostic : on
+# approfondit une fois ici. La variable est vide sur les machines de test — d'où le garde.
+if [ -n "${CI_PRIMARY_REPOSITORY_PATH}" ]; then
+  git -C "${CI_PRIMARY_REPOSITORY_PATH}" fetch --deepen 10 || true
+fi
 
-echo "Post-clone terminé (${REPO_IOS})."
+echo "Post-clone terminé."
