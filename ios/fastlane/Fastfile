@@ -1,61 +1,52 @@
 default_platform(:ios)
 
 APP_ID    = "com.matthiascadet.HolyDay"
-WIDGET_ID = "com.matthiascadet.HolyDay.HolyDayWidget"
 XCODEPROJ = "HolyDay.xcodeproj"
 
-# « Ce qu'il faut tester » envoyé aux testeurs TestFlight (interne comme externe).
+# « Ce qu'il faut tester » envoyé aux testeurs TestFlight.
+# Xcode Cloud lit lui-même ce dossier (`TestFlight/WhatToTest.<locale>.txt`, à côté du
+# .xcodeproj) et joint les notes au build qu'il distribue. Les lanes ci-dessous lisent le
+# même fichier : une seule source de vérité, qu'on passe par Xcode Cloud ou par fastlane.
 # Distinct des notes App Store (metadata/<langue>/release_notes.txt), qui s'adressent au public.
-TESTFLIGHT_NOTES = "fastlane/testflight_whats_new.txt"
+TESTFLIGHT_NOTES = "TestFlight/WhatToTest.fr-FR.txt"
 
 platform :ios do
 
-  # Sur CI, match importe le certificat dans le trousseau de session sans pouvoir poser la
-  # « key partition list » (pas de mot de passe de trousseau). codesign lève alors une demande
-  # d'autorisation graphique que personne ne peut valider sur un runner headless, et le build
-  # gèle indéfiniment à la signature (observé sur HolyDayWidgetExtension.appex).
-  # `setup_ci` crée un trousseau temporaire dédié et évite ce blocage.
-  before_all do
-    setup_ci if ENV["CI"]
-  end
-
   # =====================================================================================
-  #  Lanes — trois verbes, un par destination
+  #  Lanes — aucune ne compile quoi que ce soit.
   #
-  #    fastlane beta            build neuf  -> TestFlight (testeurs internes)
-  #    fastlane beta_external   build neuf  -> TestFlight externe + Beta App Review
-  #    fastlane release         AUCUN build -> promeut vers l'App Store le build déjà testé
-  #    fastlane screenshots     captures d'écran App Store
+  #  Depuis le passage à Xcode Cloud, le seul producteur de binaires est Xcode Cloud :
+  #  un push sur `main` lint, teste, archive et dépose sur TestFlight. fastlane ne sert
+  #  plus qu'à ce qu'Xcode Cloud ne sait pas faire — la fiche App Store et la review.
   #
-  #  Le point important : `release` ne recompile jamais. On soumet exactement le binaire qui
-  #  est passé par TestFlight, pas un jumeau reconstruit juste après la recette.
+  #    fastlane beta_external        distribue le build TestFlight courant en beta externe
+  #    fastlane release              promeut ce même build vers l'App Store
+  #    fastlane update_testflight_notes  corrige le « ce qu'il faut tester »
+  #    fastlane screenshots          captures d'écran App Store
+  #
+  #  Le point important : on soumet exactement le binaire qui est passé par TestFlight,
+  #  jamais un jumeau reconstruit après la recette.
   # =====================================================================================
 
-  desc "Build et envoi sur TestFlight (testeurs internes)"
-  lane :beta do
-    build_release
-    upload_to_testflight(
-      api_key: asc_api_key,
-      changelog: testflight_notes_text,
-      skip_waiting_for_build_processing: true
-    )
-    UI.success("Build #{lane_context[SharedValues::BUILD_NUMBER]} envoyé sur TestFlight.")
-    UI.message("Une fois testé : `bundle exec fastlane release` (promotion, sans recompilation).")
-  end
-
-  desc "Build et envoi en beta externe (passe par la Beta App Review)"
+  desc "Distribue le dernier build TestFlight aux testeurs externes (passe par la Beta App Review)"
   lane :beta_external do
-    build_release
+    key = asc_api_key
+    build = current_testflight_build(key)
 
     upload_to_testflight(
-      api_key: asc_api_key,
+      api_key: key,
+      app_identifier: APP_ID,
+      app_version: current_version,
+      build_number: build.to_s,
+      # Équivalent de `skip_binary_upload` côté deliver : on agit sur un build déjà en ligne
+      # (celui d'Xcode Cloud) au lieu d'en téléverser un nouveau. Erreur facile à faire :
+      # les deux actions ont des jeux d'options distincts.
+      distribute_only: true,
       distribute_external: true,
       notify_external_testers: true,
       groups: ["HolyDay Beta"],
       submit_beta_review: true,
       changelog: testflight_notes_text,
-      # La review externe exige un build « processed » : on attend, contrairement à la lane interne.
-      skip_waiting_for_build_processing: false,
 
       beta_app_review_info: {
         contact_email: "matthias.cadet25+betaholyday@gmail.com",
@@ -73,21 +64,16 @@ platform :ios do
         "en-US"   => beta_app_info(:en)
       }
     )
+
+    UI.success("Build #{build} distribué en beta externe.")
   end
 
   desc "Promeut vers l'App Store le dernier build TestFlight (ne recompile pas). " \
        "`submit:true` pour envoyer aussi en review."
   lane :release do |options|
     key = asc_api_key
-    version = get_version_number(xcodeproj: XCODEPROJ, target: "HolyDay")
-    build = latest_testflight_build_number(api_key: key, app_identifier: APP_ID, version: version)
-
-    if build.to_i.zero?
-      UI.user_error!(
-        "Aucun build TestFlight pour la version #{version}. " \
-        "Lance d'abord `bundle exec fastlane beta`."
-      )
-    end
+    version = current_version
+    build = current_testflight_build(key)
 
     UI.important("Promotion du build #{build} (version #{version}) — sans recompilation.")
 
@@ -127,20 +113,13 @@ platform :ios do
   desc "Met à jour le « ce qu'il faut tester » du dernier build TestFlight, sans recompiler"
   lane :update_testflight_notes do
     key = asc_api_key
-    version = get_version_number(xcodeproj: XCODEPROJ, target: "HolyDay")
-    build = latest_testflight_build_number(api_key: key, app_identifier: APP_ID, version: version)
+    version = current_version
+    build = current_testflight_build(key)
 
-    if build.to_i.zero?
-      UI.user_error!("Aucun build TestFlight pour la version #{version}.")
-    end
-
-    # App Store Connect refuse certains caractères dans ce champ (les filets « ━ » notamment) :
-    # une faute ici faisait échouer toute la lane `beta` APRÈS l'upload du binaire. Cette lane
-    # permet de corriger le texte seul, sans reconstruire ni renuméroter quoi que ce soit.
-    #
-    # `distribute_only` est l'option de pilot pour agir sur un build déjà en ligne — l'équivalent
-    # de `skip_binary_upload` côté deliver, qui n'existe pas ici (erreur facile à faire : les deux
-    # actions ont des jeux d'options distincts).
+    # App Store Connect refuse certains caractères dans ce champ (les filets « ━ » notamment).
+    # Xcode Cloud, lui, joint les notes au moment de la distribution : une faute de frappe y
+    # laisserait un build correct avec des notes fausses. Cette lane corrige le texte seul,
+    # sans reconstruire ni renuméroter quoi que ce soit.
     upload_to_testflight(
       api_key: key,
       app_identifier: APP_ID,
@@ -162,47 +141,6 @@ platform :ios do
   #  Interne
   # =====================================================================================
 
-  # Signature + numérotation + archive. Utilisée par les deux lanes de beta uniquement :
-  # `release` ne construit rien.
-  private_lane :build_release do
-    key = asc_api_key
-
-    match(
-      type: "appstore",
-      app_identifier: [APP_ID, WIDGET_ID],
-      readonly: true
-    )
-
-    # build_configurations limité à Release : sans ce filtre l'action écrit aussi dans Debug, ce qui
-    # casse les builds sur device depuis Xcode (un profil AppStore n'autorise pas l'installation
-    # directe). Le scheme archive en Release.
-    update_code_signing_settings(
-      use_automatic_signing: false,
-      targets: ["HolyDay"],
-      build_configurations: ["Release"],
-      bundle_identifier: APP_ID,
-      profile_name: "match AppStore #{APP_ID}",
-      code_sign_identity: "Apple Distribution"
-    )
-    update_code_signing_settings(
-      use_automatic_signing: false,
-      targets: ["HolyDayWidgetExtension"],
-      build_configurations: ["Release"],
-      bundle_identifier: WIDGET_ID,
-      profile_name: "match AppStore #{WIDGET_ID}",
-      code_sign_identity: "Apple Distribution"
-    )
-
-    increment_build_number(
-      build_number: latest_testflight_build_number(api_key: key) + 1
-    )
-
-    build_app(
-      scheme: "HolyDay",
-      export_method: "app-store"
-    )
-  end
-
   # Mémoïsée : sans ça chaque lane recréait la clé deux ou trois fois par exécution.
   def asc_api_key
     @asc_api_key ||= app_store_connect_api_key(
@@ -212,8 +150,28 @@ platform :ios do
     )
   end
 
-  # « Ce qu'il faut tester », lu depuis un fichier pour ne pas vivre en dur dans le Fastfile —
-  # c'est la partie qui change à chaque version. Repli sur les notes App Store françaises.
+  def current_version
+    get_version_number(xcodeproj: XCODEPROJ, target: "HolyDay")
+  end
+
+  # Le numéro de build n'est plus décidé ici : c'est celui qu'Xcode Cloud a attribué à son
+  # archive. Toutes les lanes désignent donc le dernier build en ligne pour la version courante.
+  def current_testflight_build(key)
+    version = current_version
+    build = latest_testflight_build_number(api_key: key, app_identifier: APP_ID, version: version)
+
+    if build.to_i.zero?
+      UI.user_error!(
+        "Aucun build TestFlight pour la version #{version}. " \
+        "Pousse sur `main` (ou lance le workflow Xcode Cloud à la main) et attends l'archive."
+      )
+    end
+
+    build
+  end
+
+  # « Ce qu'il faut tester », lu depuis le dossier TestFlight/ pour ne pas vivre en dur dans le
+  # Fastfile — c'est la partie qui change à chaque version. Repli sur les notes App Store.
   def testflight_notes_text
     path = File.expand_path("../#{TESTFLIGHT_NOTES}", __dir__)
     return File.read(path).strip if File.exist?(path)

@@ -11,7 +11,9 @@
 set -euo pipefail
 
 FASTFILE="ios/fastlane/Fastfile"
-NOTES="ios/fastlane/testflight_whats_new.txt"
+# Les notes vivent à côté du .xcodeproj depuis le passage à Xcode Cloud : c'est le seul
+# endroit où il va les chercher (TestFlight/WhatToTest.<locale>.txt). Une locale par fichier.
+NOTES_DIR="ios/TestFlight"
 status=0
 
 fail() {
@@ -55,15 +57,16 @@ fi
 
 # 3. Notes TestFlight en ASCII.
 #    App Store Connect rejette certains caractères dans le champ « what to test » (les filets
-#    « ━ » notamment). L'échec survient APRÈS l'upload du binaire : le build part, puis la lane
-#    casse, laissant un build en ligne sans ses notes.
-if [ -f "$NOTES" ]; then
-  if LC_ALL=C grep -q '[^ -~]' "$NOTES"; then
-    fail "$NOTES : caractères non-ASCII, refusés par App Store Connect"
-    LC_ALL=C grep -n '[^ -~]' "$NOTES" | head -5 >&2
+#    « ━ » notamment). Xcode Cloud joint ces notes au moment de la distribution : un caractère
+#    refusé laisse un build en ligne sans ses notes, une fois l'archive déjà produite.
+for notes in "$NOTES_DIR"/WhatToTest.*.txt; do
+  [ -f "$notes" ] || continue
+  if LC_ALL=C grep -q '[^ -~]' "$notes"; then
+    fail "$notes : caractères non-ASCII, refusés par App Store Connect"
+    LC_ALL=C grep -n '[^ -~]' "$notes" | head -5 >&2
   else
-    ok "Notes TestFlight : ASCII pur"
+    ok "$(basename "$notes") : ASCII pur"
   fi
-fi
+done
 
 exit "$status"

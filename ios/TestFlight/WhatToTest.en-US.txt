@@ -1,0 +1,29 @@
+Version 1.1.1 - visual fix: blur under the bars and tab titles.
+
+1. THE PROGRESSIVE BLUR
+
+As the content scrolls, it must fade out gradually under the top bar and under
+the tab bar, with no opaque band and no flat color.
+
+- To check on: Prayer, Journal, Settings, Intentions, support screen, guided
+  prayer and the what's new screen.
+- iOS 26 and iOS 27: only the gradient should be visible, no solid bar on top.
+- iOS 18: the bars stay transparent over the app background, as before.
+
+2. THE TAB TITLES
+
+- On the very first visit to Journal then Settings after launch, the title is
+  fixed in the top bar and the content starts right below it, nothing is hidden
+  under the blur.
+- The title stays in place while scrolling.
+- "HolyDay", "Journal" and "Settings" have the same size.
+- At very large text sizes (iOS Settings > Display and Brightness > Text Size):
+  the title must not be truncated nor overlap the Journal buttons.
+- Journal: the discovery tip must point at the title and stay readable.
+
+3. JOURNAL SEARCH
+
+Magnifier at the top right: the field appears at the top of the page, results
+below. The cross closes it.
+
+Thank you!

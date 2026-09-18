@@ -57,27 +57,28 @@ Cibles : `HolyDay`, `HolyDayWidgetExtension`, `HolyDayTests` (unitaires), `HolyD
 
 Pas de `app/src/androidTest/` : aucun test instrumenté à ce jour.
 
-### Livraison iOS (fastlane, depuis `ios/`)
+### Livraison iOS (Xcode Cloud + fastlane, depuis `ios/`)
 
-`bundle exec fastlane <lane>` depuis `ios/`. Quatre lanes, un verbe par destination :
+**Xcode Cloud est le seul producteur de binaires.** Un push sur `main` lint, teste, archive et dépose sur TestFlight ; aucune lane fastlane ne compile plus quoi que ce soit. fastlane ne couvre que ce qu'Xcode Cloud ne sait pas faire : la fiche App Store, la review, les captures.
 
-| Lane | Recompile ? | Effet |
-|---|---|---|
-| `beta` | oui | Build signé → TestFlight (testeurs internes) |
-| `beta_external` | oui | Build signé → TestFlight externe + Beta App Review |
-| `release` | **non** | Promeut vers l'App Store le dernier build TestFlight de la version courante |
-| `update_testflight_notes` | **non** | Met à jour le « ce qu'il faut tester » du dernier build TestFlight |
-| `screenshots` | — | `capture_screenshots` (config `fastlane/Snapfile`) |
+`bundle exec fastlane <lane>` depuis `ios/`. Quatre lanes, aucune ne recompile :
 
-**`release` ne construit rien** : il désigne, via `skip_binary_upload`, le build déjà passé par TestFlight, et pousse les métadonnées de `fastlane/metadata/`. C'est ce qui garantit qu'on soumet exactement le binaire testé et non un jumeau recompilé après la recette. Il échoue explicitement si aucun build TestFlight n'existe pour la version courante. `submit_for_review` est à `false` par défaut — `fastlane release submit:true` pour envoyer en review, et la mise en vente reste manuelle (`automatic_release: false`).
+| Lane | Effet |
+|---|---|
+| `beta_external` | Distribue le build TestFlight courant aux testeurs externes + Beta App Review |
+| `release` | Promeut vers l'App Store le dernier build TestFlight de la version courante |
+| `update_testflight_notes` | Met à jour le « ce qu'il faut tester » du dernier build TestFlight |
+| `screenshots` | `capture_screenshots` (config `fastlane/Snapfile`) |
 
-Les captures ne sont pas versionnées (`fastlane/screenshots/` est vide) : `release` laisse par défaut intactes celles en ligne. Pour les remplacer : `fastlane screenshots` puis `fastlane release screenshots:true`.
+Le principe commun : `distribute_only` (pilot) et `skip_binary_upload` (deliver) désignent un build **déjà en ligne** au lieu d'en téléverser un nouveau. C'est ce qui garantit qu'on soumet exactement le binaire testé et non un jumeau recompilé après la recette. Erreur facile à faire : ces deux actions ont des jeux d'options distincts pour la même idée. Toutes échouent explicitement si aucun build TestFlight n'existe pour la version courante (helper `current_testflight_build`).
 
-Le « ce qu'il faut tester » envoyé aux testeurs vit dans `fastlane/testflight_whats_new.txt` (distinct des notes App Store, `fastlane/metadata/<langue>/release_notes.txt`).
+`release` : `submit_for_review` est à `false` par défaut — `fastlane release submit:true` pour envoyer en review, et la mise en vente reste manuelle (`automatic_release: false`). Les captures ne sont pas versionnées (`fastlane/screenshots/` est vide) : `release` laisse par défaut intactes celles en ligne. Pour les remplacer : `fastlane screenshots` puis `fastlane release screenshots:true`.
 
-App Store Connect refuse certains caractères dans le champ « what to test » (les filets `━` par exemple) : une faute y faisait échouer `beta` **après** l'upload du binaire, laissant un build correct sans notes. `fastlane update_testflight_notes` corrige le texte seul, sans reconstruire ni renuméroter. Convention de nommage dans le Fastfile : les lanes portent un verbe, les helpers portent la valeur qu'ils renvoient — une lane et un helper homonymes se confondent silencieusement à l'appel. Garder ce fichier en ASCII est le plus sûr.
+Le « ce qu'il faut tester » vit dans `ios/TestFlight/WhatToTest.<locale>.txt` (`fr-FR` et `en-US`), à côté du `.xcodeproj` : c'est l'emplacement qu'Xcode Cloud lit tout seul pour joindre les notes au build qu'il distribue. Les lanes lisent le même fichier `fr-FR` — une seule source de vérité. Distinct des notes App Store (`fastlane/metadata/<langue>/release_notes.txt`), qui s'adressent au public.
 
-`setup_ci` est appelé en `before_all` sous `ENV["CI"]` : sans lui, `match` ne peut pas poser la key partition list et `codesign` gèle sur un runner headless.
+App Store Connect refuse certains caractères dans le champ « what to test » (les filets `━` par exemple) : garder ces fichiers en ASCII est le plus sûr. `fastlane update_testflight_notes` corrige le texte seul, sans renuméroter. Convention de nommage dans le Fastfile : les lanes portent un verbe, les helpers portent la valeur qu'ils renvoient — une lane et un helper homonymes se confondent silencieusement à l'appel.
+
+Plus de `match` : la signature est entièrement automatique (cloud managed signing). Les cibles `HolyDay` et `HolyDayWidgetExtension` sont en `CODE_SIGN_STYLE = Automatic` **en Debug comme en Release**, sans `PROVISIONING_PROFILE_SPECIFIER` — un profil `match AppStore …` codé en dur fait échouer l'archive Xcode Cloud, qui ne dispose d'aucun profil importé. Ne pas réintroduire `update_code_signing_settings` dans le Fastfile.
 
 ## Localisation (obligatoire)
 
@@ -121,7 +122,7 @@ pas d'option d'exclusion, le dossier est listé fichier par fichier.
 cd ios && swift-format format --recursive --in-place \
   HolyDay/ HolyDayShared/ HolyDayTests/ HolyDayWidget/ HolyDayUITests/HolyDayUITests.swift
 
-# Vérifier sans modifier (identique au job `lint` de la CI)
+# Vérifier sans modifier (identique à ci_scripts/ci_pre_xcodebuild.sh)
 cd ios && swift-format lint --strict --recursive \
   HolyDay/ HolyDayShared/ HolyDayTests/ HolyDayWidget/ HolyDayUITests/HolyDayUITests.swift
 ```
@@ -130,15 +131,28 @@ Les deux outils tournent aussi en pre-commit (`.pre-commit-config.yaml`), depuis
 
 ## Intégration continue
 
-Trois workflows, tous filtrés par `paths:` — un commit qui ne touche qu'une plateforme ne déclenche que sa CI.
+La CI iOS est **Xcode Cloud** (workflows définis dans App Store Connect, pas dans le dépôt). GitHub Actions ne garde que l'Android.
 
-| Workflow | Déclencheur | Contenu |
+| Chaîne | Déclencheur | Contenu |
 |---|---|---|
-| `.github/workflows/ios-ci.yml` | push/PR `main`, `feature/*` sur `ios/**`, `shared/**` | SwiftLint + swift-format (`--strict`), Periphery (dead code, `--strict`), build & test |
-| `.github/workflows/android-ci.yml` | idem sur `android/**`, `shared/**` | wrapper validation, Android Lint, tests unitaires, `assembleDebug` + `assembleRelease` |
-| `.github/workflows/beta.yml` | push `main` sur `ios/**`, `shared/**` | `fastlane beta` → TestFlight |
+| Xcode Cloud | push/PR sur `ios/**`, `shared/**` | `ci_post_clone` (SwiftLint), `ci_pre_xcodebuild` (SwiftLint + swift-format `--strict`), Test (`HolyDay Dev`), `ci_post_xcodebuild` (Periphery `--strict`), Archive (`HolyDay`) → TestFlight sur `main` |
+| `.github/workflows/android-ci.yml` | push/PR `main`, `feature/*` sur `android/**`, `shared/**` | wrapper validation, Android Lint, tests unitaires, `assembleDebug` + `assembleRelease` |
 
-Le parseur de workflows GitHub ne gère pas les ancres YAML : les listes `paths:` sont dupliquées volontairement entre `push` et `pull_request`.
+Le parseur de workflows GitHub ne gère pas les ancres YAML : les listes `paths:` d'`android-ci.yml` sont dupliquées volontairement entre `push` et `pull_request`.
+
+### Xcode Cloud — ce qui vit dans le dépôt
+
+Xcode Cloud ne cherche ses scripts **que** dans un dossier `ci_scripts/` situé au même niveau que le `.xcodeproj` : ici `ios/ci_scripts/`, pas la racine du monorepo. Le cwd des scripts est ce dossier — d'où `${CI_PRIMARY_REPOSITORY_PATH}/ios` partout plutôt que des chemins relatifs.
+
+| Script | Rôle |
+|---|---|
+| `ci_post_clone.sh` | Installe SwiftLint (absent de l'image ; swift-format est fourni par Xcode via `xcrun`), approfondit le clone superficiel |
+| `ci_pre_xcodebuild.sh` | Porte de qualité : SwiftLint + swift-format `--strict`. Court-circuité sur `archive`/`analyze`, déjà joué pour `build-for-testing` dans le même build |
+| `ci_post_xcodebuild.sh` | Periphery `--strict` sur l'index-store de `build-for-testing` — pas de seconde compilation. Avertit sans bloquer si l'index-store a bougé |
+
+La build phase SwiftLint du projet sort immédiatement sous `CI_XCODE_CLOUD` : sinon chaque cible relinterait l'arbre déjà validé par `ci_pre_xcodebuild.sh`.
+
+Côté App Store Connect, deux réglages ne vivent pas dans le dépôt et doivent être posés à la main : le **numéro de build de départ** du produit Xcode Cloud (la numérotation repart de 1 alors que fastlane en était à 16 — un build inférieur est rejeté à l'upload), et la **Deployment Preparation** de l'action Archive, à `TestFlight and App Store` (avec `None`, l'archive n'est pas signée pour la distribution).
 
 ## Documentation & références (obligatoire)
 

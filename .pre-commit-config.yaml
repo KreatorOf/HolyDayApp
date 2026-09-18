@@ -27,4 +27,4 @@ repos:
         entry: scripts/check-fastlane.sh
         language: system
         pass_filenames: false
-        files: '^ios/fastlane/'
+        files: '^ios/(fastlane|TestFlight)/'
