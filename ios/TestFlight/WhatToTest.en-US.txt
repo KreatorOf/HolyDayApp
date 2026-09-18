@@ -1,29 +1,39 @@
-Version 1.1.1 - visual fix: blur under the bars and tab titles.
+Contextual reminders and living widgets.
 
-1. THE PROGRESSIVE BLUR
+1. REMINDERS
 
-As the content scrolls, it must fade out gradually under the top bar and under
-the tab bar, with no opaque band and no flat color.
+The daily reminder adapts to what actually happened, and never guilt-trips.
 
-- To check on: Prayer, Journal, Settings, Intentions, support screen, guided
-  prayer and the what's new screen.
-- iOS 26 and iOS 27: only the gradient should be visible, no solid bar on top.
-- iOS 18: the bars stay transparent over the app background, as before.
+- On a day you already prayed: no reminder at all. Pray once during the day,
+  then check that nothing fires in the evening.
+- For the two days after a prayer where you picked an emotion: the reminder
+  offers a verse on that theme. It must never name the emotion nor point you
+  back to how you felt.
+- On Sunday, if an open intention is more than seven days old: an invitation
+  to come back to it. The intention text must NEVER appear on the lock
+  screen. Tapping it opens the Intentions screen.
+- Any other day: the usual reflection question.
 
-2. THE TAB TITLES
+2. THE "MY VERSE" WIDGET
 
-- On the very first visit to Journal then Settings after launch, the title is
-  fixed in the top bar and the content starts right below it, nothing is hidden
-  under the blur.
-- The title stays in place while scrolling.
-- "HolyDay", "Journal" and "Settings" have the same size.
-- At very large text sizes (iOS Settings > Display and Brightness > Text Size):
-  the title must not be truncated nor overlap the Journal buttons.
-- Journal: the discovery tip must point at the title and stay readable.
+- It must never be empty nor stay stuck on an old verse.
+- On the day you pick an emotion it shows that emotion's verse; on the
+  following days a verse of the day takes over.
+- "Another verse" button: the verse changes in place, without opening the
+  app and without a wait.
+- Switch the iPhone language between French and English: the widget verse
+  must follow (Louis Segond 1910 / Berean Standard Bible).
 
-3. JOURNAL SEARCH
+3. THE "PRAY" CONTROL
 
-Magnifier at the top right: the field appears at the top of the page, results
-below. The cross closes it.
+- Add it to Control Center, and assign it to the Action button if your
+  iPhone has one.
+- It must open free prayer directly, without going through the home screen.
+- Test it with the device locked too.
+
+4. WHAT MUST NOT HAVE CHANGED
+
+The "Pray" widget and the older shortcuts still open the app in the right
+place. Journal, stats and guided prayer are untouched.
 
 Thank you!

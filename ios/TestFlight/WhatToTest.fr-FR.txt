@@ -1,31 +1,39 @@
-Version 1.1.1 - correctif visuel : flou sous les barres et titres des onglets.
+Rappels contextuels et widgets vivants.
 
-1. LE FLOU PROGRESSIF
+1. LES RAPPELS
 
-En faisant defiler le contenu, il doit s'estomper progressivement sous la barre
-du haut et sous la barre d'onglets, sans bande opaque ni aplat de couleur.
+Le rappel quotidien s'adapte a ce qui s'est passe, sans jamais culpabiliser.
 
-- A verifier sur : Priere, Journal, Reglages, Intentions, ecran de soutien,
-  priere guidee et ecran de nouveautes.
-- iOS 26 et iOS 27 : seul le degrade doit etre visible, aucune barre pleine
-  par-dessus.
-- iOS 18 : les barres restent transparentes sur le fond de l'app, comme avant.
+- Le jour ou tu as deja prie : aucun rappel. Prie une fois dans la journee,
+  puis verifie qu'il ne tombe rien le soir.
+- Les deux jours qui suivent une priere ou tu as choisi une emotion : le
+  rappel propose un verset de ce theme. Il ne doit jamais nommer l'emotion
+  ni te renvoyer a ton etat de la veille.
+- Le dimanche, si une intention ouverte a plus de sept jours : une
+  invitation a y revenir. Le texte de l'intention ne doit JAMAIS apparaitre
+  sur l'ecran verrouille. Le tap ouvre l'ecran Intentions.
+- Les autres jours : la question de reflexion habituelle.
 
-2. LES TITRES DES ONGLETS
+2. LE WIDGET " MON VERSET "
 
-- Au tout premier passage sur Journal puis Reglages apres le lancement, le titre
-  est fixe dans la barre du haut et le contenu commence juste en dessous, rien
-  n'est cache sous le flou.
-- Le titre reste en place pendant le defilement.
-- "HolyDay", "Journal" et "Reglages" ont la meme taille.
-- En tres grande taille de texte (Reglages iOS > Affichage et luminosite >
-  Taille du texte) : le titre ne doit ni etre tronque ni chevaucher les boutons
-  du Journal.
-- Journal : l'astuce de decouverte doit pointer vers le titre et rester lisible.
+- Il ne doit plus jamais etre vide ni rester fige sur un ancien verset.
+- Le jour ou tu declares une emotion, il montre le verset de cette emotion ;
+  les jours suivants, un verset du jour prend le relais.
+- Bouton " Un autre verset " : le verset change sur place, sans ouvrir
+  l'app et sans attendre.
+- Bascule la langue de l'iPhone entre francais et anglais : le verset du
+  widget doit suivre (Louis Segond 1910 / Berean Standard Bible).
 
-3. LA RECHERCHE DU JOURNAL
+3. LA COMMANDE " PRIER "
 
-Loupe en haut a droite : le champ apparait en tete de page, les resultats en
-dessous. La croix le referme.
+- Ajoute-la au Centre de controle, et si ton iPhone a un bouton Action,
+  assigne-la lui.
+- Elle doit ouvrir directement la priere libre, sans passer par l'accueil.
+- A tester aussi appareil verrouille.
+
+4. CE QUI NE DOIT PAS AVOIR BOUGE
+
+Le widget " Prier " et les anciens raccourcis continuent d'ouvrir l'app au
+bon endroit. Le journal, les statistiques et la priere guidee sont inchanges.
 
 Merci !
