@@ -16,11 +16,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowUpward
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -47,6 +53,7 @@ import com.matthiascadet.holyday.R
 import com.matthiascadet.holyday.data.db.AppDatabase
 import com.matthiascadet.holyday.data.db.PrayerIntentionEntity
 import com.matthiascadet.holyday.ui.common.AppBackground
+import com.matthiascadet.holyday.ui.common.HolyDayScaffold
 import com.matthiascadet.holyday.ui.theme.AppTheme
 import com.matthiascadet.holyday.ui.theme.softSurface
 import com.matthiascadet.holyday.ui.theme.softTextFieldColors
@@ -73,47 +80,48 @@ fun IntentionsScreen(onDismiss: () -> Unit, onOpenDetail: (String) -> Unit) {
     val answered = intentions.filter { it.isAnswered }
     val shown = if (segment == IntentionsSegment.ACTIVE) active else answered
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.intentions_nav_title), color = AppTheme.colors.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) {
-                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.common_close))
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-            )
-        },
+    HolyDayScaffold(
+        title = stringResource(R.string.intentions_nav_title),
+        onBack = onDismiss,
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             AppBackground()
             Column(Modifier.fillMaxSize()) {
-                Row(
+                SingleChoiceSegmentedButtonRow(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
-                    SegmentButton(
-                        label = stringResource(R.string.intentions_segment_active) + " ${active.size}",
-                        selected = segment == IntentionsSegment.ACTIVE,
-                        onClick = { segment = IntentionsSegment.ACTIVE },
-                        modifier = Modifier.weight(1f),
+                    val options = listOf(
+                        IntentionsSegment.ACTIVE to stringResource(R.string.intentions_segment_active) + " ${active.size}",
+                        IntentionsSegment.ANSWERED to stringResource(R.string.intentions_section_answered) + " ${answered.size}",
                     )
-                    SegmentButton(
-                        label = stringResource(R.string.intentions_section_answered) + " ${answered.size}",
-                        selected = segment == IntentionsSegment.ANSWERED,
-                        onClick = { segment = IntentionsSegment.ANSWERED },
-                        modifier = Modifier.weight(1f),
-                    )
+                    options.forEachIndexed { index, option ->
+                        SegmentedButton(
+                            selected = segment == option.first,
+                            onClick = { segment = option.first },
+                            shape = SegmentedButtonDefaults.itemShape(index, options.size),
+                            label = { Text(option.second) },
+                        )
+                    }
                 }
 
                 if (shown.isEmpty()) {
                     Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
                             modifier = Modifier.padding(horizontal = 32.dp),
                         ) {
+                            Surface(
+                                shape = CircleShape,
+                                color = AppTheme.colors.adorationPurple.copy(alpha = 0.12f),
+                            ) {
+                                Icon(
+                                    if (segment == IntentionsSegment.ACTIVE) Icons.Filled.FavoriteBorder else Icons.Filled.CheckCircle,
+                                    contentDescription = null,
+                                    tint = if (segment == IntentionsSegment.ACTIVE) AppTheme.colors.adorationPurple else AppTheme.colors.supplicationGreen,
+                                    modifier = Modifier.padding(18.dp),
+                                )
+                            }
                             Text(
                                 stringResource(
                                     if (segment == IntentionsSegment.ACTIVE) R.string.intentions_empty_title else R.string.intentions_empty_answered_title,
@@ -180,25 +188,6 @@ fun IntentionsScreen(onDismiss: () -> Unit, onOpenDetail: (String) -> Unit) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun SegmentButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(50))
-            .background(if (selected) AppTheme.colors.adorationPurple.copy(alpha = 0.35f) else AppTheme.colors.cardFill)
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            color = if (selected) AppTheme.colors.textPrimary else AppTheme.colors.textSecondary,
-        )
     }
 }
 

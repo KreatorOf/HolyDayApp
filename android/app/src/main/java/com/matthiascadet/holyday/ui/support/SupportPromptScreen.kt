@@ -17,6 +17,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,14 +36,19 @@ import com.matthiascadet.holyday.ui.common.AppBackground
 import com.matthiascadet.holyday.ui.theme.AppTheme
 
 /** Équivalent de `SupportPromptView` iOS. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun SupportPromptScreen(onSupport: () -> Unit, onLater: () -> Unit, onDontAskAgain: () -> Unit) {
-    Box(Modifier.fillMaxSize()) {
-        AppBackground()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(
+        onDismissRequest = onLater,
+        sheetState = sheetState,
+        containerColor = AppTheme.colors.cardSurface,
+    ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(32.dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp, vertical = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween,
+            verticalArrangement = Arrangement.spacedBy(26.dp),
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(18.dp)) {
                 Box(
@@ -66,7 +73,7 @@ fun SupportPromptScreen(onSupport: () -> Unit, onLater: () -> Unit, onDontAskAga
                 )
             }
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp), modifier = Modifier.fillMaxWidth()) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                 Button(
                     onClick = onSupport,
                     colors = ButtonDefaults.buttonColors(containerColor = AppTheme.colors.adorationPurple),
@@ -84,6 +91,6 @@ fun SupportPromptScreen(onSupport: () -> Unit, onLater: () -> Unit, onDontAskAga
                     modifier = Modifier.padding(top = 2.dp, bottom = 4.dp).clickable(onClick = onDontAskAgain),
                 )
             }
-        }
     }
+}
 }

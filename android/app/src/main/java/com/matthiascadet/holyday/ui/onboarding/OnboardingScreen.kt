@@ -6,10 +6,15 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,6 +60,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -152,7 +158,9 @@ fun OnboardingScreen(onFinished: () -> Unit) {
                         .height(6.dp)
                         .width(if (index == step) 20.dp else 6.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(if (index == step) AppTheme.colors.textPrimary else AppTheme.colors.textTertiary.copy(alpha = 0.4f)),
+                        // Les repères inactifs restent à contraste suffisant : l'ancien gris
+                        // tertiaire, encore rendu translucide, disparaissait presque sur le fond crème.
+                        .background(if (index == step) AppTheme.colors.textPrimary else AppTheme.colors.textSecondary),
                 )
             }
         }
@@ -171,10 +179,35 @@ private fun OnboardingScaffold(footer: @Composable () -> Unit, content: @Composa
 
 @Composable
 private fun HeroIcon(icon: ImageVector, color: androidx.compose.ui.graphics.Color) {
+    val transition = rememberInfiniteTransition(label = "onboardingHalo")
+    val haloScale by transition.animateFloat(
+        initialValue = 0.92f,
+        targetValue = 1.12f,
+        animationSpec = infiniteRepeatable(tween(1800), repeatMode = RepeatMode.Reverse),
+        label = "haloScale",
+    )
+    val haloAlpha by transition.animateFloat(
+        initialValue = 0.08f,
+        targetValue = 0.18f,
+        animationSpec = infiniteRepeatable(tween(1800), repeatMode = RepeatMode.Reverse),
+        label = "haloAlpha",
+    )
     Box(
-        modifier = Modifier.size(96.dp).clip(CircleShape).background(color.copy(alpha = 0.15f)),
+        modifier = Modifier.size(112.dp),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(48.dp)) }
+    ) {
+        Box(
+            Modifier
+                .size(96.dp)
+                .graphicsLayer { scaleX = haloScale; scaleY = haloScale }
+                .clip(CircleShape)
+                .background(color.copy(alpha = haloAlpha)),
+        )
+        Box(
+            modifier = Modifier.size(88.dp).clip(CircleShape).background(color.copy(alpha = 0.13f)),
+            contentAlignment = Alignment.Center,
+        ) { Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(44.dp)) }
+    }
 }
 
 @Composable
@@ -198,7 +231,7 @@ private fun HeroPage(onNext: () -> Unit) {
             Text("Day", fontWeight = FontWeight.Light, style = MaterialTheme.typography.headlineLarge, color = AppTheme.colors.textSecondary)
         }
         Spacer(Modifier.height(12.dp))
-        Text(stringResource(R.string.onboarding_welcome_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textTertiary, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.onboarding_welcome_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textSecondary, textAlign = TextAlign.Center)
     }
 }
 
@@ -219,13 +252,22 @@ private fun ValuePage(onNext: () -> Unit) {
 
 @Composable
 private fun FeatureRow(icon: ImageVector, label: String, description: String, color: androidx.compose.ui.graphics.Color) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(AppTheme.colors.cardSurface.copy(alpha = 0.76f))
+            .border(1.dp, color.copy(alpha = 0.14f), MaterialTheme.shapes.medium)
+            .padding(14.dp),
+    ) {
         Box(modifier = Modifier.size(44.dp).clip(RoundedCornerShape(12.dp)).background(color.copy(alpha = 0.15f)), contentAlignment = Alignment.Center) {
             Icon(icon, contentDescription = null, tint = color)
         }
         Column {
             Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = AppTheme.colors.textPrimary)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.textTertiary)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = AppTheme.colors.textSecondary)
         }
     }
 }
@@ -236,7 +278,7 @@ private fun NamePage(name: String, onNameChange: (String) -> Unit, onNext: () ->
         HeroIcon(Icons.Filled.Person, AppTheme.colors.confessionBlue)
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.onboarding_name_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = AppTheme.colors.textPrimary, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.onboarding_name_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textTertiary, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.onboarding_name_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textSecondary, textAlign = TextAlign.Center)
         Spacer(Modifier.height(24.dp))
         OutlinedTextField(
             value = name,
@@ -254,7 +296,7 @@ private fun FirstIntentionPage(onNext: (String) -> Unit) {
         HeroIcon(Icons.Filled.VolunteerActivism, AppTheme.colors.adorationPurple)
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.onboarding_intention_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = AppTheme.colors.textPrimary, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.onboarding_intention_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textTertiary, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.onboarding_intention_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textSecondary, textAlign = TextAlign.Center)
         Spacer(Modifier.height(24.dp))
         OutlinedTextField(
             value = text,
@@ -271,7 +313,7 @@ private fun PrivacyPage(onNext: () -> Unit) {
         HeroIcon(Icons.Filled.Lock, AppTheme.colors.confessionBlue)
         Spacer(Modifier.height(24.dp))
         Text(stringResource(R.string.onboarding_privacy_title), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = AppTheme.colors.textPrimary, textAlign = TextAlign.Center)
-        Text(stringResource(R.string.onboarding_privacy_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textTertiary, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.onboarding_privacy_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textSecondary, textAlign = TextAlign.Center)
         Spacer(Modifier.height(36.dp))
         Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
             FeatureRow(Icons.Filled.PhoneAndroid, stringResource(R.string.onboarding_privacy_local_label), stringResource(R.string.onboarding_privacy_local_desc), AppTheme.colors.confessionBlue)
@@ -291,7 +333,7 @@ private fun NotificationsPage(onEnable: () -> Unit, onSkip: () -> Unit) {
                 Text(
                     stringResource(R.string.onboarding_notifications_skip),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textTertiary,
+                    color = AppTheme.colors.textSecondary,
                     modifier = Modifier.clickable(onClick = onSkip),
                 )
             }
@@ -316,10 +358,11 @@ private fun ReassurancePill(icon: ImageVector, text: String) {
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(AppTheme.colors.supplicationGreen.copy(alpha = 0.08f))
+            .background(AppTheme.colors.supplicationGreen.copy(alpha = 0.14f))
+            .border(1.dp, AppTheme.colors.supplicationGreen.copy(alpha = 0.28f), RoundedCornerShape(12.dp))
             .padding(vertical = 12.dp, horizontal = 8.dp),
     ) {
         Icon(icon, contentDescription = null, tint = AppTheme.colors.supplicationGreen, modifier = Modifier.size(18.dp))
-        Text(text, style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.textTertiary, textAlign = TextAlign.Center)
+        Text(text, style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.textPrimary, textAlign = TextAlign.Center)
     }
 }

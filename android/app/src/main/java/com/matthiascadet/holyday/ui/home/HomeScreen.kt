@@ -28,17 +28,19 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,9 +63,12 @@ import com.matthiascadet.holyday.data.model.Verse
 import com.matthiascadet.holyday.data.prefs.rememberStringPreference
 import com.matthiascadet.holyday.service.AIAssistantService
 import com.matthiascadet.holyday.service.PrayerRecordService
+import com.matthiascadet.holyday.service.TourService
 import com.matthiascadet.holyday.service.WidgetSyncService
 import com.matthiascadet.holyday.service.notification.NotificationService as PrayerNotificationService
 import com.matthiascadet.holyday.ui.common.AppBackground
+import com.matthiascadet.holyday.ui.common.TourTip
+import com.matthiascadet.holyday.ui.common.TourTipPlacement
 import com.matthiascadet.holyday.ui.prayer.EmotionRibbon
 import com.matthiascadet.holyday.ui.prayer.EmotionVerse
 import com.matthiascadet.holyday.ui.theme.AppTheme
@@ -119,6 +124,7 @@ fun HomeScreen(
     onStartStructuredPrayer: () -> Unit,
 ) {
     val userName by rememberStringPreference(PrayerNotificationService.USER_NAME_KEY)
+    val tourStep by TourService.step.collectAsState()
     var menuExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -126,13 +132,19 @@ fun HomeScreen(
             CenterAlignedTopAppBar(
                 title = { BrandingTitle() },
                 actions = {
-                    IconButton(onClick = onOpenIntentions) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.List,
-                            contentDescription = stringResource(R.string.intentions_nav_title),
-                            tint = AppTheme.colors.textPrimary,
-                            modifier = Modifier.size(32.dp),
-                        )
+                    Surface(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = 2.dp,
+                    ) {
+                        IconButton(onClick = onOpenIntentions) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.List,
+                                contentDescription = stringResource(R.string.intentions_nav_title),
+                                tint = AppTheme.colors.textPrimary,
+                                modifier = Modifier.size(22.dp),
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
@@ -150,7 +162,7 @@ fun HomeScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(16.dp))
                 Text(
                     text = feelingQuestion(userName),
                     style = MaterialTheme.typography.headlineSmall,
@@ -159,15 +171,32 @@ fun HomeScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
                 )
-                Spacer(Modifier.height(20.dp))
-                EmotionRibbon(onSelect = onSelectEmotion, modifier = Modifier.fillMaxWidth())
+                Spacer(Modifier.height(24.dp))
+                EmotionRibbon(
+                    selectedEmotion = selectedEmotion,
+                    onSelect = {
+                        if (tourStep == TourService.Step.EMOTIONS) TourService.dismiss(tourStep)
+                        onSelectEmotion(it)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
                 Spacer(Modifier.height(12.dp))
                 Box(Modifier.fillMaxWidth().height(168.dp), contentAlignment = Alignment.TopCenter) {
-                    emotionVerse?.let { verse ->
-                        EmotionVerse(
-                            verse = verse,
-                            accent = selectedEmotion?.let { AppTheme.colorFor(it.colorName) } ?: AppTheme.colors.adorationPurple,
-                        )
+                    Crossfade(targetState = emotionVerse, animationSpec = tween(240), label = "emotionVerse") { verse ->
+                        if (verse == null) {
+                            Text(
+                                stringResource(R.string.home_emotion_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = AppTheme.colors.textSecondary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(horizontal = 48.dp, vertical = 18.dp),
+                            )
+                        } else {
+                            EmotionVerse(
+                                verse = verse,
+                                accent = selectedEmotion?.let { AppTheme.colorFor(it.colorName) } ?: AppTheme.colors.adorationPurple,
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(24.dp))
@@ -214,18 +243,25 @@ fun HomeScreen(
                             onClick = { menuExpanded = false; onStartFreePrayer() },
                         )
                     }
-                    Button(
+                    ElevatedButton(
                         onClick = { menuExpanded = !menuExpanded },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AppTheme.colors.adorationPurple,
-                            contentColor = androidx.compose.ui.graphics.Color.White,
+                            containerColor = AppTheme.colors.cardSurface,
+                            contentColor = AppTheme.colors.textPrimary,
                         ),
-                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp, pressedElevation = 2.dp),
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 1.dp,
+                        ),
                         shape = MaterialTheme.shapes.extraLarge,
-                        contentPadding = PaddingValues(horizontal = 26.dp, vertical = 14.dp),
+                        contentPadding = PaddingValues(horizontal = 28.dp, vertical = 15.dp),
                     ) {
                         Crossfade(targetState = menuExpanded, label = "prayButtonIcon") { expanded ->
-                            Icon(if (expanded) Icons.Filled.Close else Icons.Filled.AutoAwesome, contentDescription = null)
+                            Icon(
+                                if (expanded) Icons.Filled.Close else Icons.Filled.AutoAwesome,
+                                contentDescription = null,
+                                tint = AppTheme.colors.adorationPurple,
+                            )
                         }
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.home_pray_cta), fontWeight = FontWeight.SemiBold)
@@ -234,21 +270,30 @@ fun HomeScreen(
             }
         }
     }
+
+    if (tourStep in setOf(TourService.Step.EMOTIONS, TourService.Step.PRAY, TourService.Step.INTENTIONS)) {
+        val placement = when (tourStep) {
+            TourService.Step.INTENTIONS -> TourTipPlacement.TOP_END
+            TourService.Step.PRAY -> TourTipPlacement.BOTTOM
+            else -> TourTipPlacement.CENTER
+        }
+        TourTip(step = tourStep, placement = placement, onDismiss = { TourService.dismiss(tourStep) })
+    }
 }
 
 @Composable
 private fun PrayChoicePill(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit) {
-    Button(
+    ElevatedButton(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppTheme.colors.adorationPurple,
-            contentColor = androidx.compose.ui.graphics.Color.White,
+            containerColor = AppTheme.colors.cardSurface,
+            contentColor = AppTheme.colors.textPrimary,
         ),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp, pressedElevation = 2.dp),
+        elevation = ButtonDefaults.elevatedButtonElevation(defaultElevation = 3.dp, pressedElevation = 1.dp),
         shape = MaterialTheme.shapes.extraLarge,
         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 14.dp),
     ) {
-        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+        Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = AppTheme.colors.adorationPurple)
         Spacer(Modifier.width(8.dp))
         Text(label, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
     }
@@ -257,8 +302,8 @@ private fun PrayChoicePill(icon: androidx.compose.ui.graphics.vector.ImageVector
 @Composable
 private fun BrandingTitle() {
     Row {
-        Text("Holy", fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineLarge, color = AppTheme.colors.textPrimary)
-        Text("Day", fontWeight = FontWeight.Light, style = MaterialTheme.typography.headlineLarge, color = AppTheme.colors.textPrimary)
+        Text("Holy", fontStyle = FontStyle.Italic, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.headlineMedium, color = AppTheme.colors.textPrimary)
+        Text("Day", fontWeight = FontWeight.Light, style = MaterialTheme.typography.headlineMedium, color = AppTheme.colors.textPrimary)
     }
 }
 

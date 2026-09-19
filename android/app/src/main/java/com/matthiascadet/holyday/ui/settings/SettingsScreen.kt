@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,11 +43,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -124,16 +131,34 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
 
     Box(Modifier.fillMaxSize()) {
         com.matthiascadet.holyday.ui.common.AppBackground()
-        Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
-        ) {
-            Text(
-                stringResource(R.string.tab_settings),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = AppTheme.colors.textPrimary,
-            )
+        Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(R.string.tab_settings),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = AppTheme.colors.textPrimary,
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    ),
+                )
+            },
+        ) { contentPadding ->
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .widthIn(max = 720.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(contentPadding)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp),
+            ) {
 
             // Profil
             SettingsCard {
@@ -184,7 +209,12 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
                             Text(stringResource(R.string.settings_profile_edit_hint), style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.textTertiary)
                         }
                     }
-                    IconButton2(if (isEditingName) Icons.Filled.Edit else Icons.Filled.Edit) {
+                    IconButton2(
+                        icon = Icons.Filled.Edit,
+                        contentDescription = stringResource(
+                            if (isEditingName) R.string.accessibility_profile_save else R.string.accessibility_profile_edit,
+                        ),
+                    ) {
                         if (isEditingName) {
                             userName = pendingName.trim()
                             AppPreferences.raw.edit().putString(NotificationService.USER_NAME_KEY, userName).apply()
@@ -224,23 +254,24 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
                         IconBadge(Icons.Filled.Info, AppTheme.colors.adorationPurple)
                         Text(stringResource(R.string.settings_appearance_title), color = AppTheme.colors.textPrimary, modifier = Modifier.padding(start = 14.dp))
                     }
-                    Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("system" to R.string.settings_appearance_system, "light" to R.string.settings_appearance_light, "dark" to R.string.settings_appearance_dark).forEach { (value, labelRes) ->
-                            val selected = colorScheme == value
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(if (selected) AppTheme.colors.adorationPurple.copy(alpha = 0.3f) else AppTheme.colors.cardFill)
-                                    .clickable {
-                                        colorScheme = value
-                                        AppPreferences.raw.edit().putString("holyday.colorScheme", value).apply()
-                                    }
-                                    .padding(vertical = 8.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(stringResource(labelRes), style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.textPrimary)
-                            }
+                    val appearanceOptions = listOf(
+                        "system" to R.string.settings_appearance_system,
+                        "light" to R.string.settings_appearance_light,
+                        "dark" to R.string.settings_appearance_dark,
+                    )
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                    ) {
+                        appearanceOptions.forEachIndexed { index, (value, labelRes) ->
+                            SegmentedButton(
+                                selected = colorScheme == value,
+                                onClick = {
+                                    colorScheme = value
+                                    AppPreferences.raw.edit().putString("holyday.colorScheme", value).apply()
+                                },
+                                shape = SegmentedButtonDefaults.itemShape(index, appearanceOptions.size),
+                                label = { Text(stringResource(labelRes), maxLines = 1) },
+                            )
                         }
                     }
                 }
@@ -311,13 +342,7 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().clickable {
-                            val manager = com.google.android.play.core.review.ReviewManagerFactory.create(context)
-                            val request = manager.requestReviewFlow()
-                            request.addOnCompleteListener {
-                                if (it.isSuccessful) {
-                                    (context as? android.app.Activity)?.let { activity -> manager.launchReviewFlow(activity, it.result) }
-                                }
-                            }
+                            AppLinks.openReview(context)
                         }.padding(16.dp),
                     ) {
                         IconBadge(Icons.Filled.Star, AppTheme.colors.thanksgivingGold)
@@ -383,14 +408,14 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
             }
 
             if (BuildConfig.DEBUG) {
-                SectionLabel("Développeur")
+                SectionLabel(stringResource(R.string.settings_developer_section))
                 SettingsCard {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().clickable(onClick = onOpenDebugMenu).padding(16.dp),
                     ) {
                         IconBadge(Icons.Filled.Build, androidx.compose.ui.graphics.Color.Gray)
-                        Text("Menu de debug", color = AppTheme.colors.textPrimary, modifier = Modifier.weight(1f).padding(start = 14.dp))
+                        Text(stringResource(R.string.settings_developer_menu), color = AppTheme.colors.textPrimary, modifier = Modifier.weight(1f).padding(start = 14.dp))
                     }
                 }
             }
@@ -409,6 +434,7 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
             )
+            }
         }
     }
 
@@ -470,15 +496,19 @@ private fun IconBadge(icon: androidx.compose.ui.graphics.vector.ImageVector, col
 }
 
 @Composable
-private fun IconButton2(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun IconButton2(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
     Box(
         modifier = Modifier
-            .size(32.dp)
+            .size(48.dp)
             .clip(CircleShape)
             .background(AppTheme.colors.buttonFillSubtle)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, contentDescription = null, tint = AppTheme.colors.textTertiary, modifier = Modifier.size(16.dp)) }
+    ) { Icon(icon, contentDescription = contentDescription, tint = AppTheme.colors.textSecondary, modifier = Modifier.size(18.dp)) }
 }
 
 @Composable

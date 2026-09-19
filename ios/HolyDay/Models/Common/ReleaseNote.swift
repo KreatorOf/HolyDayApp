@@ -43,6 +43,32 @@ enum ReleaseNotesCatalog {
   /// c'est le comportement voulu pour un correctif purement interne.
   static let all: [ReleaseNote] = [
     ReleaseNote(
+      version: "1.2.0",
+      items: [
+        ReleaseNote.Item(
+          icon: "bell.badge",
+          titleKey: "whatsnew.12.reminders.title",
+          bodyKey: "whatsnew.12.reminders.body",
+          colorName: "confessionBlue",
+          accessibilityTitle: String(localized: "whatsnew.12.reminders.title")
+        ),
+        ReleaseNote.Item(
+          icon: "square.grid.2x2",
+          titleKey: "whatsnew.12.widget.title",
+          bodyKey: "whatsnew.12.widget.body",
+          colorName: "supplicationGreen",
+          accessibilityTitle: String(localized: "whatsnew.12.widget.title")
+        ),
+        ReleaseNote.Item(
+          icon: "arrow.right.circle",
+          titleKey: "whatsnew.12.quickpray.title",
+          bodyKey: "whatsnew.12.quickpray.body",
+          colorName: "adorationPurple",
+          accessibilityTitle: String(localized: "whatsnew.12.quickpray.title")
+        ),
+      ]
+    ),
+    ReleaseNote(
       version: "1.1",
       items: [
         ReleaseNote.Item(
@@ -74,6 +100,6 @@ enum ReleaseNotesCatalog {
           accessibilityTitle: String(localized: "whatsnew.11.widget.title")
         ),
       ]
-    )
+    ),
   ]
 }

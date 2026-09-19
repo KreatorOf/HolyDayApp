@@ -1,3 +1,3 @@
-• The progressive blur under the navigation and tab bars is back.
-• Journal and Settings titles now stay pinned at the top and no longer slip under the blur the first time you open them.
-• The three tab titles now share the same size.
+• More attentive reminders respect your prayer time and gently bring older intentions back to mind.
+• The “My verse” widget stays up to date, follows your language, and lets you choose another verse without opening the app.
+• Open a prayer directly from a reminder, widget, or the “Pray” Control Center control.

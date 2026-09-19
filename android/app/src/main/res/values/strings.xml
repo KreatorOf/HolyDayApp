@@ -6,7 +6,12 @@
     <string name="accessibility_reflection_hint_show">Afficher les questions</string>
     <string name="accessibility_reflection_toggle">Questions de réflexion</string>
     <string name="accessibility_search_close">Fermer la recherche</string>
+    <string name="accessibility_search_clear">Effacer la recherche</string>
     <string name="accessibility_search_open">Rechercher des prières</string>
+    <string name="accessibility_previous_month">Mois précédent</string>
+    <string name="accessibility_next_month">Mois suivant</string>
+    <string name="accessibility_profile_edit">Modifier le prénom</string>
+    <string name="accessibility_profile_save">Enregistrer le prénom</string>
     <string name="accessibility_stats_button">Statistiques du journal</string>
     <string name="accessibility_step_collapsed">Replié</string>
     <string name="accessibility_step_completed">Terminé</string>
@@ -22,6 +27,7 @@
     <string name="common_back">Retour</string>
     <string name="common_cancel">Annuler</string>
     <string name="common_close">Fermer</string>
+    <string name="common_continue">Continuer</string>
     <string name="common_delete">Supprimer</string>
     <string name="content_completion_subtitle">Votre journal a été mis à jour.</string>
     <string name="content_completion_title">Prière complétée</string>
@@ -29,6 +35,7 @@
     <string name="date_yesterday">Hier</string>
     <string name="donation_thankyou_subtitle">Votre don aide HolyDay à grandir et à porter la prière un peu plus loin. 🙏</string>
     <string name="donation_thankyou_title">Merci du fond du cœur</string>
+    <string name="donation_thankyou_rate">Noter l\'application</string>
     <string name="emotion_anger">Colère</string>
     <string name="emotion_fatigue">Fatigue</string>
     <string name="emotion_fear">Peur</string>
@@ -45,6 +52,7 @@
     <string name="entry_title_suggested">Titre suggéré</string>
     <string name="home_feeling_question">Comment te sens-tu aujourd\'hui ?</string>
     <string name="home_feeling_question_named">Comment te sens-tu aujourd\'hui, %1$s ?</string>
+    <string name="home_emotion_hint">Choisis ce qui te ressemble aujourd’hui pour recevoir un verset.</string>
     <string name="home_pray_cta">Prier</string>
     <string name="intentions_action_edit">Modifier</string>
     <string name="intentions_action_glory">Exaucé</string>
@@ -159,6 +167,8 @@
     <string name="paywall_header_title">Soutenir HolyDay</string>
     <string name="paywall_legal_footer">Paiements gérés par Google Play. Les achats non remboursables sont des dons volontaires.</string>
     <string name="paywall_restore">Restaurer les achats</string>
+    <string name="paywall_recommended">RECOMMANDÉ</string>
+    <string name="paywall_one_time">Achat unique</string>
     <string name="paywall_tip_ami_phrase">Un petit geste qui aide HolyDay à grandir. Merci d\'être là.</string>
     <string name="paywall_tip_bienfaiteur_phrase">Vous semez pour que d\'autres puissent prier. Merci infiniment.</string>
     <string name="paywall_tip_genereux_phrase">Vous croyez au projet — et ça change tout pour avancer. </string>
@@ -176,6 +186,8 @@
     <string name="settings_appearance_section">Apparence</string>
     <string name="settings_appearance_system">Système</string>
     <string name="settings_appearance_title">Thème</string>
+    <string name="settings_developer_section">Développeur</string>
+    <string name="settings_developer_menu">Menu de debug</string>
     <string name="settings_avatar_remove">Retirer la photo</string>
     <string name="settings_community_rate">Noter l\'app</string>
     <string name="settings_community_section">Communauté</string>
@@ -263,4 +275,21 @@
     <string name="widget_verse_kicker_large">HolyDay · Mon verset</string>
     <string name="widget_verse_name">Mon verset</string>
     <string name="widget_verse_quote">« %1$s »</string>
+    <string name="whatsnew_11_attribution_title">Traduction anglaise correctement créditée</string>
+    <string name="whatsnew_11_attribution_body">Les versets en anglais indiquent désormais leur véritable traduction, la Berean Standard Bible.</string>
+    <string name="whatsnew_11_legal_title">Mentions légales complétées</string>
+    <string name="whatsnew_11_legal_body">Les deux traductions utilisées, Louis Segond 1910 et Berean Standard Bible, y sont créditées.</string>
+    <string name="whatsnew_11_language_title">L\'assistant parle enfin votre langue</string>
+    <string name="whatsnew_11_language_body">Questions de réflexion, titres de prière et recherche suivent désormais la langue de l\'application, au lieu de rester en français.</string>
+    <string name="whatsnew_11_widget_title">Widget corrigé automatiquement</string>
+    <string name="whatsnew_11_widget_body">Le widget « Mon verset » reflète la correction dès l\'ouverture de l\'application, sans rien faire de votre côté.</string>
+    <string name="whatsnew_12_reminders_title">Des rappels plus attentifs</string>
+    <string name="whatsnew_12_reminders_body">Les rappels quotidiens s\'adaptent à votre rythme : ils restent silencieux après une prière et vous invitent doucement à retrouver vos intentions anciennes.</string>
+    <string name="whatsnew_12_widget_title">Des widgets adaptés à votre écran</string>
+    <string name="whatsnew_12_widget_body">Les widgets s\'adaptent désormais à leur taille pour rester confortables à lire sur tous les formats.</string>
+    <string name="whatsnew_12_quickpray_title">Une expérience plus fluide</string>
+    <string name="whatsnew_12_quickpray_body">L\'accueil, la prière, le journal et les réglages ont été affinés pour vous accompagner plus naturellement.</string>
+    <string name="whatsnew_continue">Continuer</string>
+    <string name="whatsnew_title">Nouveautés</string>
+    <string name="whatsnew_version">Version %1$s</string>
 </resources>

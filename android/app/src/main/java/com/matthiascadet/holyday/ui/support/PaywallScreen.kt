@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +52,7 @@ import com.matthiascadet.holyday.R
 import com.matthiascadet.holyday.data.model.SupporterTier
 import com.matthiascadet.holyday.service.TipService
 import com.matthiascadet.holyday.ui.common.AppBackground
+import com.matthiascadet.holyday.ui.common.HolyDayScaffold
 import com.matthiascadet.holyday.ui.theme.AppTheme
 import com.revenuecat.purchases.Package
 import com.revenuecat.purchases.PurchaseParams
@@ -74,16 +76,9 @@ fun PaywallScreen(onDismiss: () -> Unit, onDonated: (SupporterTier) -> Unit = {}
 
     val ranked = remember(offering) { (offering?.availablePackages ?: emptyList()).sortedBy { it.product.price.amountMicros } }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.paywall_header_title), color = AppTheme.colors.textPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.common_close)) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-            )
-        },
+    HolyDayScaffold(
+        title = stringResource(R.string.paywall_header_title),
+        onBack = onDismiss,
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding)) {
             AppBackground()
@@ -92,15 +87,14 @@ fun PaywallScreen(onDismiss: () -> Unit, onDonated: (SupporterTier) -> Unit = {}
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                Box(modifier = Modifier.size(72.dp).clip(CircleShape).background(AppTheme.colors.adorationPurple.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = AppTheme.colors.adorationPurple)
+                Box(modifier = Modifier.size(88.dp).clip(CircleShape).background(AppTheme.colors.adorationPurple.copy(alpha = 0.12f)), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Filled.Favorite, contentDescription = null, tint = AppTheme.colors.adorationPurple, modifier = Modifier.size(38.dp))
                 }
-                Text(stringResource(R.string.paywall_header_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic, color = AppTheme.colors.textPrimary)
-                Text(stringResource(R.string.paywall_header_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textSecondary)
+                Text(stringResource(R.string.paywall_header_subtitle), style = MaterialTheme.typography.bodyLarge, color = AppTheme.colors.textSecondary)
 
                 ranked.forEachIndexed { index, pkg ->
                     val tier = SupporterTier.entries.getOrNull(index) ?: return@forEachIndexed
-                    TipRow(pkg, tier) {
+                    TipRow(pkg, tier, recommended = index == 1) {
                         scope.launch {
                             isPurchasing = true
                             try {
@@ -160,7 +154,7 @@ fun PaywallScreen(onDismiss: () -> Unit, onDonated: (SupporterTier) -> Unit = {}
 }
 
 @Composable
-private fun TipRow(pkg: Package, tier: SupporterTier, onClick: () -> Unit) {
+private fun TipRow(pkg: Package, tier: SupporterTier, recommended: Boolean, onClick: () -> Unit) {
     val color = tier.color()
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -176,8 +170,17 @@ private fun TipRow(pkg: Package, tier: SupporterTier, onClick: () -> Unit) {
             Text(tier.emoji)
         }
         Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
+            if (recommended) {
+                Text(
+                    stringResource(R.string.paywall_recommended),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
             Text(stringResource(tier.titleRes), color = AppTheme.colors.textPrimary, fontWeight = FontWeight.SemiBold)
             Text(stringResource(tier.phraseRes), style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.textSecondary)
+            Text(stringResource(R.string.paywall_one_time), style = MaterialTheme.typography.labelSmall, color = AppTheme.colors.textTertiary)
         }
         Text(pkg.product.price.formatted, color = color, fontWeight = FontWeight.SemiBold)
     }

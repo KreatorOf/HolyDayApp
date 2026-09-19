@@ -29,15 +29,20 @@ fun Modifier.softSurface(
   shape: Shape = RoundedCornerShape(28.dp),
   tint: Color? = null,
   borderColor: Color? = null,
-  borderAlpha: Float = 0.14f,
-  elevation: Dp = 6.dp,
+  borderAlpha: Float = 0.09f,
+  elevation: Dp = 3.dp,
 ): Modifier = composed {
   val resolvedTint = tint ?: MaterialTheme.colorScheme.surface
   val resolvedBorder = borderColor ?: MaterialTheme.colorScheme.onSurface.copy(alpha = borderAlpha)
   this
-    .shadow(elevation, shape, ambientColor = Color.Black.copy(alpha = 0.10f), spotColor = Color.Black.copy(alpha = 0.10f))
+    .shadow(
+      elevation,
+      shape,
+      ambientColor = AppTheme.colors.premiumShadow.copy(alpha = 0.55f),
+      spotColor = AppTheme.colors.premiumShadow.copy(alpha = 0.45f),
+    )
     .clip(shape)
-    .background(resolvedTint.copy(alpha = 0.94f), shape)
+    .background(resolvedTint.copy(alpha = 0.98f), shape)
     .border(1.dp, resolvedBorder, shape)
 }
 

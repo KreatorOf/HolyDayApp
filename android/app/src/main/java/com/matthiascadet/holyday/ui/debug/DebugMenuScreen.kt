@@ -47,6 +47,7 @@ import com.matthiascadet.holyday.data.prefs.AppPreferences
 import com.matthiascadet.holyday.service.AIAssistantService
 import com.matthiascadet.holyday.service.PrayerRecordService
 import com.matthiascadet.holyday.service.TipService
+import com.matthiascadet.holyday.service.WhatsNewService
 import com.matthiascadet.holyday.service.notification.NotificationService
 import com.matthiascadet.holyday.ui.navigation.ONBOARDING_DONE_KEY
 import com.matthiascadet.holyday.ui.theme.AppTheme
@@ -102,6 +103,10 @@ fun DebugMenuScreen(onDismiss: () -> Unit) {
                 }
 
                 DebugSection("Réinitialiser") {
+                    ActionRow("Rejouer les nouveautés") {
+                        WhatsNewService.shared.reset()
+                        flash("Les nouveautés s'afficheront au prochain retour à l'accueil")
+                    }
                     ActionRow("Réinitialiser le suivi prière") {
                         PrayerRecordService.reset()
                         flash("Suivi prière remis à zéro")

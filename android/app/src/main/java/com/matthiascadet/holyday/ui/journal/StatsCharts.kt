@@ -1,9 +1,11 @@
 package com.matthiascadet.holyday.ui.journal
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -11,6 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.sp
+import com.matthiascadet.holyday.ui.theme.AppTheme
 import com.matthiascadet.holyday.data.model.EmotionTotal
 import com.matthiascadet.holyday.data.model.StatPoint
 import kotlin.math.cos
@@ -56,7 +62,8 @@ fun ActivityLineChart(points: List<StatPoint>, color: Color, modifier: Modifier 
 @Composable
 fun EmotionsDonutChart(totals: List<EmotionTotal>, modifier: Modifier = Modifier) {
     val total = totals.sumOf { it.count }.coerceAtLeast(1)
-    Canvas(modifier = modifier.fillMaxWidth().height(200.dp)) {
+    Box(modifier = modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+      Canvas(modifier = Modifier.fillMaxWidth().height(200.dp)) {
         val strokeWidth = size.minDimension * 0.18f
         val diameter = size.minDimension - strokeWidth
         val topLeft = Offset((size.width - diameter) / 2f, (size.height - diameter) / 2f)
@@ -74,5 +81,11 @@ fun EmotionsDonutChart(totals: List<EmotionTotal>, modifier: Modifier = Modifier
             )
             startAngle += sweep
         }
+      }
+      Text(
+          total.toString(),
+          style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp),
+          color = AppTheme.colors.textPrimary,
+      )
     }
 }

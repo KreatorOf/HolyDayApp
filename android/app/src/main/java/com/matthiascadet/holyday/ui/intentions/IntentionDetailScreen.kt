@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -47,6 +48,8 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import com.matthiascadet.holyday.ui.theme.AppTheme
+import com.matthiascadet.holyday.ui.common.HolyDayScaffold
+import com.matthiascadet.holyday.ui.theme.softSurface
 
 /** Équivalent de `IntentionDetailView` iOS. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,48 +66,60 @@ fun IntentionDetailScreen(intentionId: String, onDismiss: () -> Unit) {
     val formatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG) }
     val zone = ZoneId.systemDefault()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.common_close)) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-            )
-        },
+    HolyDayScaffold(
+        title = stringResource(R.string.intentions_nav_title),
+        onBack = onDismiss,
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(24.dp)) {
-            Text(
-                stringResource(if (intention.isAnswered) R.string.intentions_section_answered else R.string.intentions_section_active),
-                color = if (intention.isAnswered) AppTheme.colors.supplicationGreen else AppTheme.colors.adorationPurple,
-                style = MaterialTheme.typography.labelMedium,
-            )
-            androidx.compose.foundation.layout.Spacer(Modifier.height(16.dp))
-
-            if (isEditing) {
-                OutlinedTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.fillMaxWidth())
-            } else {
+        Column(Modifier.fillMaxSize().padding(padding).padding(20.dp)) {
+            val statusColor = if (intention.isAnswered) AppTheme.colors.supplicationGreen else AppTheme.colors.adorationPurple
+            Box(
+                modifier = Modifier
+                    .background(statusColor.copy(alpha = 0.12f), RoundedCornerShape(50))
+                    .padding(horizontal = 12.dp, vertical = 7.dp),
+            ) {
                 Text(
-                    intention.text,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = AppTheme.colors.textPrimary,
-                    textDecoration = if (intention.isAnswered) TextDecoration.LineThrough else null,
+                    stringResource(if (intention.isAnswered) R.string.intentions_section_answered else R.string.intentions_section_active),
+                    color = statusColor,
+                    style = MaterialTheme.typography.labelMedium,
                 )
             }
+            Spacer(Modifier.height(18.dp))
 
-            androidx.compose.foundation.layout.Spacer(Modifier.height(16.dp))
-            Text(
-                stringResource(R.string.intentions_detail_added, Instant.ofEpochMilli(intention.createdAt).atZone(zone).format(formatter)),
-                style = MaterialTheme.typography.bodySmall,
-                color = AppTheme.colors.textSecondary,
-            )
-            intention.answeredAt?.let {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .softSurface(
+                        shape = MaterialTheme.shapes.large,
+                        tint = AppTheme.colors.cardSurface,
+                        borderColor = statusColor.copy(alpha = 0.22f),
+                        elevation = 2.dp,
+                    )
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                if (isEditing) {
+                    OutlinedTextField(value = draft, onValueChange = { draft = it }, modifier = Modifier.fillMaxWidth())
+                } else {
+                    Text(
+                        intention.text,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = AppTheme.colors.textPrimary,
+                        textDecoration = if (intention.isAnswered) TextDecoration.LineThrough else null,
+                    )
+                }
+
                 Text(
-                    stringResource(R.string.intentions_detail_answered, Instant.ofEpochMilli(it).atZone(zone).format(formatter)),
+                    stringResource(R.string.intentions_detail_added, Instant.ofEpochMilli(intention.createdAt).atZone(zone).format(formatter)),
                     style = MaterialTheme.typography.bodySmall,
                     color = AppTheme.colors.textSecondary,
                 )
+                intention.answeredAt?.let {
+                    Text(
+                        stringResource(R.string.intentions_detail_answered, Instant.ofEpochMilli(it).atZone(zone).format(formatter)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppTheme.colors.textSecondary,
+                    )
+                }
             }
 
             androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
@@ -144,9 +159,10 @@ fun IntentionDetailScreen(intentionId: String, onDismiss: () -> Unit) {
                         Icon(Icons.Filled.Edit, contentDescription = null)
                         Text(stringResource(R.string.intentions_action_edit), modifier = Modifier.padding(start = 8.dp))
                     }
-                    OutlinedButton(
+                    TextButton(
                         onClick = { scope.launch { dao.delete(intention) }; onDismiss() },
                         modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
                     ) {
                         Icon(Icons.Filled.Delete, contentDescription = null)
                         Text(stringResource(R.string.common_delete), modifier = Modifier.padding(start = 8.dp))

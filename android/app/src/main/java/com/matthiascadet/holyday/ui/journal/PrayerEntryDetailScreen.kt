@@ -8,9 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,12 +20,11 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +43,7 @@ import com.matthiascadet.holyday.R
 import com.matthiascadet.holyday.data.db.AppDatabase
 import com.matthiascadet.holyday.data.db.TitleSource
 import com.matthiascadet.holyday.data.model.Emotion
-import com.matthiascadet.holyday.ui.common.AppBackground
+import com.matthiascadet.holyday.ui.common.HolyDayScaffold
 import com.matthiascadet.holyday.ui.theme.AppTheme
 import kotlinx.coroutines.launch
 import java.text.DateFormat
@@ -62,11 +61,22 @@ fun PrayerEntryDetailScreen(entryId: String, onDismiss: () -> Unit) {
     var titleDraft by remember(entry.id) { mutableStateOf(entry.displayTitle) }
     val accent = entry.emotion?.pastel ?: AppTheme.colorFor(entry.stepColorName)
 
-    Scaffold { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            AppBackground()
+    fun commitAndDismiss() {
+        val trimmed = titleDraft.trim()
+        if (entry.isFreePrayer && trimmed.isNotEmpty() && trimmed != entry.customTitle) {
+            scope.launch { dao.update(entry.copy(customTitle = trimmed, titleSourceRaw = TitleSource.USER.name)) }
+        }
+        onDismiss()
+    }
+
+    HolyDayScaffold(title = stringResource(R.string.tab_journal), onBack = ::commitAndDismiss) { padding ->
+        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
             Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 720.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -101,10 +111,17 @@ fun PrayerEntryDetailScreen(entryId: String, onDismiss: () -> Unit) {
                     }
                 }
 
+                HorizontalDivider(color = AppTheme.colors.cardStroke)
+
                 if (entry.text.isEmpty()) {
                     Text(stringResource(R.string.entry_no_text), fontStyle = FontStyle.Italic, color = AppTheme.colors.textSecondary)
                 } else {
-                    Text(entry.text, color = AppTheme.colors.textPrimary)
+                    Text(
+                        entry.text,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = AppTheme.colors.textPrimary,
+                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.35f,
+                    )
                 }
 
                 if (entry.stepColorName == "supplicationGreen") {
@@ -131,13 +148,7 @@ fun PrayerEntryDetailScreen(entryId: String, onDismiss: () -> Unit) {
 
                 if (entry.isFreePrayer) {
                     Button(
-                        onClick = {
-                            val trimmed = titleDraft.trim()
-                            if (trimmed.isNotEmpty() && trimmed != entry.customTitle) {
-                                scope.launch { dao.update(entry.copy(customTitle = trimmed, titleSourceRaw = TitleSource.USER.name)) }
-                            }
-                            onDismiss()
-                        },
+                        onClick = ::commitAndDismiss,
                         modifier = Modifier.fillMaxWidth(),
                     ) { Text(stringResource(R.string.common_close)) }
                 }

@@ -1,17 +1,13 @@
 package com.matthiascadet.holyday.ui.navigation
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
+import android.net.Uri
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
@@ -19,21 +15,21 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -48,7 +44,9 @@ import com.matthiascadet.holyday.data.prefs.AppPreferences
 import com.matthiascadet.holyday.service.PrayerRecordService
 import com.matthiascadet.holyday.service.SupportPromptService
 import com.matthiascadet.holyday.service.VerseService
+import com.matthiascadet.holyday.service.WhatsNewService
 import com.matthiascadet.holyday.service.WidgetSyncService
+import com.matthiascadet.holyday.service.notification.NotificationService
 import com.matthiascadet.holyday.ui.debug.DebugMenuScreen
 import com.matthiascadet.holyday.ui.home.HomeScreen
 import com.matthiascadet.holyday.ui.intentions.IntentionDetailScreen
@@ -65,13 +63,13 @@ import com.matthiascadet.holyday.ui.support.DonationThankYouScreen
 import com.matthiascadet.holyday.ui.support.PaywallScreen
 import com.matthiascadet.holyday.ui.support.SupportPromptScreen
 import com.matthiascadet.holyday.ui.theme.AppTheme
-import com.matthiascadet.holyday.ui.theme.softSurface
+import com.matthiascadet.holyday.ui.whatsnew.WhatsNewScreen
 import java.util.UUID
 
 const val ONBOARDING_DONE_KEY = "holyday.hasCompletedOnboarding"
 
 @Composable
-fun HolyDayNavHost() {
+fun HolyDayNavHost(deepLink: Uri?, onDeepLinkHandled: () -> Unit) {
     val navController = rememberNavController()
     val context = LocalContext.current
     var hasCompletedOnboarding by rememberSaveable {
@@ -81,6 +79,38 @@ fun HolyDayNavHost() {
     var selectedEmotion by remember { mutableStateOf<Emotion?>(null) }
     var emotionVerse by remember { mutableStateOf<Verse?>(null) }
     var recordTokenBeforePrayer by remember { mutableStateOf<UUID?>(null) }
+    var selectedMainTab by rememberSaveable { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val whatsNew by WhatsNewService.shared.pending.collectAsState()
+
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                PrayerRecordService.refresh()
+                NotificationService.checkStatus(context)
+                WidgetSyncService.sync()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    androidx.compose.runtime.LaunchedEffect(hasCompletedOnboarding) {
+        if (hasCompletedOnboarding) WhatsNewService.shared.evaluate()
+    }
+
+    androidx.compose.runtime.LaunchedEffect(deepLink, hasCompletedOnboarding) {
+        if (deepLink != null && hasCompletedOnboarding) {
+            selectedMainTab = if (deepLink.host == "journal") 1 else 0
+            navController.navigate(NavRoutes.MAIN) {
+                launchSingleTop = true
+                popUpTo(NavRoutes.MAIN) { inclusive = false }
+            }
+            // Rappel « intentions » : même feuille que le bouton de l'onglet Prière.
+            if (deepLink.host == "intentions") navController.navigate(NavRoutes.INTENTIONS)
+            onDeepLinkHandled()
+        }
+    }
 
     // Reproduit `presentSupportPromptIfEligible` de ContentView : à la fermeture d'une feuille de
     // prière, si une nouvelle prière vient d'être enregistrée pendant la session ET que le service
@@ -101,6 +131,7 @@ fun HolyDayNavHost() {
             OnboardingScreen(
                 onFinished = {
                     AppPreferences.raw.edit().putBoolean(ONBOARDING_DONE_KEY, true).apply()
+                    WhatsNewService.shared.markSeen()
                     hasCompletedOnboarding = true
                     navController.navigate(NavRoutes.MAIN) {
                         popUpTo(NavRoutes.ONBOARDING) { inclusive = true }
@@ -121,6 +152,8 @@ fun HolyDayNavHost() {
                     WidgetSyncService.updateLastVerse(verse.text, verse.reference, emotion.id)
                 },
                 onBeforeStartingPrayer = { recordTokenBeforePrayer = PrayerRecordService.lastRecordToken.value },
+                selectedTab = selectedMainTab,
+                onSelectTab = { selectedMainTab = it },
             )
         }
 
@@ -207,8 +240,15 @@ fun HolyDayNavHost() {
         }
 
         composable(NavRoutes.DEBUG_MENU) {
-            DebugMenuScreen(onDismiss = { navController.popBackStack() })
+            DebugMenuScreen(onDismiss = {
+                WhatsNewService.shared.evaluate()
+                navController.popBackStack()
+            })
         }
+    }
+
+    whatsNew?.let { releases ->
+        WhatsNewScreen(releases = releases, onDismiss = WhatsNewService.shared::markSeen)
     }
 }
 
@@ -219,12 +259,12 @@ private fun MainScreen(
     emotionVerse: Verse?,
     onSelectEmotion: (Emotion) -> Unit,
     onBeforeStartingPrayer: () -> Unit,
+    selectedTab: Int,
+    onSelectTab: (Int) -> Unit,
 ) {
-    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
-
     Scaffold(
         containerColor = Color.Transparent,
-        bottomBar = { HolyDayBottomBar(selectedTab = selectedTab, onSelect = { selectedTab = it }) },
+        bottomBar = { HolyDayBottomBar(selectedTab = selectedTab, onSelect = onSelectTab) },
     ) { padding ->
         androidx.compose.foundation.layout.Box(Modifier.padding(padding)) {
             when (selectedTab) {
@@ -252,9 +292,8 @@ private fun MainScreen(
 
 private data class BottomTab(val index: Int, val icon: ImageVector, val labelRes: Int)
 
-// Barre flottante plutôt que le `NavigationBar` Material plein-largeur par défaut : reprend le
-// langage visuel du reste de l'app (carte tonale arrondie + ombre douce via `softSurface`) au lieu
-// du bloc compact standard, avec le libellé qui n'apparaît qu'à côté de l'onglet actif.
+// Navigation Material 3 native : sa surface tonale, son indicateur et ses zones tactiles sont plus
+// cohérents avec Android que l'ancienne grosse pilule flottante inspirée d'iOS.
 @Composable
 private fun HolyDayBottomBar(selectedTab: Int, onSelect: (Int) -> Unit) {
     val tabs = remember {
@@ -265,42 +304,28 @@ private fun HolyDayBottomBar(selectedTab: Int, onSelect: (Int) -> Unit) {
         )
     }
 
-    Row(
+    NavigationBar(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 28.dp, vertical = 16.dp)
-            .softSurface(shape = MaterialTheme.shapes.extraLarge, tint = MaterialTheme.colorScheme.surface, elevation = 10.dp)
-            .padding(horizontal = 10.dp, vertical = 10.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically,
+            .fillMaxWidth(),
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.98f),
+        contentColor = AppTheme.colors.textSecondary,
+        tonalElevation = androidx.compose.material3.NavigationBarDefaults.Elevation,
     ) {
         tabs.forEach { tab ->
-            BottomTabItem(tab = tab, selected = selectedTab == tab.index, onClick = { onSelect(tab.index) })
-        }
-    }
-}
-
-@Composable
-private fun BottomTabItem(tab: BottomTab, selected: Boolean, onClick: () -> Unit) {
-    val indicatorColor by animateColorAsState(
-        targetValue = if (selected) AppTheme.colors.adorationPurple.copy(alpha = 0.14f) else Color.Transparent,
-        animationSpec = tween(200),
-        label = "navIndicator",
-    )
-    val contentColor = if (selected) AppTheme.colors.adorationPurple else AppTheme.colors.textTertiary
-
-    Row(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(indicatorColor)
-            .clickable(onClick = onClick)
-            .padding(horizontal = if (selected) 18.dp else 14.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Icon(tab.icon, contentDescription = stringResource(tab.labelRes), tint = contentColor, modifier = Modifier.size(24.dp))
-        if (selected) {
-            Text(stringResource(tab.labelRes), color = contentColor, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
+            NavigationBarItem(
+                selected = selectedTab == tab.index,
+                onClick = { onSelect(tab.index) },
+                icon = { Icon(tab.icon, contentDescription = null) },
+                label = { Text(stringResource(tab.labelRes)) },
+                alwaysShowLabel = true,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = AppTheme.colors.adorationPurple,
+                    selectedTextColor = AppTheme.colors.textPrimary,
+                    indicatorColor = AppTheme.colors.adorationPurple.copy(alpha = 0.14f),
+                    unselectedIconColor = AppTheme.colors.textTertiary,
+                    unselectedTextColor = AppTheme.colors.textSecondary,
+                ),
+            )
         }
     }
 }

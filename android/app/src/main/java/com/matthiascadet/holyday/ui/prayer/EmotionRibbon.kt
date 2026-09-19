@@ -1,6 +1,10 @@
 package com.matthiascadet.holyday.ui.prayer
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,20 +29,30 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.clickable
 import com.matthiascadet.holyday.data.model.Emotion
 import com.matthiascadet.holyday.ui.theme.AppTheme
 
 /**
  * Deux rangées d'émotions qui défilent en boucle continue en sens opposés. Tap pour sélectionner.
- * Équivalent simplifié de `EmotionRibbonView` (pas de repli séparé "réduire les animations" —
- * Android expose ce réglage système différemment ; le défilement reste ambiant et non bloquant).
+ * Équivalent de `EmotionRibbonView`, avec une rangée statique quand les animations système sont
+ * désactivées.
  */
 @Composable
-fun EmotionRibbon(onSelect: (Emotion) -> Unit, modifier: Modifier = Modifier) {
+fun EmotionRibbon(selectedEmotion: Emotion?, onSelect: (Emotion) -> Unit, modifier: Modifier = Modifier) {
     val rows = remember { Emotion.entries.shuffled().let { it.take(it.size / 2) to it.drop(it.size / 2) } }
+    val context = LocalContext.current
+    val animationsEnabled = remember(context) {
+        runCatching {
+            android.provider.Settings.Global.getFloat(
+                context.contentResolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            ) != 0f
+        }.getOrDefault(true)
+    }
     Box(modifier = modifier.height(112.dp)) {
         Box(
             Modifier
@@ -46,9 +60,27 @@ fun EmotionRibbon(onSelect: (Emotion) -> Unit, modifier: Modifier = Modifier) {
                 .wrapContentSize(Alignment.TopStart),
         ) {
             androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                MarqueeRow(rows.first, leftward = true, speedDpPerSec = 26f, onSelect = onSelect)
-                MarqueeRow(rows.second, leftward = false, speedDpPerSec = 33f, onSelect = onSelect)
+                if (animationsEnabled) {
+                    MarqueeRow(rows.first, selectedEmotion, leftward = true, speedDpPerSec = 26f, onSelect = onSelect)
+                    MarqueeRow(rows.second, selectedEmotion, leftward = false, speedDpPerSec = 33f, onSelect = onSelect)
+                } else {
+                    StaticEmotionRow(rows.first, selectedEmotion, onSelect)
+                    StaticEmotionRow(rows.second, selectedEmotion, onSelect)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun StaticEmotionRow(
+    emotions: List<Emotion>,
+    selectedEmotion: Emotion?,
+    onSelect: (Emotion) -> Unit,
+) {
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        items(emotions, key = { it.name }) { emotion ->
+            EmotionBubble(emotion, selectedEmotion == emotion, onSelect)
         }
     }
 }
@@ -59,6 +91,7 @@ fun EmotionRibbon(onSelect: (Emotion) -> Unit, modifier: Modifier = Modifier) {
 @Composable
 private fun MarqueeRow(
     emotions: List<Emotion>,
+    selectedEmotion: Emotion?,
     leftward: Boolean,
     speedDpPerSec: Float,
     onSelect: (Emotion) -> Unit,
@@ -107,7 +140,7 @@ private fun MarqueeRow(
                         if (contentWidthPx == 0f) contentWidthPx = it.size.width.toFloat() + copyGapPx
                     } else Modifier,
                 ) {
-                    emotions.forEach { emotion -> EmotionBubble(emotion, onSelect) }
+                    emotions.forEach { emotion -> EmotionBubble(emotion, selectedEmotion == emotion, onSelect) }
                 }
             }
         }
@@ -115,18 +148,26 @@ private fun MarqueeRow(
 }
 
 @Composable
-private fun EmotionBubble(emotion: Emotion, onSelect: (Emotion) -> Unit) {
+private fun EmotionBubble(emotion: Emotion, selected: Boolean, onSelect: (Emotion) -> Unit) {
     val colors = AppTheme.colors
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(7.dp),
         modifier = Modifier
             .clip(CircleShape)
-            .background(emotion.pastel.copy(alpha = 0.20f))
-            .clickable { onSelect(emotion) }
+            // Les pictogrammes pastel sur leur propre fond translucide avaient un contraste trop
+            // faible. Le fond garde le code émotionnel, mais l'icône et le contour utilisent la
+            // teinte de marque résolue pour le thème courant.
+            .graphicsLayer {
+                scaleX = if (selected) 1.04f else 1f
+                scaleY = if (selected) 1.04f else 1f
+            }
+            .background(emotion.pastel.copy(alpha = if (selected) 0.58f else 0.34f))
+            .border(if (selected) 2.dp else 1.dp, emotion.color().copy(alpha = if (selected) 0.82f else 0.34f), CircleShape)
+            .selectable(selected = selected, onClick = { onSelect(emotion) })
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
-        Icon(emotion.icon, contentDescription = null, tint = emotion.pastel, modifier = Modifier.width(16.dp))
+        Icon(emotion.icon, contentDescription = null, tint = emotion.color(), modifier = Modifier.width(16.dp))
         Text(stringResource(emotion.titleRes), color = colors.textPrimary)
     }
 }

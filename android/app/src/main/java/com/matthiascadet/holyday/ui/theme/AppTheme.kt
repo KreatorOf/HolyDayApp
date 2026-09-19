@@ -49,7 +49,7 @@ private fun lightAppColors() = AppColors(
     premiumShadow = BrandColors.premiumShadowLight,
     textPrimary = Color.Black.copy(alpha = 0.92f),
     textSecondary = Color.Black.copy(alpha = 0.60f),
-    textTertiary = Color.Black.copy(alpha = 0.30f),
+    textTertiary = Color.Black.copy(alpha = 0.46f),
 )
 
 private fun darkAppColors() = AppColors(
@@ -67,7 +67,7 @@ private fun darkAppColors() = AppColors(
     premiumShadow = BrandColors.premiumShadowDark,
     textPrimary = Color.White.copy(alpha = 0.95f),
     textSecondary = Color.White.copy(alpha = 0.65f),
-    textTertiary = Color.White.copy(alpha = 0.35f),
+    textTertiary = Color.White.copy(alpha = 0.48f),
 )
 
 private val LocalAppColors = staticCompositionLocalOf { lightAppColors() }
@@ -79,11 +79,13 @@ private val brandFontFamily = FontFamily.Serif
 
 private val AppTypography = Typography().let { base ->
   base.copy(
-    displaySmall = base.displaySmall.copy(fontFamily = brandFontFamily),
+    displaySmall = base.displaySmall.copy(fontFamily = brandFontFamily, fontWeight = FontWeight.Medium),
     headlineLarge = base.headlineLarge.copy(fontFamily = brandFontFamily, fontWeight = FontWeight.SemiBold),
     headlineMedium = base.headlineMedium.copy(fontFamily = brandFontFamily, fontWeight = FontWeight.SemiBold),
     headlineSmall = base.headlineSmall.copy(fontFamily = brandFontFamily, fontWeight = FontWeight.SemiBold),
-    titleLarge = base.titleLarge.copy(fontFamily = brandFontFamily, fontWeight = FontWeight.Bold),
+    titleLarge = base.titleLarge.copy(fontFamily = brandFontFamily, fontWeight = FontWeight.SemiBold),
+    titleMedium = base.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+    labelLarge = base.labelLarge.copy(fontWeight = FontWeight.SemiBold),
   )
 }
 

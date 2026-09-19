@@ -1,3 +1,3 @@
-• Retour du flou progressif sous les barres de navigation et d'onglets.
-• Les titres du Journal et des Réglages sont fixés en haut de l'écran et ne se glissent plus sous le flou à la première ouverture.
-• Titres des trois onglets harmonisés à la même taille.
+• Des rappels plus attentifs : ils respectent vos temps de prière et vous invitent doucement à retrouver vos intentions anciennes.
+• Le widget « Mon verset » reste à jour, suit votre langue et permet de choisir un autre verset sans ouvrir l'app.
+• Ouvrez directement une prière depuis un rappel, un widget ou la commande « Prier » du Centre de contrôle.

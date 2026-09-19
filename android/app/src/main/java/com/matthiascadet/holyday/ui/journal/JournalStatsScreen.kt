@@ -9,14 +9,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -40,6 +45,8 @@ import com.matthiascadet.holyday.data.model.PrayerStats
 import com.matthiascadet.holyday.data.model.StatsBucket
 import com.matthiascadet.holyday.data.model.StatsPeriod
 import com.matthiascadet.holyday.ui.theme.AppTheme
+import com.matthiascadet.holyday.ui.common.HolyDayScaffold
+import com.matthiascadet.holyday.ui.theme.softSurface
 
 /** Équivalent de `JournalStatsView` iOS (Canvas custom au lieu de Swift Charts). */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,31 +60,42 @@ fun JournalStatsScreen(onDismiss: () -> Unit) {
     val activity = remember(entries, period) { PrayerStats.activity(entries, period) }
     val emotions = remember(entries, period) { PrayerStats.emotionTotals(entries, period) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onDismiss) { Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.common_close)) }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-            )
-        },
+    HolyDayScaffold(
+        title = stringResource(R.string.accessibility_stats_button),
+        onBack = onDismiss,
     ) { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
-                PeriodChip(stringResource(R.string.stats_period_week), period == StatsPeriod.WEEK) { period = StatsPeriod.WEEK }
-                PeriodChip(stringResource(R.string.stats_period_month), period == StatsPeriod.MONTH) { period = StatsPeriod.MONTH }
-                PeriodChip(stringResource(R.string.stats_period_sixmonths), period == StatsPeriod.SIX_MONTHS) { period = StatsPeriod.SIX_MONTHS }
-                PeriodChip(stringResource(R.string.stats_period_year), period == StatsPeriod.YEAR) { period = StatsPeriod.YEAR }
-                PeriodChip(stringResource(R.string.stats_period_all), period == StatsPeriod.ALL) { period = StatsPeriod.ALL }
+            val periods = listOf(
+                StatsPeriod.WEEK to stringResource(R.string.stats_period_week),
+                StatsPeriod.MONTH to stringResource(R.string.stats_period_month),
+                StatsPeriod.SIX_MONTHS to stringResource(R.string.stats_period_sixmonths),
+                StatsPeriod.YEAR to stringResource(R.string.stats_period_year),
+                StatsPeriod.ALL to stringResource(R.string.stats_period_all),
+            )
+            SingleChoiceSegmentedButtonRow(
+                modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            ) {
+                periods.forEachIndexed { index, item ->
+                    SegmentedButton(
+                        selected = period == item.first,
+                        onClick = { period = item.first },
+                        shape = SegmentedButtonDefaults.itemShape(index, periods.size),
+                        label = { Text(item.second) },
+                    )
+                }
             }
 
             if (activity.isEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(top = 40.dp)) {
+                    Icon(
+                        Icons.Filled.Insights,
+                        contentDescription = null,
+                        tint = AppTheme.colors.adorationPurple,
+                        modifier = Modifier.padding(bottom = 16.dp),
+                    )
                     Text(stringResource(R.string.stats_empty_title), style = MaterialTheme.typography.titleMedium, color = AppTheme.colors.textPrimary)
                     Text(stringResource(R.string.stats_empty_subtitle), style = MaterialTheme.typography.bodyMedium, color = AppTheme.colors.textSecondary)
                 }
@@ -118,25 +136,16 @@ fun JournalStatsScreen(onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun PeriodChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(if (selected) AppTheme.colors.adorationPurple.copy(alpha = 0.3f) else AppTheme.colors.cardFill)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 10.dp, vertical = 6.dp),
-    ) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = if (selected) AppTheme.colors.textPrimary else AppTheme.colors.textSecondary)
-    }
-}
-
-@Composable
 private fun ChartCard(title: String, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(AppTheme.colors.cardSurface)
+            .softSurface(
+                shape = MaterialTheme.shapes.large,
+                tint = AppTheme.colors.cardSurface,
+                borderColor = AppTheme.colors.cardStroke,
+                elevation = 2.dp,
+            )
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

@@ -10,8 +10,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -25,16 +28,19 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +49,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
@@ -50,8 +58,12 @@ import androidx.compose.ui.unit.dp
 import com.matthiascadet.holyday.R
 import com.matthiascadet.holyday.data.db.AppDatabase
 import com.matthiascadet.holyday.data.db.PrayerEntryEntity
-import com.matthiascadet.holyday.ui.common.AppBackground
+import com.matthiascadet.holyday.service.TourService
+import com.matthiascadet.holyday.ui.common.TourTip
+import com.matthiascadet.holyday.ui.common.TourTipPlacement
 import com.matthiascadet.holyday.ui.theme.AppTheme
+import com.matthiascadet.holyday.ui.theme.softSurface
+import com.matthiascadet.holyday.ui.theme.softTextFieldColors
 import java.text.DateFormatSymbols
 import java.time.DayOfWeek
 import java.time.Instant
@@ -70,40 +82,61 @@ fun PrayerHistoryScreen(onOpenEntry: (String) -> Unit, onOpenStats: () -> Unit) 
     val context = LocalContext.current
     val dao = remember(context) { AppDatabase.getInstance(context).prayerEntryDao() }
     val entries by dao.observeAll().collectAsState(initial = emptyList())
+    val tourStep by TourService.step.collectAsState()
 
     var displayedMonth by remember { mutableStateOf(YearMonth.now()) }
     var selectedDate by remember { mutableStateOf<LocalDate?>(LocalDate.now()) }
     var isSearching by remember { mutableStateOf(false) }
     var searchText by remember { mutableStateOf("") }
+    val searchFocusRequester = remember { FocusRequester() }
 
     val entriesByDay = remember(entries) {
         entries.groupBy { Instant.ofEpochMilli(it.date).atZone(ZONE).toLocalDate() }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.tab_journal), color = AppTheme.colors.textPrimary) },
-                actions = {
-                    IconButton(onClick = onOpenStats) {
-                        Icon(Icons.Filled.BarChart, contentDescription = stringResource(R.string.accessibility_stats_button), tint = AppTheme.colors.textPrimary)
-                    }
-                    IconButton(onClick = { isSearching = !isSearching; if (!isSearching) searchText = "" }) {
-                        Icon(
-                            if (isSearching) Icons.Filled.Close else Icons.Filled.Search,
-                            contentDescription = stringResource(if (isSearching) R.string.accessibility_search_close else R.string.accessibility_search_open),
-                            tint = AppTheme.colors.textPrimary,
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(AppTheme.colors.backgroundPrimary),
+    ) {
+        Scaffold(
+            containerColor = androidx.compose.ui.graphics.Color.Transparent,
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(R.string.tab_journal),
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = AppTheme.colors.textPrimary,
                         )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
-            )
-        },
-    ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
-            AppBackground()
-            Column(
-                modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+                    },
+                    actions = {
+                        JournalTopBarAction(
+                            onClick = onOpenStats,
+                            icon = Icons.Filled.BarChart,
+                            contentDescription = stringResource(R.string.accessibility_stats_button),
+                        )
+                        JournalTopBarAction(
+                            onClick = { isSearching = !isSearching; if (!isSearching) searchText = "" },
+                            icon = if (isSearching) Icons.Filled.Close else Icons.Filled.Search,
+                            contentDescription = stringResource(
+                                if (isSearching) R.string.accessibility_search_close else R.string.accessibility_search_open,
+                            ),
+                        )
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = androidx.compose.ui.graphics.Color.Transparent),
+                )
+            },
+        ) { padding ->
+            Box(Modifier.fillMaxSize().padding(padding)) {
+                Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth()
+                    .widthIn(max = 720.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 if (isSearching) {
@@ -111,8 +144,20 @@ fun PrayerHistoryScreen(onOpenEntry: (String) -> Unit, onOpenStats: () -> Unit) 
                         value = searchText,
                         onValueChange = { searchText = it },
                         placeholder = { Text(stringResource(R.string.journal_search_placeholder)) },
-                        modifier = Modifier.fillMaxWidth(),
+                        leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+                        trailingIcon = {
+                            if (searchText.isNotEmpty()) {
+                                IconButton(onClick = { searchText = "" }) {
+                                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.accessibility_search_clear))
+                                }
+                            }
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(28.dp),
+                        colors = softTextFieldColors(),
+                        modifier = Modifier.fillMaxWidth().focusRequester(searchFocusRequester),
                     )
+                    LaunchedEffect(Unit) { searchFocusRequester.requestFocus() }
                     SearchResults(entries, searchText, onOpenEntry)
                 } else {
                     CalendarCard(
@@ -124,7 +169,29 @@ fun PrayerHistoryScreen(onOpenEntry: (String) -> Unit, onOpenStats: () -> Unit) 
                     )
                     SelectedDaySection(selectedDate, entriesByDay, onOpenEntry)
                 }
+                }
             }
+        }
+    }
+
+    if (tourStep == TourService.Step.JOURNAL) {
+        TourTip(step = tourStep, placement = TourTipPlacement.BOTTOM, onDismiss = { TourService.dismiss(tourStep) })
+    }
+}
+
+@Composable
+private fun JournalTopBarAction(
+    onClick: () -> Unit,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+) {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        tonalElevation = 2.dp,
+    ) {
+        IconButton(onClick = onClick, modifier = Modifier.size(48.dp)) {
+            Icon(icon, contentDescription = contentDescription, tint = AppTheme.colors.textPrimary)
         }
     }
 }
@@ -159,9 +226,12 @@ private fun CalendarCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(AppTheme.colors.cardSurface)
-            .border(1.dp, AppTheme.colors.cardStroke, RoundedCornerShape(20.dp))
+            .softSurface(
+                shape = MaterialTheme.shapes.large,
+                tint = AppTheme.colors.cardSurface,
+                borderColor = AppTheme.colors.cardStroke,
+                elevation = 2.dp,
+            )
             .padding(vertical = 12.dp),
     ) {
         Row(
@@ -170,11 +240,19 @@ private fun CalendarCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton(onClick = { onMonthChange(displayedMonth.minusMonths(1)) }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = null, tint = AppTheme.colors.textSecondary)
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = stringResource(R.string.accessibility_previous_month),
+                    tint = AppTheme.colors.textSecondary,
+                )
             }
             Text(monthLabel, style = MaterialTheme.typography.titleSmall, color = AppTheme.colors.textPrimary)
             IconButton(onClick = { onMonthChange(displayedMonth.plusMonths(1)) }) {
-                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = AppTheme.colors.textSecondary)
+                Icon(
+                    Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = stringResource(R.string.accessibility_next_month),
+                    tint = AppTheme.colors.textSecondary,
+                )
             }
         }
 
@@ -204,7 +282,7 @@ private fun CalendarCard(
 
         LazyVerticalGrid(
             columns = GridCells.Fixed(7),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).size(((cells.size / 7) * 48).dp),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).height(((cells.size / 7) * 50).dp),
         ) {
             items(cells) { date ->
                 if (date == null) {
@@ -226,6 +304,17 @@ private fun CalendarCard(
 private fun DayCell(date: LocalDate, isSelected: Boolean, count: Int, onClick: () -> Unit) {
     val isToday = date == LocalDate.now()
     val isFuture = date.isAfter(LocalDate.now())
+    val dayCircleModifier = Modifier
+        .size(32.dp)
+        .clip(CircleShape)
+        .background(if (isSelected) AppTheme.colors.adorationPurple else androidx.compose.ui.graphics.Color.Transparent)
+        .then(
+            if (isToday && !isSelected) {
+                Modifier.border(1.5.dp, AppTheme.colors.adorationPurple.copy(alpha = 0.7f), CircleShape)
+            } else {
+                Modifier
+            },
+        )
     Column(
         modifier = Modifier
             .aspectRatio(1f)
@@ -234,11 +323,7 @@ private fun DayCell(date: LocalDate, isSelected: Boolean, count: Int, onClick: (
         verticalArrangement = Arrangement.Center,
     ) {
         Box(
-            modifier = Modifier
-                .size(30.dp)
-                .clip(CircleShape)
-                .background(if (isSelected) AppTheme.colors.adorationPurple else androidx.compose.ui.graphics.Color.Transparent)
-                .border(if (isToday && !isSelected) 1.5.dp else 0.dp, AppTheme.colors.thanksgivingGold.copy(alpha = 0.7f), CircleShape),
+            modifier = dayCircleModifier,
             contentAlignment = Alignment.Center,
         ) {
             Text(
@@ -250,9 +335,9 @@ private fun DayCell(date: LocalDate, isSelected: Boolean, count: Int, onClick: (
         Box(
             modifier = Modifier
                 .padding(top = 2.dp)
-                .size(4.dp)
+                .size(if (count > 1) 6.dp else 4.dp)
                 .clip(CircleShape)
-                .background(if (count > 0) AppTheme.colors.thanksgivingGold.copy(alpha = 0.3f + 0.7f * minOf(count, 3) / 3f) else androidx.compose.ui.graphics.Color.Transparent),
+                .background(if (count > 0) AppTheme.colors.adorationPurple.copy(alpha = 0.35f + 0.65f * minOf(count, 3) / 3f) else androidx.compose.ui.graphics.Color.Transparent),
         )
     }
 }
@@ -328,7 +413,13 @@ fun JournalEntryRow(entry: PrayerEntryEntity, onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Box(modifier = Modifier.size(6.dp).clip(CircleShape).background(accent))
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .height(42.dp)
+                .clip(CircleShape)
+                .background(accent),
+        )
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 entry.displayTitle,
@@ -353,9 +444,12 @@ private fun EmptyCard(text: String) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(AppTheme.colors.cardSurface)
-            .padding(16.dp),
+            .padding(horizontal = 18.dp, vertical = 20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(text, color = AppTheme.colors.textTertiary)
+        Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = AppTheme.colors.adorationPurple.copy(alpha = 0.65f))
+        Text(text, color = AppTheme.colors.textSecondary, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
