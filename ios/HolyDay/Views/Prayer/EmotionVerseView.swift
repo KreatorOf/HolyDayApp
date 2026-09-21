@@ -5,6 +5,7 @@
 //  Created by Matthias Cadet on 31/05/2026.
 //
 
+import SwiftData
 import SwiftUI
 
 /// Verset « nu » accompagnant une émotion : serif italique centré, révélé mot à mot comme une
@@ -13,8 +14,15 @@ struct EmotionVerseView: View {
   let verse: Verse
   var accent: Color
 
+  @Environment(\.modelContext) private var modelContext
+  @Query private var savedVerses: [SavedVerse]
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
   @State private var revealedCount = 0
+
+  init(verse: Verse, accent: Color) {
+    self.verse = verse
+    self.accent = accent
+  }
 
   // Les guillemets sont des tokens à part entière : « apparaît en premier, » en dernier, ce qui
   // évite un guillemet fermant flottant pendant la révélation.
@@ -41,16 +49,41 @@ struct EmotionVerseView: View {
         .contentTransition(.opacity)
         .animation(.easeOut(duration: 0.25), value: revealedCount)
 
-      Text(verse.reference)
-        .font(.footnote.weight(.semibold))
-        .foregroundStyle(accent)
-        .opacity(isComplete ? 1 : 0)
-        .animation(.easeOut(duration: 0.4), value: isComplete)
+      HStack(spacing: 12) {
+        Text(verse.reference)
+          .font(.footnote.weight(.semibold))
+          .foregroundStyle(accent)
+
+        Button {
+          toggleSaved()
+        } label: {
+          Image(systemName: isSaved ? "bookmark.fill" : "bookmark")
+            .frame(width: 44, height: 44)
+        }
+        .accessibilityLabel(
+          String(localized: isSaved ? "savedVerses.remove" : "savedVerses.add"))
+      }
+      .opacity(isComplete ? 1 : 0)
+      .animation(.easeOut(duration: 0.4), value: isComplete)
     }
     .padding(.horizontal, 32)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel("\(verse.text) — \(verse.reference)")
     .task(id: verse.id) { await reveal() }
+  }
+
+  private var matchingSavedVerse: SavedVerse? {
+    savedVerses.first { $0.text == verse.text && $0.reference == verse.reference }
+  }
+
+  private var isSaved: Bool { matchingSavedVerse != nil }
+
+  private func toggleSaved() {
+    if let matchingSavedVerse {
+      modelContext.delete(matchingSavedVerse)
+    } else {
+      modelContext.insert(SavedVerse(text: verse.text, reference: verse.reference))
+    }
   }
 
   private func reveal() async {

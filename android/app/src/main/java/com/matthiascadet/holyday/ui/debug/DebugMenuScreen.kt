@@ -65,6 +65,7 @@ fun DebugMenuScreen(onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     val entryDao = remember(context) { AppDatabase.getInstance(context).prayerEntryDao() }
     val intentionDao = remember(context) { AppDatabase.getInstance(context).prayerIntentionDao() }
+    val savedVerseDao = remember(context) { AppDatabase.getInstance(context).savedVerseDao() }
     val prayers by entryDao.observeAll().collectAsState(initial = emptyList())
     val intentions by intentionDao.observeAll().collectAsState(initial = emptyList())
     val totalPrayedDays by PrayerRecordService.totalPrayedDays.collectAsState()
@@ -149,6 +150,7 @@ fun DebugMenuScreen(onDismiss: () -> Unit) {
                     scope.launch {
                         entryDao.deleteAll()
                         intentionDao.deleteAll()
+                        savedVerseDao.deleteAll()
                         PrayerRecordService.reset()
                         TipService.debugSetSupporter(false)
                         AppPreferences.raw.edit()

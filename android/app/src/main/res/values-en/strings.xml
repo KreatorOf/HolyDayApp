@@ -292,4 +292,21 @@
     <string name="whatsnew_continue">Continue</string>
     <string name="whatsnew_title">What\'s New</string>
     <string name="whatsnew_version">Version %1$s</string>
+    <string name="evening_review_title">Evening reflection</string>
+    <string name="evening_review_feeling">How are you feeling tonight?</string>
+    <string name="evening_review_gratitude">What are you grateful for?</string>
+    <string name="evening_review_difficulty">What was difficult today?</string>
+    <string name="evening_review_tomorrow">What would you like to entrust to God for tomorrow?</string>
+    <string name="evening_review_placeholder">Write freely…</string>
+    <string name="evening_review_save">Save</string>
+    <string name="saved_verses_title">My verse journal</string>
+    <string name="saved_verses_empty_title">No saved verses</string>
+    <string name="saved_verses_empty_message">Save the verses that stay with you and find them here.</string>
+    <string name="saved_verses_note_placeholder">Add a personal note…</string>
+    <string name="saved_verses_add">Save verse</string>
+    <string name="saved_verses_remove">Remove from saved verses</string>
+    <string name="intentions_updates_title">Journey</string>
+    <string name="intentions_updates_placeholder">Add an update…</string>
+    <string name="intentions_updates_add">Add</string>
+    <string name="intentions_updates_empty">Add changes, answers, or meaningful moments here.</string>
 </resources>

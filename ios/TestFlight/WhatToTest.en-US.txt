@@ -1,6 +1,31 @@
-Contextual reminders and living widgets.
+Verse journal, evening reflection, and intention updates.
 
-1. REMINDERS
+1. VERSE JOURNAL
+
+- Pick an emotion on the home screen, then save the verse with the bookmark
+  button beside its reference.
+- Open the journal from the bookmark button at the top left of the home
+  screen.
+- Add a personal note, close and reopen the journal: the note must persist.
+- Remove a verse from the home screen or delete it from the journal.
+
+2. EVENING REFLECTION
+
+- Open the "Pray" menu, then "Evening reflection".
+- Optionally select an emotion and fill in one or more of the three fields.
+  Save must stay disabled while every field is empty.
+- After saving, check that the reflection appears in the Journal and that
+  the day counts as a prayed day.
+
+3. INTENTION JOURNEY
+
+- Open an intention and add several updates in the Journey section. After
+  closing and reopening it, they must remain ordered newest first.
+- Delete the intention and check that it disappears without an error.
+
+4. REGRESSION: REMINDERS AND WIDGETS
+
+REMINDERS
 
 The daily reminder adapts to what actually happened, and never guilt-trips.
 
@@ -14,7 +39,7 @@ The daily reminder adapts to what actually happened, and never guilt-trips.
   screen. Tapping it opens the Intentions screen.
 - Any other day: the usual reflection question.
 
-2. THE "MY VERSE" WIDGET
+THE "MY VERSE" WIDGET
 
 - It must never be empty nor stay stuck on an old verse.
 - On the day you pick an emotion it shows that emotion's verse; on the
@@ -24,14 +49,14 @@ The daily reminder adapts to what actually happened, and never guilt-trips.
 - Switch the iPhone language between French and English: the widget verse
   must follow (Louis Segond 1910 / Berean Standard Bible).
 
-3. THE "PRAY" CONTROL
+THE "PRAY" CONTROL
 
 - Add it to Control Center, and assign it to the Action button if your
   iPhone has one.
 - It must open free prayer directly, without going through the home screen.
 - Test it with the device locked too.
 
-4. WHAT MUST NOT HAVE CHANGED
+5. WHAT MUST NOT HAVE CHANGED
 
 The "Pray" widget and the older shortcuts still open the app in the right
 place. Journal, stats and guided prayer are untouched.

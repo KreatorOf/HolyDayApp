@@ -87,5 +87,7 @@ struct MainTabView: View {
 
 #Preview {
   MainTabView()
-    .modelContainer(for: [PrayerEntry.self, PrayerIntention.self], inMemory: true)
+    .modelContainer(
+      for: [PrayerEntry.self, PrayerIntention.self, SavedVerse.self, IntentionUpdate.self],
+      inMemory: true)
 }

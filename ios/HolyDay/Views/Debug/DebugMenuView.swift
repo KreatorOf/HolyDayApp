@@ -170,6 +170,7 @@
     private func nuke() {
       DebugActions.clearPrayers(in: context)
       DebugActions.clearIntentions(in: context)
+      DebugActions.clearSavedVerses(in: context)
       DebugActions.resetPrayerRecord()
       tip.debugSetSupporter(false)
       userName = ""

@@ -5,6 +5,8 @@ object NavRoutes {
     const val MAIN = "main"
     const val FREE_PRAYER = "freePrayer"
     const val STRUCTURED_PRAYER = "structuredPrayer"
+    const val EVENING_REVIEW = "eveningReview"
+    const val SAVED_VERSES = "savedVerses"
     const val INTENTIONS = "intentions"
     const val INTENTION_DETAIL = "intentions/{intentionId}"
     fun intentionDetail(id: String) = "intentions/$id"

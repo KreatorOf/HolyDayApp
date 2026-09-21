@@ -28,6 +28,8 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Bedtime
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedButton
@@ -120,6 +122,8 @@ fun HomeScreen(
     emotionVerse: Verse?,
     onSelectEmotion: (Emotion) -> Unit,
     onOpenIntentions: () -> Unit,
+    onOpenSavedVerses: () -> Unit,
+    onStartEveningReview: () -> Unit,
     onStartFreePrayer: () -> Unit,
     onStartStructuredPrayer: () -> Unit,
 ) {
@@ -132,6 +136,13 @@ fun HomeScreen(
             CenterAlignedTopAppBar(
                 title = { BrandingTitle() },
                 actions = {
+                    IconButton(onClick = onOpenSavedVerses) {
+                        Icon(
+                            Icons.Filled.Bookmark,
+                            contentDescription = stringResource(R.string.saved_verses_title),
+                            tint = AppTheme.colors.textPrimary,
+                        )
+                    }
                     Surface(
                         shape = MaterialTheme.shapes.extraLarge,
                         color = MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -221,6 +232,17 @@ fun HomeScreen(
                 // principal (qui reste l'ancre visuelle et devient le bouton pour refermer), avec un
                 // léger décalage d'apparition — la pilule la plus proche du bouton sort en premier.
                 Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    AnimatedVisibility(
+                        visible = menuExpanded,
+                        enter = fadeIn(tween(200, delayMillis = 120)) + slideInVertically(tween(200, delayMillis = 120)) { it / 2 },
+                        exit = fadeOut(tween(120)) + slideOutVertically(tween(120)) { it / 2 },
+                    ) {
+                        PrayChoicePill(
+                            icon = Icons.Filled.Bedtime,
+                            label = stringResource(R.string.evening_review_title),
+                            onClick = { menuExpanded = false; onStartEveningReview() },
+                        )
+                    }
                     AnimatedVisibility(
                         visible = menuExpanded,
                         enter = fadeIn(tween(200, delayMillis = 70)) + slideInVertically(tween(200, delayMillis = 70)) { it / 2 },

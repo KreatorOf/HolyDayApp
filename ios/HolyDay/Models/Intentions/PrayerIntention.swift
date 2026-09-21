@@ -14,6 +14,8 @@ final class PrayerIntention {
   var createdAt: Date
   var isAnswered: Bool = false
   var answeredAt: Date?
+  @Relationship(deleteRule: .cascade, inverse: \IntentionUpdate.intention)
+  var updates: [IntentionUpdate] = []
 
   init(
     text: String,

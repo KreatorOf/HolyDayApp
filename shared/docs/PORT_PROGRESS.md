@@ -130,6 +130,20 @@ Légende : ⬜ à faire · 🟨 en cours · ✅ fait · ⚠️ fait avec limitat
   dans la célébration de don ; cette dernière ne se ferme plus automatiquement afin que la cible
   soit réellement utilisable, conformément au comportement iOS actuel.
 
+### 6 quater. Carnet, relecture du soir et cheminement des intentions
+- ✅ iOS et Android : un verset affiché depuis l'accueil peut être enregistré ou retiré en un geste.
+  Le carnet permet de le relire, d'ajouter une note personnelle et de le supprimer. Les données
+  restent locales (`SavedVerse` SwiftData / `SavedVerseEntity` Room).
+- ✅ iOS et Android : la relecture du soir est accessible dans le menu « Prier ». Elle recueille
+  une émotion facultative, la gratitude, la difficulté du jour et ce qui est confié pour demain,
+  puis crée une entrée distincte dans le journal et met à jour le suivi de prière.
+- ✅ iOS et Android : le détail d'une intention contient désormais une chronologie libre
+  d'évolutions datées. La suppression de l'intention supprime ses évolutions en cascade.
+- ✅ Android : migration Room 1 → 2 explicite et non destructive pour les deux nouvelles tables.
+- ✅ Parité et qualité : toutes les nouvelles chaînes existent en français et en anglais et sont
+  référencées dans `KEYMAP.md`. Build iOS, tests XCTest, SwiftLint/swift-format, tests JVM, lint et
+  assemblage Android validés le 2026-09-22.
+
 ### 7. Localisation
 - ⬜ Extraction complète des clés .xcstrings → strings.xml (fr default + en)
 - **Divergences de valeur volontaires** (même clé, texte différent par plateforme — ne pas « corriger » en recopiant le texte iOS) :

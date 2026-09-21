@@ -37,7 +37,8 @@ struct HolyDayApp: App {
         .appendingPathComponent("HolyDay.sqlite")
       let config = ModelConfiguration(url: storeURL)
       resolvedContainer = try ModelContainer(
-        for: PrayerEntry.self, PrayerIntention.self, configurations: config)
+        for: PrayerEntry.self, PrayerIntention.self, SavedVerse.self, IntentionUpdate.self,
+        configurations: config)
       Self.protectStoreFiles(at: storeURL)
     } catch {
       // Store sur disque illisible (corruption, migration ratée) : on NE supprime PAS le fichier —
@@ -49,7 +50,8 @@ struct HolyDayApp: App {
       do {
         let memoryConfig = ModelConfiguration(isStoredInMemoryOnly: true)
         resolvedContainer = try ModelContainer(
-          for: PrayerEntry.self, PrayerIntention.self, configurations: memoryConfig)
+          for: PrayerEntry.self, PrayerIntention.self, SavedVerse.self, IntentionUpdate.self,
+          configurations: memoryConfig)
       } catch {
         // Un échec du conteneur en mémoire ne peut venir que d'un schéma invalide (erreur de
         // développement), pas d'un incident d'exécution récupérable.

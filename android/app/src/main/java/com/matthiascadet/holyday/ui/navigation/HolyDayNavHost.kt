@@ -56,6 +56,8 @@ import com.matthiascadet.holyday.ui.journal.PrayerEntryDetailScreen
 import com.matthiascadet.holyday.ui.journal.PrayerHistoryScreen
 import com.matthiascadet.holyday.ui.onboarding.OnboardingScreen
 import com.matthiascadet.holyday.ui.prayer.FreePrayerScreen
+import com.matthiascadet.holyday.ui.prayer.EveningReviewScreen
+import com.matthiascadet.holyday.ui.prayer.SavedVersesScreen
 import com.matthiascadet.holyday.ui.prayer.StructuredPrayerScreen
 import com.matthiascadet.holyday.ui.settings.LegalNoticeScreen
 import com.matthiascadet.holyday.ui.settings.SettingsScreen
@@ -181,6 +183,14 @@ fun HolyDayNavHost(deepLink: Uri?, onDeepLinkHandled: () -> Unit) {
             )
         }
 
+        composable(NavRoutes.EVENING_REVIEW) {
+            EveningReviewScreen(onDismiss = { navController.popBackStack() })
+        }
+
+        composable(NavRoutes.SAVED_VERSES) {
+            SavedVersesScreen(onDismiss = { navController.popBackStack() })
+        }
+
         composable(NavRoutes.SUPPORT_PROMPT) {
             SupportPromptScreen(
                 onSupport = {
@@ -273,6 +283,8 @@ private fun MainScreen(
                     emotionVerse = emotionVerse,
                     onSelectEmotion = onSelectEmotion,
                     onOpenIntentions = { navController.navigate(NavRoutes.INTENTIONS) },
+                    onOpenSavedVerses = { navController.navigate(NavRoutes.SAVED_VERSES) },
+                    onStartEveningReview = { navController.navigate(NavRoutes.EVENING_REVIEW) },
                     onStartFreePrayer = { onBeforeStartingPrayer(); navController.navigate(NavRoutes.FREE_PRAYER) },
                     onStartStructuredPrayer = { onBeforeStartingPrayer(); navController.navigate(NavRoutes.STRUCTURED_PRAYER) },
                 )

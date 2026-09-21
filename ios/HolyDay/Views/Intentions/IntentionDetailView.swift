@@ -23,6 +23,7 @@ struct IntentionDetailView: View {
   @State private var restoredHaptic = 0
   @State private var removedHaptic = 0
   @State private var savedHaptic = 0
+  @State private var updateDraft = ""
   @FocusState private var isFocused: Bool
 
   // MARK: - Body
@@ -37,6 +38,7 @@ struct IntentionDetailView: View {
             statusBadge
             intentionText
             metadata
+            updatesSection
           }
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(24)
@@ -135,6 +137,55 @@ struct IntentionDetailView: View {
       .foregroundStyle(AppTheme.textSecondary)
   }
 
+  private var updatesSection: some View {
+    VStack(alignment: .leading, spacing: 14) {
+      Text("intentions.updates.title")
+        .font(.headline)
+        .foregroundStyle(AppTheme.textPrimary)
+
+      HStack(alignment: .bottom, spacing: 10) {
+        TextField("intentions.updates.placeholder", text: $updateDraft, axis: .vertical)
+          .lineLimit(1...4)
+          .padding(12)
+          .background(AppTheme.cardSurface, in: RoundedRectangle(cornerRadius: 14))
+        Button {
+          addUpdate()
+        } label: {
+          Image(systemName: "arrow.up.circle.fill")
+            .font(.title2)
+            .frame(width: 44, height: 44)
+        }
+        .disabled(updateDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .accessibilityLabel(Text("intentions.updates.add"))
+      }
+
+      if intention.updates.isEmpty {
+        Text("intentions.updates.empty")
+          .font(.subheadline)
+          .foregroundStyle(AppTheme.textSecondary)
+      } else {
+        ForEach(intention.updates.sorted { $0.createdAt > $1.createdAt }) { update in
+          VStack(alignment: .leading, spacing: 5) {
+            Text(update.text)
+              .foregroundStyle(AppTheme.textPrimary)
+            Text(update.createdAt.formatted(date: .abbreviated, time: .shortened))
+              .font(.caption)
+              .foregroundStyle(AppTheme.textTertiary)
+          }
+          .frame(maxWidth: .infinity, alignment: .leading)
+          .padding(14)
+          .background(AppTheme.cardSurface, in: RoundedRectangle(cornerRadius: 16))
+          .contextMenu {
+            Button("common.delete", systemImage: "trash", role: .destructive) {
+              modelContext.delete(update)
+            }
+          }
+        }
+      }
+    }
+    .padding(.top, 8)
+  }
+
   // MARK: - Action bar
 
   private var actionBar: some View {
@@ -195,6 +246,14 @@ struct IntentionDetailView: View {
     dismiss()
   }
 
+  private func addUpdate() {
+    let trimmed = updateDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else { return }
+    intention.updates.append(IntentionUpdate(text: trimmed, intention: intention))
+    updateDraft = ""
+    savedHaptic += 1
+  }
+
   private func restore() {
     intention.isAnswered = false
     intention.answeredAt = nil
@@ -224,6 +283,6 @@ struct IntentionDetailView: View {
 
 #Preview {
   IntentionDetailView(intention: PrayerIntention(text: "Guérison de ma grand-mère"))
-    .modelContainer(for: PrayerIntention.self, inMemory: true)
+    .modelContainer(for: [PrayerIntention.self, IntentionUpdate.self], inMemory: true)
     .preferredColorScheme(.dark)
 }

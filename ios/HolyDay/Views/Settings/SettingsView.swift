@@ -431,6 +431,7 @@ struct SettingsView: View {
   private func resetAllData() {
     try? modelContext.delete(model: PrayerEntry.self)
     try? modelContext.delete(model: PrayerIntention.self)
+    try? modelContext.delete(model: SavedVerse.self)
     PrayerRecordService.shared.reset()
     SupportPromptService.shared.reset()
     AvatarService.shared.delete()

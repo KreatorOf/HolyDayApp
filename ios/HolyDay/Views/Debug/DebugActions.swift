@@ -28,6 +28,10 @@
       try? context.delete(model: PrayerIntention.self)
     }
 
+    static func clearSavedVerses(in context: ModelContext) {
+      try? context.delete(model: SavedVerse.self)
+    }
+
     /// Rejoue l'écran de nouveautés au prochain lancement, sans avoir à réinstaller une version
     /// antérieure pour tester la détection de mise à jour.
     static func resetWhatsNew() {

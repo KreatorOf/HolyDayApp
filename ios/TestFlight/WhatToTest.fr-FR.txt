@@ -1,6 +1,32 @@
-Rappels contextuels et widgets vivants.
+Carnet de versets, relecture du soir et cheminement des intentions.
 
-1. LES RAPPELS
+1. LE CARNET DE VERSETS
+
+- Choisis une emotion depuis l'accueil, puis enregistre le verset avec le
+  bouton signet qui apparait a cote de sa reference.
+- Ouvre le carnet depuis le bouton signet en haut a gauche de l'accueil.
+- Ajoute une note personnelle, ferme puis rouvre le carnet : la note doit
+  etre conservee.
+- Retire un verset depuis l'accueil ou supprime-le depuis le carnet.
+
+2. LA RELECTURE DU SOIR
+
+- Ouvre le menu " Prier ", puis " Relecture du soir ".
+- Choisis une emotion facultative et remplis un ou plusieurs des trois
+  champs. Le bouton Enregistrer reste desactive si tout est vide.
+- Apres enregistrement, verifie que la relecture apparait dans le Journal et
+  que la journee est comptee comme priee.
+
+3. LE CHEMINEMENT DES INTENTIONS
+
+- Ouvre une intention, puis ajoute plusieurs evolutions dans la section
+  Cheminement. Elles doivent rester classees de la plus recente a la plus
+  ancienne apres fermeture et reouverture.
+- Supprime ensuite l'intention et verifie qu'elle disparait sans erreur.
+
+4. REGRESSION : RAPPELS ET WIDGETS
+
+LES RAPPELS
 
 Le rappel quotidien s'adapte a ce qui s'est passe, sans jamais culpabiliser.
 
@@ -14,7 +40,7 @@ Le rappel quotidien s'adapte a ce qui s'est passe, sans jamais culpabiliser.
   sur l'ecran verrouille. Le tap ouvre l'ecran Intentions.
 - Les autres jours : la question de reflexion habituelle.
 
-2. LE WIDGET " MON VERSET "
+LE WIDGET " MON VERSET "
 
 - Il ne doit plus jamais etre vide ni rester fige sur un ancien verset.
 - Le jour ou tu declares une emotion, il montre le verset de cette emotion ;
@@ -24,14 +50,14 @@ Le rappel quotidien s'adapte a ce qui s'est passe, sans jamais culpabiliser.
 - Bascule la langue de l'iPhone entre francais et anglais : le verset du
   widget doit suivre (Louis Segond 1910 / Berean Standard Bible).
 
-3. LA COMMANDE " PRIER "
+LA COMMANDE " PRIER "
 
 - Ajoute-la au Centre de controle, et si ton iPhone a un bouton Action,
   assigne-la lui.
 - Elle doit ouvrir directement la priere libre, sans passer par l'accueil.
 - A tester aussi appareil verrouille.
 
-4. CE QUI NE DOIT PAS AVOIR BOUGE
+5. CE QUI NE DOIT PAS AVOIR BOUGE
 
 Le widget " Prier " et les anciens raccourcis continuent d'ouvrir l'app au
 bon endroit. Le journal, les statistiques et la priere guidee sont inchanges.

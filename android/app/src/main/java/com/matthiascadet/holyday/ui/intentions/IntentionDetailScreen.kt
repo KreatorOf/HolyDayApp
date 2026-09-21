@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -42,6 +44,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.matthiascadet.holyday.R
 import com.matthiascadet.holyday.data.db.AppDatabase
+import com.matthiascadet.holyday.data.db.IntentionUpdateEntity
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -60,9 +63,12 @@ fun IntentionDetailScreen(intentionId: String, onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     val intentions by dao.observeAll().collectAsState(initial = emptyList())
     val intention = intentions.find { it.id == intentionId } ?: return
+    val updateDao = remember(context) { AppDatabase.getInstance(context).intentionUpdateDao() }
+    val updates by updateDao.observeFor(intentionId).collectAsState(initial = emptyList())
 
     var isEditing by remember { mutableStateOf(false) }
     var draft by remember(intention.id) { mutableStateOf(intention.text) }
+    var updateDraft by remember { mutableStateOf("") }
     val formatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG) }
     val zone = ZoneId.systemDefault()
 
@@ -70,7 +76,9 @@ fun IntentionDetailScreen(intentionId: String, onDismiss: () -> Unit) {
         title = stringResource(R.string.intentions_nav_title),
         onBack = onDismiss,
     ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding).padding(20.dp)) {
+        Column(
+            Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
+        ) {
             val statusColor = if (intention.isAnswered) AppTheme.colors.supplicationGreen else AppTheme.colors.adorationPurple
             Box(
                 modifier = Modifier
@@ -122,7 +130,52 @@ fun IntentionDetailScreen(intentionId: String, onDismiss: () -> Unit) {
                 }
             }
 
-            androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
+            Text(
+                stringResource(R.string.intentions_updates_title),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
+            )
+            OutlinedTextField(
+                value = updateDraft,
+                onValueChange = { updateDraft = it },
+                label = { Text(stringResource(R.string.intentions_updates_placeholder)) },
+                trailingIcon = {
+                    TextButton(
+                        enabled = updateDraft.isNotBlank(),
+                        onClick = {
+                            val text = updateDraft.trim()
+                            scope.launch { updateDao.insert(IntentionUpdateEntity(intentionId = intentionId, text = text)) }
+                            updateDraft = ""
+                        },
+                    ) { Text(stringResource(R.string.intentions_updates_add)) }
+                },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (updates.isEmpty()) {
+                Text(
+                    stringResource(R.string.intentions_updates_empty),
+                    color = AppTheme.colors.textSecondary,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(vertical = 12.dp),
+                )
+            } else {
+                updates.forEach { update ->
+                    Column(
+                        Modifier.fillMaxWidth().padding(top = 10.dp)
+                            .softSurface(shape = MaterialTheme.shapes.medium, tint = AppTheme.colors.cardSurface)
+                            .padding(14.dp),
+                    ) {
+                        Text(update.text, color = AppTheme.colors.textPrimary)
+                        Text(
+                            Instant.ofEpochMilli(update.createdAt).atZone(zone).format(formatter),
+                            color = AppTheme.colors.textSecondary,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(24.dp))
 
             if (isEditing) {
                 Button(

@@ -27,6 +27,8 @@ struct ContentView: View {
   @State private var showFreePrayer = false
   @State private var showStructuredPrayer = false
   @State private var showIntentions = false
+  @State private var showSavedVerses = false
+  @State private var showEveningReview = false
   @State private var showPrayerChoices = false
   @State private var prayerTriggerFrame = CGRect.zero
   @State private var prayerChoicesFrame = CGRect.zero
@@ -71,6 +73,14 @@ struct ContentView: View {
       .appNavigationBarBackground()
       .toolbar {
         ToolbarItem(placement: .principal) { brandingTitle }
+        ToolbarItem(placement: .topBarLeading) {
+          Button {
+            showSavedVerses = true
+          } label: {
+            Image(systemName: "bookmark")
+          }
+          .accessibilityLabel(String(localized: "savedVerses.title"))
+        }
         ToolbarItem(placement: .topBarTrailing) {
           intentionsButton
             .appPopoverTip(intentionsTip, isPresented: $intentionsTipPresented)
@@ -120,6 +130,12 @@ struct ContentView: View {
     }
     .sheet(isPresented: $showIntentions) {
       IntentionsView()
+    }
+    .sheet(isPresented: $showSavedVerses) {
+      SavedVersesView()
+    }
+    .sheet(isPresented: $showEveningReview) {
+      EveningReviewView()
     }
     // Routes venues d'une notification, d'un widget ou de la commande « Prier ». `initial: true` :
     // au lancement à froid, la route est posée avant que la vue n'existe.
@@ -290,6 +306,12 @@ struct ContentView: View {
         systemImage: "hands.sparkles",
         mode: .guided
       )
+      Divider()
+      prayerChoice(
+        "eveningReview.title",
+        systemImage: "moon.stars",
+        mode: .eveningReview
+      )
     }
     .padding(8)
     .frame(width: 240)
@@ -428,6 +450,8 @@ struct ContentView: View {
     case .guided:
       recordTokenBeforeStructured = prayerRecord.lastRecordToken
       showStructuredPrayer = true
+    case .eveningReview:
+      showEveningReview = true
     }
   }
 
@@ -497,11 +521,13 @@ struct ContentView: View {
 private enum DuoPrayerMode {
   case free
   case guided
+  case eveningReview
 
   var accessibilityIdentifier: String {
     switch self {
     case .free: "prayer.free.menuItem"
     case .guided: "prayer.guided.menuItem"
+    case .eveningReview: "prayer.eveningReview.menuItem"
     }
   }
 }

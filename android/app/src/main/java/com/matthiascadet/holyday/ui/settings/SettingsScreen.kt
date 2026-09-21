@@ -448,6 +448,7 @@ fun SettingsScreen(onOpenLegal: () -> Unit, onOpenPaywall: () -> Unit, onOpenDeb
                     scope.launch {
                         entryDao.deleteAll()
                         AppDatabase.getInstance(context).prayerIntentionDao().deleteAll()
+                        AppDatabase.getInstance(context).savedVerseDao().deleteAll()
                         PrayerRecordService.reset()
                         SupportPromptService.shared.reset()
                         AvatarService.delete(context)

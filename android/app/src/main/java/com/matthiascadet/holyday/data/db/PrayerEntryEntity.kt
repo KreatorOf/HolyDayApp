@@ -12,6 +12,7 @@ object PrayerStepIcon {
     const val CONFESSION = "confession"
     const val THANKSGIVING = "thanksgiving"
     const val SUPPLICATION = "supplication"
+    const val EVENING_REVIEW = "evening_review"
 }
 
 enum class TitleSource {
