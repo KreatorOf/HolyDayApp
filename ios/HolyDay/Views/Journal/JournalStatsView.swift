@@ -14,6 +14,8 @@ import SwiftUI
 struct JournalStatsView: View {
   let entries: [PrayerEntry]
 
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var period: StatsPeriod = .month
 
   var body: some View {
@@ -26,12 +28,28 @@ struct JournalStatsView: View {
       if activity.isEmpty {
         emptyState
       } else {
-        chartCard(activityTitleKey) { activityChart(activity) }
-        if !emotions.isEmpty {
-          chartCard("stats.emotions.title") { emotionsChart(emotions) }
-        }
+        charts(activity: activity, emotions: emotions)
       }
     }
+  }
+
+  @ViewBuilder
+  private func charts(activity: [StatPoint], emotions: [EmotionTotal]) -> some View {
+    if usesTwoColumnLayout, !emotions.isEmpty {
+      HStack(alignment: .top, spacing: 20) {
+        chartCard(activityTitleKey) { activityChart(activity) }
+        chartCard("stats.emotions.title") { emotionsChart(emotions) }
+      }
+    } else {
+      chartCard(activityTitleKey) { activityChart(activity) }
+      if !emotions.isEmpty {
+        chartCard("stats.emotions.title") { emotionsChart(emotions) }
+      }
+    }
+  }
+
+  private var usesTwoColumnLayout: Bool {
+    horizontalSizeClass == .regular && !dynamicTypeSize.isAccessibilitySize
   }
 
   // MARK: - Period
@@ -77,7 +95,7 @@ struct JournalStatsView: View {
         .accessibilityValue(Text("\(Int(point.value))"))
     }
     .chartYAxis { AxisMarks(position: .leading) }
-    .frame(height: 180)
+    .frame(height: usesTwoColumnLayout ? 240 : 180)
   }
 
   // Donut : répartition des émotions sur la période. Couleur = `pastel` de chaque émotion, identique

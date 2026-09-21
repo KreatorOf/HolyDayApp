@@ -12,6 +12,7 @@ import TipKit
 struct PrayerHistoryView: View {
   @Query(sort: \PrayerEntry.date, order: .reverse) private var entries: [PrayerEntry]
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   private let journalTip = JournalTip()
   // Recherche sémantique on-device (FoundationModels) : indisponible sur la majorité des appareils
   // (iOS 26 et Apple Intelligence requis). On masque alors le bouton plutôt que d'exposer une
@@ -50,10 +51,7 @@ struct PrayerHistoryView: View {
           } else {
             // Un seul groupage jour → prières par render, partagé calendrier + jour sélectionné.
             let byDay = entriesByDay
-            calendarCard(byDay: byDay)
-              .padding(.horizontal, 16)
-            selectedDaySection(byDay: byDay)
-              .padding(.horizontal, 16)
+            journalOverview(byDay: byDay)
           }
         }
         .padding(.top, AppTheme.pageContentTopSpacing)
@@ -128,23 +126,30 @@ struct PrayerHistoryView: View {
           .map { ($0.key, $0.value.sorted { $0.date < $1.date }) }
       }
     }
-    .sheet(isPresented: $showInsight) {
-      NavigationStack {
-        ScrollView {
-          JournalStatsView(entries: entries)
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 32)
-        }
-        .scrollIndicators(.hidden)
-        .background { AppBackground() }
-        .toolbar {
-          ToolbarItem(placement: .topBarLeading) {
-            AppCloseButton { showInsight = false }
-          }
-        }
+    .modifier(
+      StatsPresentationModifier(
+        isPresented: $showInsight,
+        entries: entries,
+        usesFullScreen: horizontalSizeClass == .regular
+      )
+    )
+  }
+
+  @ViewBuilder
+  private func journalOverview(byDay: [Date: [PrayerEntry]]) -> some View {
+    if horizontalSizeClass == .regular {
+      HStack(alignment: .top, spacing: 24) {
+        calendarCard(byDay: byDay)
+          .frame(maxWidth: 420)
+        selectedDaySection(byDay: byDay)
+          .frame(maxWidth: .infinity, alignment: .leading)
       }
-      .presentationDragIndicator(.visible)
+      .padding(.horizontal, 24)
+    } else {
+      calendarCard(byDay: byDay)
+        .padding(.horizontal, 16)
+      selectedDaySection(byDay: byDay)
+        .padding(.horizontal, 16)
     }
   }
 
@@ -687,6 +692,46 @@ struct PrayerHistoryView: View {
     else { return }
     displayedMonth = newMonth
     selectedDate = nil
+  }
+}
+
+private struct StatsPresentationModifier: ViewModifier {
+  @Binding var isPresented: Bool
+  let entries: [PrayerEntry]
+  let usesFullScreen: Bool
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    if usesFullScreen {
+      content.fullScreenCover(isPresented: $isPresented) {
+        destination
+      }
+    } else {
+      content.sheet(isPresented: $isPresented) {
+        destination
+          .presentationDragIndicator(.visible)
+      }
+    }
+  }
+
+  private var destination: some View {
+    NavigationStack {
+      ScrollView {
+        JournalStatsView(entries: entries)
+          .padding(.horizontal, usesFullScreen ? 24 : 20)
+          .padding(.top, 8)
+          .padding(.bottom, 32)
+      }
+      .scrollIndicators(.hidden)
+      .background { AppBackground() }
+      .navigationTitle("accessibility.stats.button")
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .topBarLeading) {
+          AppCloseButton { isPresented = false }
+        }
+      }
+    }
   }
 }
 

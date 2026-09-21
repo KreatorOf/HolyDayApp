@@ -12,6 +12,7 @@ import SwiftUI
 
 struct SettingsView: View {
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
   @State private var notifications = NotificationService.shared
   @State private var tipService = TipService.shared
   @State private var showTipView = false
@@ -71,6 +72,10 @@ struct SettingsView: View {
         .padding(.horizontal, 16)
         .padding(.top, AppTheme.pageContentTopSpacing)
         .padding(.bottom, 32)
+        // Une colonne volontairement lisible sur l'écran interne, plutôt que des cartes étirées
+        // d'un bord à l'autre. En largeur compacte, la contrainte n'a aucun effet.
+        .frame(maxWidth: horizontalSizeClass == .regular ? 680 : .infinity)
+        .frame(maxWidth: .infinity)
       }
       .scrollIndicators(.hidden)
       // Pas d'`ignoresSafeArea` : le système place le contenu sous la barre dès le premier rendu,

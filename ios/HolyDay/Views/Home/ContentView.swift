@@ -11,6 +11,14 @@ import TipKit
 
 struct ContentView: View {
   @Environment(\.modelContext) private var modelContext
+  @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+  @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @Query(
+    filter: #Predicate<PrayerIntention> { !$0.isAnswered },
+    sort: \PrayerIntention.createdAt,
+    order: .reverse
+  )
+  private var activeIntentions: [PrayerIntention]
   @State private var prayerRecord = PrayerRecordService.shared
 
   @State private var selectedEmotion: Emotion?
@@ -19,6 +27,9 @@ struct ContentView: View {
   @State private var showFreePrayer = false
   @State private var showStructuredPrayer = false
   @State private var showIntentions = false
+  @State private var showPrayerChoices = false
+  @State private var prayerTriggerFrame = CGRect.zero
+  @State private var prayerChoicesFrame = CGRect.zero
 
   @State private var showSupportPrompt = false
   @State private var showPaywallFromPrompt = false
@@ -43,6 +54,10 @@ struct ContentView: View {
   // Hauteur réservée à la zone du verset : dimensionnée pour les versets courts (la majorité), afin
   // qu'apparition et révélation mot à mot ne déplacent jamais les éléments voisins.
   private let verseSlotHeight: CGFloat = 168
+  // Colonne de lecture commune au titre, au ruban, au verset et au CTA. Elle évite que le CTA se
+  // centre dans toute la surface lorsque Duo réserve une région système latérale.
+  private let compactContentMaxWidth: CGFloat = 560
+  private let prayerCoordinateSpace = "home.prayer"
 
   var body: some View {
     NavigationStack {
@@ -72,6 +87,8 @@ struct ContentView: View {
         }
       }
     }
+    .coordinateSpace(name: prayerCoordinateSpace)
+    .simultaneousGesture(dismissPrayerChoicesGesture)
     .fullScreenCover(
       isPresented: $showStructuredPrayer,
       onDismiss: {
@@ -149,9 +166,35 @@ struct ContentView: View {
   // MARK: - Composer layer
 
   private var composerLayer: some View {
-    // ScrollView + minHeight = hauteur du viewport : le contenu reste centré au repos et reste
-    // accessible sur petits écrans ou en grandes tailles Dynamic Type. Le bouton « Prier » est
-    // ancré en bas (safeAreaInset) : il ne se déplace pas quand le verset apparaît au-dessus.
+    Group {
+      if horizontalSizeClass == .regular, !dynamicTypeSize.isAccessibilitySize {
+        duoComposerLayer
+      } else {
+        compactComposerLayer
+      }
+    }
+  }
+
+  // L'écran interne de l'iPhone Duo fournit un trait de taille régulier, même si sa largeur logique
+  // est inférieure à celle d'un iPad. Le repli compact reste préférable avec Dynamic Type d'accès.
+  private var duoComposerLayer: some View {
+    DuoPrayerComposer(
+      question: feelingQuestion,
+      activeIntention: activeIntentions.first?.text,
+      activeIntentionCount: activeIntentions.count,
+      hasVerse: emotionVerse != nil,
+      onShowIntentions: { showIntentions = true },
+      emotionContent: { emotionRibbon },
+      prayerContent: { duoPrayerButton },
+      verseContent: { duoVerseContent }
+    )
+    .animation(.spring(response: 0.45, dampingFraction: 0.85), value: emotionVerse?.id)
+  }
+
+  // ScrollView + minHeight = hauteur du viewport : le contenu reste centré au repos et reste
+  // accessible sur petits écrans ou en grandes tailles Dynamic Type. Le bouton « Prier » est
+  // ancré en bas (safeAreaInset) : il ne se déplace pas quand le verset apparaît au-dessus.
+  private var compactComposerLayer: some View {
     GeometryReader { geo in
       ScrollView {
         VStack(spacing: 28) {
@@ -163,28 +206,14 @@ struct ContentView: View {
             .multilineTextAlignment(.center)
             .padding(.horizontal, 32)
 
-          EmotionRibbonView { select($0) }
-            .appPopoverTip(emotionsTip, isPresented: $emotionsTipPresented, arrowEdge: .top)
-            .onChange(of: emotionsTipPresented) { wasShown, isShown in
-              if wasShown, !isShown { Task { await TourEvents.emotionsDone.donate() } }
-            }
+          emotionRibbon
 
-          // Emplacement réservé : hauteur fixe et verset ancré en haut, pour que la révélation mot
-          // à mot s'écrive « vers le bas » sans décaler le ruban au-dessus ni le reste en dessous.
-          ZStack(alignment: .top) {
-            if let emotionVerse {
-              EmotionVerseView(
-                verse: emotionVerse,
-                accent: selectedEmotion?.color ?? AppTheme.adorationPurple
-              )
-              .transition(.opacity)
-            }
-          }
-          .frame(maxWidth: .infinity, minHeight: verseSlotHeight, alignment: .top)
+          verseSlot
 
           Spacer(minLength: 0)
         }
         .frame(minHeight: geo.size.height)
+        .frame(maxWidth: compactContentMaxWidth)
         .frame(maxWidth: .infinity)
         .animation(.spring(response: 0.45, dampingFraction: 0.85), value: emotionVerse?.id)
       }
@@ -192,6 +221,8 @@ struct ContentView: View {
     }
     .safeAreaInset(edge: .bottom) {
       prayButton
+        .frame(maxWidth: compactContentMaxWidth)
+        .frame(maxWidth: .infinity)
         .appPopoverTip(prayTip, isPresented: $prayTipPresented, arrowEdge: .bottom)
         .onChange(of: prayTipPresented) { wasShown, isShown in
           if wasShown, !isShown { Task { await TourEvents.prayDone.donate() } }
@@ -200,52 +231,146 @@ struct ContentView: View {
     }
   }
 
-  // CTA principal : ouvre un menu natif (HIG) proposant la prière libre ou la prière guidée.
-  // Toujours visible — les deux modes restent accessibles même sans émotion sélectionnée.
+  private var duoPrayerButton: some View {
+    prayButton
+      .appPopoverTip(prayTip, isPresented: $prayTipPresented, arrowEdge: .bottom)
+      .onChange(of: prayTipPresented) { wasShown, isShown in
+        if wasShown, !isShown { Task { await TourEvents.prayDone.donate() } }
+      }
+  }
+
+  // Les popovers système se repositionnent pour éviter les bords, ce qui les faisait dériver à
+  // droite sur Duo. Ce sélecteur est rendu dans le repère du CTA : les options s'ouvrent toujours
+  // juste au-dessus du bouton qui les déclenche.
   @ViewBuilder
   private var prayButton: some View {
     if #available(iOS 26.0, *) {
-      // Le style de Menu par défaut peint sa propre teinte d'état pressé PAR-DESSUS le verre
-      // manuel — le bouton « tintait » au tap comme à l'appui long. `.menuStyle(.button)` fait
-      // rendre le Menu comme un bouton et `.buttonStyle(.glass)` laisse le système gérer le morph
-      // de verre interactif.
-      prayMenu(label: prayButtonLabel(verticalPadding: 6))
-        .menuStyle(.button)
+      prayerTrigger(label: prayButtonLabel(verticalPadding: 6))
         .buttonStyle(.glass)
     } else {
-      // Deux contraintes iOS 18, vérifiées sur simulateur 18.5 :
-      // - `.menuStyle(.button)` combiné à un style de bouton empêche le menu de s'ouvrir ; on
-      //   garde donc le style de Menu par défaut.
-      // - un fond REMPLI posé sur le libellé du Menu l'empêche aussi de s'ouvrir. Le fond doit
-      //   habiller le Menu lui-même, d'où le `.appGlassEffect` à l'extérieur de `prayMenu`.
-      // Le padding vertical remplace celui qu'apporte `.buttonStyle(.glass)` sur iOS 26 et assure
-      // une cible tactile de 44 pt (HIG).
-      prayMenu(label: prayButtonLabel(verticalPadding: 14))
+      prayerTrigger(label: prayButtonLabel(verticalPadding: 14))
         .appGlassEffect(in: .capsule)
     }
   }
 
-  private func prayMenu(label: some View) -> some View {
-    Menu {
-      Button {
-        recordTokenBeforeFree = prayerRecord.lastRecordToken
-        showFreePrayer = true
-      } label: {
-        Label("prayer.free.title", systemImage: "square.and.pencil")
-      }
-      .accessibilityIdentifier("prayer.free.menuItem")
-      Button {
-        recordTokenBeforeStructured = prayerRecord.lastRecordToken
-        showStructuredPrayer = true
-      } label: {
-        Label("prayer.guided.title", systemImage: "hands.sparkles")
-      }
-      .accessibilityIdentifier("prayer.guided.menuItem")
+  private func prayerTrigger(label: some View) -> some View {
+    Button {
+      withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showPrayerChoices.toggle() }
     } label: {
       label
     }
     .accessibilityIdentifier("home.prayButton")
     .accessibilityLabel(String(localized: "home.pray.cta"))
+    .onGeometryChange(for: CGRect.self) {
+      $0.frame(in: .named(prayerCoordinateSpace))
+    } action: {
+      prayerTriggerFrame = $0
+    }
+    .opacity(showPrayerChoices ? 0 : 1)
+    .accessibilityHidden(showPrayerChoices)
+    .overlay(alignment: .bottom) {
+      if showPrayerChoices {
+        prayerChoices
+          .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .bottom)))
+          .zIndex(1)
+      }
+    }
+  }
+
+  private var prayerChoices: some View {
+    VStack(spacing: 4) {
+      prayerChoice(
+        "prayer.free.title",
+        systemImage: "square.and.pencil",
+        mode: .free
+      )
+      Divider()
+      prayerChoice(
+        "prayer.guided.title",
+        systemImage: "hands.sparkles",
+        mode: .guided
+      )
+    }
+    .padding(8)
+    .frame(width: 240)
+    .appGlassEffect(.regular, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    .onGeometryChange(for: CGRect.self) {
+      $0.frame(in: .named(prayerCoordinateSpace))
+    } action: {
+      prayerChoicesFrame = $0
+    }
+  }
+
+  private var dismissPrayerChoicesGesture: some Gesture {
+    SpatialTapGesture(coordinateSpace: .named(prayerCoordinateSpace))
+      .onEnded { event in
+        guard showPrayerChoices,
+          !prayerTriggerFrame.contains(event.location),
+          !prayerChoicesFrame.contains(event.location)
+        else { return }
+
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+          showPrayerChoices = false
+        }
+      }
+  }
+
+  private func prayerChoice(
+    _ titleKey: LocalizedStringKey,
+    systemImage: String,
+    mode: DuoPrayerMode
+  ) -> some View {
+    Button {
+      withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) { showPrayerChoices = false }
+      present(mode)
+    } label: {
+      Label(titleKey, systemImage: systemImage)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .foregroundStyle(AppTheme.textPrimary)
+    .accessibilityIdentifier(mode.accessibilityIdentifier)
+  }
+
+  private var emotionRibbon: some View {
+    EmotionRibbonView(selectedEmotion: selectedEmotion) { select($0) }
+      .appPopoverTip(emotionsTip, isPresented: $emotionsTipPresented, arrowEdge: .top)
+      .onChange(of: emotionsTipPresented) { wasShown, isShown in
+        if wasShown, !isShown { Task { await TourEvents.emotionsDone.donate() } }
+      }
+  }
+
+  // Emplacement réservé : hauteur fixe et verset ancré en haut, pour que la révélation mot à mot
+  // s'écrive « vers le bas » sans décaler les autres éléments.
+  private var verseSlot: some View {
+    ZStack(alignment: .top) {
+      if let emotionVerse {
+        EmotionVerseView(
+          verse: emotionVerse,
+          accent: selectedEmotion?.color ?? AppTheme.adorationPurple
+        )
+        .transition(.opacity)
+      }
+    }
+    .frame(maxWidth: .infinity, minHeight: verseSlotHeight, alignment: .top)
+  }
+
+  // Sur Duo, le verset est centré dans son propre panneau : conserver le créneau compact de 168 pt
+  // ici créerait un vide visuel sous l'état d'attente.
+  private var duoVerseContent: some View {
+    Group {
+      if let emotionVerse {
+        EmotionVerseView(
+          verse: emotionVerse,
+          accent: selectedEmotion?.color ?? AppTheme.adorationPurple
+        )
+        .transition(.opacity)
+      }
+    }
+    .frame(maxWidth: .infinity)
   }
 
   private func prayButtonLabel(verticalPadding: CGFloat) -> some View {
@@ -293,6 +418,17 @@ struct ContentView: View {
     }
     // L'utilisateur a découvert le geste : on retire le tip Émotions (le suivant s'enchaîne).
     emotionsTip.invalidate(reason: .actionPerformed)
+  }
+
+  private func present(_ mode: DuoPrayerMode) {
+    switch mode {
+    case .free:
+      recordTokenBeforeFree = prayerRecord.lastRecordToken
+      showFreePrayer = true
+    case .guided:
+      recordTokenBeforeStructured = prayerRecord.lastRecordToken
+      showStructuredPrayer = true
+    }
   }
 
   // Enregistre la prière libre saisie dans `FreePrayerSheet`. La sollicitation de don éventuelle est
@@ -355,6 +491,210 @@ struct ContentView: View {
       return String(localized: "home.feeling.question")
     }
     return String(format: String(localized: "home.feeling.question.named"), userName)
+  }
+}
+
+private enum DuoPrayerMode {
+  case free
+  case guided
+
+  var accessibilityIdentifier: String {
+    switch self {
+    case .free: "prayer.free.menuItem"
+    case .guided: "prayer.guided.menuItem"
+    }
+  }
+}
+
+// MARK: - iPhone Duo composition
+
+private struct DuoPrayerComposer<EmotionContent: View, PrayerContent: View, VerseContent: View>:
+  View
+{
+  let question: String
+  let activeIntention: String?
+  let activeIntentionCount: Int
+  let hasVerse: Bool
+  private let onShowIntentions: () -> Void
+  private let emotionContent: EmotionContent
+  private let prayerContent: PrayerContent
+  private let verseContent: VerseContent
+
+  init(
+    question: String,
+    activeIntention: String?,
+    activeIntentionCount: Int,
+    hasVerse: Bool,
+    onShowIntentions: @escaping () -> Void,
+    @ViewBuilder emotionContent: () -> EmotionContent,
+    @ViewBuilder prayerContent: () -> PrayerContent,
+    @ViewBuilder verseContent: () -> VerseContent
+  ) {
+    self.question = question
+    self.activeIntention = activeIntention
+    self.activeIntentionCount = activeIntentionCount
+    self.hasVerse = hasVerse
+    self.onShowIntentions = onShowIntentions
+    self.emotionContent = emotionContent()
+    self.prayerContent = prayerContent()
+    self.verseContent = verseContent()
+  }
+
+  var body: some View {
+    GeometryReader { proxy in
+      ScrollView {
+        HStack(alignment: .center, spacing: 28) {
+          DuoPrayerActionPane(
+            question: question,
+            activeIntention: activeIntention,
+            activeIntentionCount: activeIntentionCount,
+            onShowIntentions: onShowIntentions,
+            emotionContent: { emotionContent },
+            prayerContent: { prayerContent }
+          )
+          DuoPrayerVersePane(hasVerse: hasVerse) { verseContent }
+        }
+        .frame(maxWidth: 1_180)
+        .padding(.horizontal, 40)
+        .padding(.vertical, 28)
+        .frame(minHeight: proxy.size.height, alignment: .center)
+        .frame(maxWidth: .infinity)
+      }
+      .scrollIndicators(.hidden)
+    }
+  }
+}
+
+private struct DuoPrayerActionPane<EmotionContent: View, PrayerContent: View>: View {
+  let question: String
+  let activeIntention: String?
+  let activeIntentionCount: Int
+  private let onShowIntentions: () -> Void
+  private let emotionContent: EmotionContent
+  private let prayerContent: PrayerContent
+
+  init(
+    question: String,
+    activeIntention: String?,
+    activeIntentionCount: Int,
+    onShowIntentions: @escaping () -> Void,
+    @ViewBuilder emotionContent: () -> EmotionContent,
+    @ViewBuilder prayerContent: () -> PrayerContent
+  ) {
+    self.question = question
+    self.activeIntention = activeIntention
+    self.activeIntentionCount = activeIntentionCount
+    self.onShowIntentions = onShowIntentions
+    self.emotionContent = emotionContent()
+    self.prayerContent = prayerContent()
+  }
+
+  var body: some View {
+    VStack(spacing: 32) {
+      Text(question)
+        .font(.system(.title2, design: .serif).weight(.semibold))
+        .foregroundStyle(AppTheme.textPrimary)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+
+      emotionContent
+        .frame(maxWidth: .infinity)
+
+      prayerContent
+        .padding(.top, 4)
+
+      if let activeIntention {
+        DuoActiveIntentionCard(
+          intention: activeIntention,
+          count: activeIntentionCount,
+          onOpen: onShowIntentions
+        )
+      }
+    }
+    .padding(32)
+    .frame(maxWidth: .infinity, minHeight: 360, alignment: .center)
+    .appGlassEffect(.regular, in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+  }
+}
+
+private struct DuoActiveIntentionCard: View {
+  let intention: String
+  let count: Int
+  let onOpen: () -> Void
+
+  var body: some View {
+    Button(action: onOpen) {
+      HStack(spacing: 12) {
+        Image(systemName: "heart.text.square")
+          .font(.title3)
+          .foregroundStyle(AppTheme.supplicationGreen)
+
+        VStack(alignment: .leading, spacing: 3) {
+          Text("intentions.section.active")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(AppTheme.textSecondary)
+          Text(intention)
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.textPrimary)
+            .lineLimit(2)
+            .multilineTextAlignment(.leading)
+        }
+
+        Spacer(minLength: 8)
+
+        if count > 1 {
+          Text("\(count)")
+            .font(.caption.weight(.bold))
+            .foregroundStyle(AppTheme.textSecondary)
+            .frame(minWidth: 28, minHeight: 28)
+            .background(AppTheme.supplicationGreen.opacity(0.14), in: .circle)
+        }
+
+        Image(systemName: "chevron.forward")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(AppTheme.textTertiary)
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .padding(14)
+      .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .appGlassEffect(
+      .clear, tint: AppTheme.supplicationGreen.opacity(0.08),
+      interactive: true, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+  }
+}
+
+private struct DuoPrayerVersePane<Content: View>: View {
+  let hasVerse: Bool
+  private let content: Content
+
+  init(hasVerse: Bool, @ViewBuilder content: () -> Content) {
+    self.hasVerse = hasVerse
+    self.content = content()
+  }
+
+  var body: some View {
+    Group {
+      if !hasVerse {
+        VStack(spacing: 12) {
+          Image(systemName: "sparkles")
+            .font(.title2)
+            .foregroundStyle(AppTheme.textTertiary)
+            .accessibilityHidden(true)
+          Text("tour.emotions.message")
+            .font(.subheadline)
+            .foregroundStyle(AppTheme.textSecondary)
+            .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 40)
+      } else {
+        content
+      }
+    }
+    .padding(32)
+    .frame(maxWidth: .infinity, minHeight: 360, alignment: .center)
+    .appGlassEffect(.clear, in: RoundedRectangle(cornerRadius: 32, style: .continuous))
   }
 }
 

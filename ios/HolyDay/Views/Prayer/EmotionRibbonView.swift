@@ -11,6 +11,7 @@ import SwiftUI
 /// l'épaisseur. Défilement ambiant uniquement : un tap sélectionne une émotion (pas de glissement
 /// manuel). Respecte « Réduire les animations » en repliant sur des rangées scrollables statiques.
 struct EmotionRibbonView: View {
+  var selectedEmotion: Emotion?
   var onSelect: (Emotion) -> Void
 
   @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -74,11 +75,13 @@ struct EmotionRibbonView: View {
         MarqueeRow(
           emotions: rows[0], direction: .leftward, speed: speeds[0],
           spacing: spacing, rowHeight: rowHeight,
-          date: context.date, startDate: startDate, onSelect: onSelect)
+          date: context.date, startDate: startDate,
+          selectedEmotion: selectedEmotion, onSelect: onSelect)
         MarqueeRow(
           emotions: rows[1], direction: .rightward, speed: speeds[1],
           spacing: spacing, rowHeight: rowHeight,
-          date: context.date, startDate: startDate, onSelect: onSelect)
+          date: context.date, startDate: startDate,
+          selectedEmotion: selectedEmotion, onSelect: onSelect)
       }
     }
   }
@@ -90,7 +93,9 @@ struct EmotionRibbonView: View {
       ForEach(rows.indices, id: \.self) { index in
         ScrollView(.horizontal) {
           HStack(spacing: spacing) {
-            ForEach(rows[index]) { EmotionBubble(emotion: $0, onSelect: onSelect) }
+            ForEach(rows[index]) {
+              EmotionBubble(emotion: $0, isSelected: $0 == selectedEmotion, onSelect: onSelect)
+            }
           }
           // Aligne la première/dernière bulle au repos sur la fin du fondu de bord.
           .padding(.horizontal, edgeFade)
@@ -138,6 +143,7 @@ private struct MarqueeRow: View {
   let rowHeight: CGFloat
   let date: Date
   let startDate: Date
+  let selectedEmotion: Emotion?
   let onSelect: (Emotion) -> Void
 
   @State private var contentWidth: CGFloat = 0
@@ -156,7 +162,7 @@ private struct MarqueeRow: View {
             .onGeometryChange(for: CGFloat.self) {
               $0.size.width
             } action: { width in
-              guard width > 0, contentWidth == 0 else { return }
+              guard width > 0, abs(contentWidth - width) > 0.5 else { return }
               contentWidth = width
             }
           row
@@ -170,7 +176,9 @@ private struct MarqueeRow: View {
 
   private var row: some View {
     HStack(spacing: spacing) {
-      ForEach(emotions) { EmotionBubble(emotion: $0, onSelect: onSelect) }
+      ForEach(emotions) {
+        EmotionBubble(emotion: $0, isSelected: $0 == selectedEmotion, onSelect: onSelect)
+      }
     }
   }
 
@@ -200,6 +208,7 @@ private struct MarqueeRow: View {
 /// l'émotion ; le tap déclenche la sélection.
 private struct EmotionBubble: View {
   let emotion: Emotion
+  let isSelected: Bool
   let onSelect: (Emotion) -> Void
 
   var body: some View {
@@ -209,25 +218,42 @@ private struct EmotionBubble: View {
       HStack(spacing: 7) {
         Image(systemName: emotion.icon)
           .font(.footnote.weight(.semibold))
-          .foregroundStyle(emotion.pastel)
+          .foregroundStyle(isSelected ? emotion.color : emotion.pastel)
         Text(emotion.titleKey)
-          .font(.subheadline.weight(.medium))
+          .font(.subheadline.weight(isSelected ? .semibold : .medium))
           .foregroundStyle(AppTheme.textPrimary)
+        if isSelected {
+          Image(systemName: "checkmark")
+            .font(.caption.weight(.bold))
+            .foregroundStyle(emotion.color)
+            .accessibilityHidden(true)
+        }
       }
       .padding(.horizontal, 16)
       .padding(.vertical, 12)
       .contentShape(Capsule())
     }
     .buttonStyle(.plain)
-    .appGlassEffect(.clear, tint: emotion.pastel.opacity(0.28), interactive: true, in: .capsule)
+    .appGlassEffect(
+      .clear,
+      tint: emotion.pastel.opacity(isSelected ? 0.52 : 0.28),
+      interactive: true,
+      in: .capsule
+    )
+    .overlay {
+      Capsule()
+        .stroke(emotion.color.opacity(isSelected ? 0.9 : 0), lineWidth: 1.5)
+    }
+    .animation(.easeInOut(duration: 0.2), value: isSelected)
     .accessibilityLabel(emotion.accessibilityLabel)
+    .accessibilityAddTraits(isSelected ? .isSelected : [])
   }
 }
 
 #Preview {
   ZStack {
     AppBackground()
-    EmotionRibbonView { _ in }
+    EmotionRibbonView(selectedEmotion: .peace) { _ in }
   }
   .preferredColorScheme(.dark)
 }
