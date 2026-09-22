@@ -833,8 +833,9 @@ struct JournalEntryRow: View {
 // MARK: Prayer deck
 
 /// Pile de prières d'un même type (guidées ou libres) pour un jour donné. Repliée, elle montre la
-/// carte la plus récente avec quelques cartes qui dépassent derrière (effet « deck ») ; un tap la
-/// déplie en liste complète. Conserve l'action de suppression sur chaque carte dépliée.
+/// carte la plus récente avec quelques cartes qui dépassent derrière (effet « deck »). La carte
+/// ouvre la prière et seule la flèche déplie la liste complète. Conserve l'action de suppression
+/// sur chaque carte dépliée.
 struct JournalPrayerDeck: View {
   let titleKey: LocalizedStringKey
   let systemImage: String
@@ -866,42 +867,40 @@ struct JournalPrayerDeck: View {
   }
 
   private var header: some View {
-    Button {
-      isExpanded.toggle()
-    } label: {
-      HStack(spacing: 10) {
-        Image(systemName: systemImage)
-          .font(.subheadline.weight(.semibold))
-          .foregroundStyle(accent)
-          .frame(width: 28, height: 28)
-          .background(accent.opacity(0.15), in: .circle)
-        Text(titleKey)
-          .font(.caption.weight(.semibold))
-          .foregroundStyle(AppTheme.textTertiary)
-          .textCase(.uppercase)
-          .tracking(1.0)
-        Text("\(entries.count)")
-          .font(.caption2.weight(.bold))
-          .foregroundStyle(AppTheme.textPrimary)
-          .padding(.horizontal, 7)
-          .padding(.vertical, 2)
-          .background(Capsule().fill(accent.opacity(0.25)))
-        Spacer()
+    HStack(spacing: 10) {
+      Image(systemName: systemImage)
+        .font(.subheadline.weight(.semibold))
+        .foregroundStyle(accent)
+        .frame(width: 28, height: 28)
+        .background(accent.opacity(0.15), in: .circle)
+      Text(titleKey)
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(AppTheme.textTertiary)
+        .textCase(.uppercase)
+        .tracking(1.0)
+      Text("\(entries.count)")
+        .font(.caption2.weight(.bold))
+        .foregroundStyle(AppTheme.textPrimary)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 2)
+        .background(Capsule().fill(accent.opacity(0.25)))
+      Spacer()
+      Button {
+        isExpanded.toggle()
+      } label: {
         Image(systemName: "chevron.down")
           .font(.caption.weight(.semibold))
           .foregroundStyle(AppTheme.textTertiary)
           .rotationEffect(.degrees(isExpanded ? 180 : 0))
+          .frame(width: 44, height: 44)
+          .contentShape(.rect)
       }
-      .contentShape(.rect)
+      .buttonStyle(.plain)
+      .accessibilityLabel(
+        Text(isExpanded ? "journal.deck.collapse" : "journal.deck.expand")
+      )
+      .accessibilityValue(Text(titleKey))
     }
-    .buttonStyle(.plain)
-    .accessibilityElement(children: .ignore)
-    .accessibilityLabel(Text(titleKey))
-    .accessibilityValue(Text("\(entries.count)"))
-    .accessibilityHint(
-      Text(isExpanded ? "journal.deck.collapse" : "journal.deck.expand")
-    )
-    .accessibilityAddTraits(.isButton)
   }
 
   // Repliée : la carte de tête (vraie ligne lisible) porte en `background` les cartes du fond, qui
@@ -910,8 +909,8 @@ struct JournalPrayerDeck: View {
   @ViewBuilder
   private var collapsedDeck: some View {
     if let top = entries.first {
-      Button {
-        isExpanded = true
+      NavigationLink {
+        PrayerEntryDetailView(entry: top)
       } label: {
         JournalEntryRow(entry: top)
           .background(alignment: .top) { peekCards }
