@@ -65,6 +65,7 @@ Pas de `app/src/androidTest/` : aucun test instrumenté à ce jour.
 
 | Lane | Effet |
 |---|---|
+| `beta_internal` | Distribue le build TestFlight courant au groupe interne `HolyDay first` |
 | `beta_external` | Distribue le build TestFlight courant aux testeurs externes + Beta App Review |
 | `release` | Promeut vers l'App Store le dernier build TestFlight de la version courante |
 | `update_testflight_notes` | Met à jour le « ce qu'il faut tester » du dernier build TestFlight |

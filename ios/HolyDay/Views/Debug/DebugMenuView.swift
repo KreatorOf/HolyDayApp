@@ -110,7 +110,7 @@
 
     private var seedSection: some View {
       Section("Données de démo") {
-        actionRow("Générer 14 jours de prières", systemName: "wand.and.stars") {
+        actionRow("Générer 30 jours de prières", systemName: "wand.and.stars") {
           DebugActions.seedDemoPrayers(in: context)
           flash("Données de démo créées")
         }
@@ -183,7 +183,10 @@
 
   #Preview {
     NavigationStack { DebugMenuView() }
-      .modelContainer(for: [PrayerEntry.self, PrayerIntention.self], inMemory: true)
+      .modelContainer(
+        for: [PrayerEntry.self, PrayerIntention.self, IntentionUpdate.self, SavedVerse.self],
+        inMemory: true
+      )
   }
 
 #endif

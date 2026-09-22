@@ -27,6 +27,7 @@ struct SettingsView: View {
   @State private var rateFeedbackToken = false
   @State private var buildEnvironment = BuildEnvironment.shared
   @State private var showWhatsNewReplayConfirmation = false
+  @State private var showDemoDataConfirmation = false
   @State private var resetFeedbackToken = false
   // Date de la toute première prière (min PrayerEntry.date) ; nil tant qu'aucune prière n'existe.
   @State private var firstPrayerDate: Date?
@@ -351,10 +352,8 @@ struct SettingsView: View {
 
   // MARK: Bêta
 
-  // Visible uniquement sur une installation TestFlight. `debugSection` est sous `#if DEBUG` et
-  // n'existe donc pas dans le binaire que reçoivent les testeurs : sans cette section, l'écran de
-  // nouveautés — qui ne s'affiche qu'une fois par version — était intestable après le premier
-  // lancement.
+  // Visible uniquement sur une installation TestFlight afin d'exposer aux testeurs des outils
+  // limités sans les rendre accessibles dans la version publique de l'App Store.
   private var betaSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       sectionLabel(String(localized: "settings.beta.section"))
@@ -382,6 +381,33 @@ struct SettingsView: View {
           .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+
+        cardDivider
+
+        Button {
+          SeedService.seedDemoData(in: modelContext)
+          loadFirstPrayerDate()
+          showDemoDataConfirmation = true
+        } label: {
+          HStack(spacing: 14) {
+            iconBadge(systemName: "wand.and.stars", color: AppTheme.adorationPurple)
+            VStack(alignment: .leading, spacing: 2) {
+              Text("settings.beta.demoData")
+                .font(.body)
+                .foregroundStyle(AppTheme.textPrimary)
+              Text("settings.beta.demoData.subtitle")
+                .font(.caption)
+                .foregroundStyle(AppTheme.textSecondary)
+            }
+            Spacer()
+            Image(systemName: "plus.circle")
+              .font(.caption.weight(.semibold))
+              .foregroundStyle(AppTheme.textTertiary)
+          }
+          .padding(16)
+          .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
       }
     }
     .alert(
@@ -391,6 +417,11 @@ struct SettingsView: View {
       Button("common.close", role: .cancel) {}
     } message: {
       Text("settings.beta.replayWhatsNew.done.message")
+    }
+    .alert("settings.beta.demoData.done", isPresented: $showDemoDataConfirmation) {
+      Button("common.close", role: .cancel) {}
+    } message: {
+      Text("settings.beta.demoData.done.message")
     }
   }
 

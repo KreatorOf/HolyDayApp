@@ -4,6 +4,18 @@ Cette table ne mappe que les **noms** de clés : quelques valeurs divergent volo
 
 | Catalogue | Clé iOS (.xcstrings) | Nom ressource Android |
 |---|---|---|
+| ios-beta | `demo.intention.family` | — |
+| ios-beta | `demo.intention.family.update` | — |
+| ios-beta | `demo.intention.peace` | — |
+| ios-beta | `demo.intention.wisdom` | — |
+| ios-beta | `demo.prayer.free.gratitude` | — |
+| ios-beta | `demo.prayer.free.peace` | — |
+| ios-beta | `demo.prayer.guided.faithfulness` | — |
+| ios-beta | `demo.prayer.guided.lovedOnes` | — |
+| ios-beta | `settings.beta.demoData` | — |
+| ios-beta | `settings.beta.demoData.done` | — |
+| ios-beta | `settings.beta.demoData.done.message` | — |
+| ios-beta | `settings.beta.demoData.subtitle` | — |
 | app | `accessibility.reflection.hint.hide` | `accessibility_reflection_hint_hide` |
 | app | `accessibility.reflection.hint.show` | `accessibility_reflection_hint_show` |
 | app | `accessibility.reflection.toggle` | `accessibility_reflection_toggle` |

@@ -20,6 +20,7 @@ platform :ios do
   #  plus qu'à ce qu'Xcode Cloud ne sait pas faire — la fiche App Store et la review.
   #
   #    fastlane beta_external        distribue le build TestFlight courant en beta externe
+  #    fastlane beta_internal        rattache le build courant au groupe interne HolyDay first
   #    fastlane release              promeut ce même build vers l'App Store
   #    fastlane update_testflight_notes  corrige le « ce qu'il faut tester »
   #    fastlane screenshots          captures d'écran App Store
@@ -27,6 +28,25 @@ platform :ios do
   #  Le point important : on soumet exactement le binaire qui est passé par TestFlight,
   #  jamais un jumeau reconstruit après la recette.
   # =====================================================================================
+
+  desc "Distribue le dernier build TestFlight au groupe interne HolyDay first"
+  lane :beta_internal do
+    key = asc_api_key
+    build = current_testflight_build(key)
+
+    upload_to_testflight(
+      api_key: key,
+      app_identifier: APP_ID,
+      app_version: current_version,
+      build_number: build.to_s,
+      distribute_only: true,
+      distribute_external: false,
+      groups: ["HolyDay first"],
+      changelog: testflight_notes_text
+    )
+
+    UI.success("Build #{build} distribué au groupe interne HolyDay first.")
+  end
 
   desc "Distribue le dernier build TestFlight aux testeurs externes (passe par la Beta App Review)"
   lane :beta_external do
